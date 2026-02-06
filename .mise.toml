@@ -1,0 +1,14 @@
+[tools]
+uv = "0.10.0"
+
+[tasks.test]
+description = "Run all tests"
+depends = ["test:unit", "test:bdd"]
+
+[tasks."test:unit"]
+description = "Run MoonBit unit tests"
+run = "moon test"
+
+[tasks."test:bdd"]
+description = "Run BDD tests with behave"
+run = "uv run behave"

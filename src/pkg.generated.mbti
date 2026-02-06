@@ -1,0 +1,343 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonrockz/gherkin"
+
+// Values
+pub fn parse(String, uri? : String) -> GherkinDocument raise ParseError
+
+pub fn parse_with_handler(String, &GherkinHandler, uri? : String) -> Unit raise ParseError
+
+// Errors
+pub suberror ParseError {
+  UnexpectedToken(message~ : String, location~ : Location)
+  UnexpectedEof(message~ : String, location~ : Location)
+  InconsistentTableCells(message~ : String, location~ : Location)
+  CompositeError(errors~ : Array[ParseError])
+}
+
+// Types and methods
+pub struct Background {
+  location : Location
+  keyword : String
+  name : String
+  description : String
+  id : String
+  steps : Array[Step]
+}
+pub fn Background::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for Background
+pub impl Show for Background
+
+pub struct BackgroundEvent {
+  location : Location
+  keyword : String
+  name : String
+  description : String
+}
+pub impl Eq for BackgroundEvent
+pub impl Show for BackgroundEvent
+
+pub struct Comment {
+  location : Location
+  text : String
+}
+pub fn Comment::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for Comment
+pub impl Show for Comment
+
+pub struct CommentEvent {
+  location : Location
+  text : String
+}
+pub impl Eq for CommentEvent
+pub impl Show for CommentEvent
+
+pub struct DataTable {
+  location : Location
+  rows : Array[TableRow]
+}
+pub fn DataTable::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for DataTable
+pub impl Show for DataTable
+
+pub struct DataTableEvent {
+  location : Location
+  rows : Array[TableRow]
+}
+pub impl Eq for DataTableEvent
+pub impl Show for DataTableEvent
+
+pub struct DocString {
+  location : Location
+  media_type : String?
+  content : String
+  delimiter : String
+}
+pub fn DocString::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for DocString
+pub impl Show for DocString
+
+pub struct DocStringEvent {
+  location : Location
+  media_type : String?
+  content : String
+  delimiter : String
+}
+pub impl Eq for DocStringEvent
+pub impl Show for DocStringEvent
+
+pub struct Examples {
+  location : Location
+  tags : Array[Tag]
+  keyword : String
+  name : String
+  description : String
+  id : String
+  table_header : TableRow?
+  table_body : Array[TableRow]
+}
+pub fn Examples::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for Examples
+pub impl Show for Examples
+
+pub struct ExamplesEvent {
+  location : Location
+  tags : Array[Tag]
+  keyword : String
+  name : String
+  description : String
+  table_header : TableRow?
+  table_body : Array[TableRow]
+}
+pub impl Eq for ExamplesEvent
+pub impl Show for ExamplesEvent
+
+pub struct Feature {
+  location : Location
+  tags : Array[Tag]
+  language : String
+  keyword : String
+  name : String
+  description : String
+  children : Array[FeatureChild]
+}
+pub fn Feature::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for Feature
+pub impl Show for Feature
+
+pub enum FeatureChild {
+  Background(Background)
+  Scenario(Scenario)
+  Rule(Rule)
+}
+pub impl Eq for FeatureChild
+pub impl Show for FeatureChild
+
+pub struct FeatureEvent {
+  location : Location
+  tags : Array[Tag]
+  language : String
+  keyword : String
+  name : String
+  description : String
+}
+pub impl Eq for FeatureEvent
+pub impl Show for FeatureEvent
+
+pub struct GherkinDocument {
+  uri : String?
+  feature : Feature?
+  comments : Array[Comment]
+}
+pub fn GherkinDocument::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for GherkinDocument
+pub impl Show for GherkinDocument
+
+pub enum GherkinEvent {
+  DocumentStart
+  DocumentEnd
+  FeatureStart(FeatureEvent)
+  FeatureEnd
+  RuleStart(RuleEvent)
+  RuleEnd
+  BackgroundStart(BackgroundEvent)
+  BackgroundEnd
+  ScenarioStart(ScenarioEvent)
+  ScenarioEnd
+  Step(StepEvent)
+  DocString(DocStringEvent)
+  DataTable(DataTableEvent)
+  Examples(ExamplesEvent)
+  Tag(TagEvent)
+  Comment(CommentEvent)
+}
+pub impl Eq for GherkinEvent
+pub impl Show for GherkinEvent
+
+pub enum KeywordType {
+  Context
+  Action
+  Outcome
+  Conjunction
+  Unknown
+}
+pub impl Eq for KeywordType
+pub impl Show for KeywordType
+
+pub(all) struct Location {
+  line : Int
+  column : Int?
+}
+pub impl Eq for Location
+pub impl Show for Location
+
+pub struct Rule {
+  location : Location
+  tags : Array[Tag]
+  keyword : String
+  name : String
+  description : String
+  id : String
+  children : Array[RuleChild]
+}
+pub fn Rule::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for Rule
+pub impl Show for Rule
+
+pub enum RuleChild {
+  Background(Background)
+  Scenario(Scenario)
+}
+pub impl Eq for RuleChild
+pub impl Show for RuleChild
+
+pub struct RuleEvent {
+  location : Location
+  tags : Array[Tag]
+  keyword : String
+  name : String
+  description : String
+}
+pub impl Eq for RuleEvent
+pub impl Show for RuleEvent
+
+pub struct Scenario {
+  location : Location
+  tags : Array[Tag]
+  keyword : String
+  name : String
+  description : String
+  id : String
+  steps : Array[Step]
+  examples : Array[Examples]
+}
+pub fn Scenario::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for Scenario
+pub impl Show for Scenario
+
+pub struct ScenarioEvent {
+  location : Location
+  tags : Array[Tag]
+  keyword : String
+  name : String
+  description : String
+}
+pub impl Eq for ScenarioEvent
+pub impl Show for ScenarioEvent
+
+pub struct Step {
+  location : Location
+  keyword : String
+  keyword_type : KeywordType
+  text : String
+  id : String
+  argument : StepArgument?
+}
+pub fn Step::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for Step
+pub impl Show for Step
+
+pub enum StepArgument {
+  DocString(DocString)
+  DataTable(DataTable)
+}
+pub impl Eq for StepArgument
+pub impl Show for StepArgument
+
+pub struct StepEvent {
+  location : Location
+  keyword : String
+  keyword_type : KeywordType
+  text : String
+}
+pub impl Eq for StepEvent
+pub impl Show for StepEvent
+
+pub struct TableCell {
+  location : Location
+  value : String
+}
+pub impl Eq for TableCell
+pub impl Show for TableCell
+
+pub struct TableRow {
+  location : Location
+  id : String
+  cells : Array[TableCell]
+}
+pub fn TableRow::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for TableRow
+pub impl Show for TableRow
+
+pub struct Tag {
+  location : Location
+  name : String
+  id : String
+}
+pub fn Tag::accept(Self, &GherkinVisitor) -> Unit
+pub impl Eq for Tag
+pub impl Show for Tag
+
+pub struct TagEvent {
+  location : Location
+  name : String
+}
+pub impl Eq for TagEvent
+pub impl Show for TagEvent
+
+// Type aliases
+
+// Traits
+pub(open) trait GherkinHandler {
+  on_document(Self) -> Unit = _
+  on_end_document(Self) -> Unit = _
+  on_feature(Self, FeatureEvent) -> Unit = _
+  on_end_feature(Self) -> Unit = _
+  on_rule(Self, RuleEvent) -> Unit = _
+  on_end_rule(Self) -> Unit = _
+  on_background(Self, BackgroundEvent) -> Unit = _
+  on_end_background(Self) -> Unit = _
+  on_scenario(Self, ScenarioEvent) -> Unit = _
+  on_end_scenario(Self) -> Unit = _
+  on_step(Self, StepEvent) -> Unit = _
+  on_examples(Self, ExamplesEvent) -> Unit = _
+  on_tag(Self, TagEvent) -> Unit = _
+  on_comment(Self, CommentEvent) -> Unit = _
+  on_doc_string(Self, DocStringEvent) -> Unit = _
+  on_data_table(Self, DataTableEvent) -> Unit = _
+}
+
+pub(open) trait GherkinVisitor {
+  visit_document(Self, GherkinDocument) -> Unit = _
+  visit_feature(Self, Feature) -> Unit = _
+  visit_rule(Self, Rule) -> Unit = _
+  visit_background(Self, Background) -> Unit = _
+  visit_scenario(Self, Scenario) -> Unit = _
+  visit_step(Self, Step) -> Unit = _
+  visit_doc_string(Self, DocString) -> Unit = _
+  visit_data_table(Self, DataTable) -> Unit = _
+  visit_examples(Self, Examples) -> Unit = _
+  visit_tag(Self, Tag) -> Unit = _
+  visit_comment(Self, Comment) -> Unit = _
+  visit_table_row(Self, TableRow) -> Unit = _
+}
+

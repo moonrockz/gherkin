@@ -1,0 +1,10 @@
+[project]
+name = "gherkin-bdd-tests"
+version = "0.1.0"
+description = "BDD tests for the MoonBit Gherkin parser"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+
+dependencies = [
+    "behave>=1.2.6",
+]

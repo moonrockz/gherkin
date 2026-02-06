@@ -1,0 +1,12 @@
+.DS_Store
+_build/
+target/
+target
+.mooncakes/
+.moonagent/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/

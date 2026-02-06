@@ -1,0 +1,111 @@
+Feature: Parser Error Handling # tests/features/error_handling.feature:1
+  The parser should produce clear errors for invalid input.
+  Scenario: Reject completely invalid input    # tests/features/error_handling.feature:4
+    Given a Gherkin input                      # tests/features/steps/parsing_steps.py:16
+      """
+      This is not valid Gherkin at all.
+      Just some random text.
+      """
+    When I parse the file                      # tests/features/steps/parsing_steps.py:28
+    Then the parser should fail                # tests/features/steps/parsing_steps.py:55
+      ASSERT FAILED: Parser succeeded but was expected to fail
+
+    And the error should mention "parse error" # None
+
+  Scenario: Report missing Feature keyword  # tests/features/error_handling.feature:14
+    Given a Gherkin input                   # tests/features/steps/parsing_steps.py:16
+      """
+      Scenario: Orphan scenario
+        Given something
+      """
+    When I parse the file                   # tests/features/steps/parsing_steps.py:28
+    Then the parser should fail             # tests/features/steps/parsing_steps.py:55
+      ASSERT FAILED: Parser succeeded but was expected to fail
+
+    And the error should mention "Feature"  # None
+
+Feature: Gherkin Parser # tests/features/parsing.feature:1
+  As a developer using the MoonBit Gherkin parser,
+  I want the parser to correctly handle all Gherkin constructs,
+  so that I can build reliable BDD tooling.
+  Scenario: Parse a minimal feature file           # tests/features/parsing.feature:6
+    Given a Gherkin file "minimal.feature"         # tests/features/steps/parsing_steps.py:8
+    When I parse the file                          # tests/features/steps/parsing_steps.py:28
+    Then the parser should succeed                 # tests/features/steps/parsing_steps.py:46
+    And the output should be valid JSON            # tests/features/steps/validation_steps.py:7
+    And the output should contain a "Feature" node # tests/features/steps/validation_steps.py:19
+      ASSERT FAILED: No 'Feature' node found in output
+
+
+  Scenario: Parse a feature with Background           # tests/features/parsing.feature:13
+    Given a Gherkin file "background.feature"         # tests/features/steps/parsing_steps.py:8
+    When I parse the file                             # tests/features/steps/parsing_steps.py:28
+    Then the parser should succeed                    # tests/features/steps/parsing_steps.py:46
+    And the output should contain a "Background" node # tests/features/steps/validation_steps.py:19
+      ASSERT FAILED: Output not parsed as JSON yet
+
+
+  Scenario: Parse a Scenario Outline                       # tests/features/parsing.feature:19
+    Given a Gherkin file "scenario_outline.feature"        # tests/features/steps/parsing_steps.py:8
+    When I parse the file                                  # tests/features/steps/parsing_steps.py:28
+    Then the parser should succeed                         # tests/features/steps/parsing_steps.py:46
+    And the output should contain a "ScenarioOutline" node # tests/features/steps/validation_steps.py:19
+      ASSERT FAILED: Output not parsed as JSON yet
+
+
+  Scenario: Parse tags                             # tests/features/parsing.feature:25
+    Given a Gherkin file "tags.feature"            # tests/features/steps/parsing_steps.py:8
+    When I parse the file                          # tests/features/steps/parsing_steps.py:28
+    Then the parser should succeed                 # tests/features/steps/parsing_steps.py:46
+    And the output should contain keyword "@smoke" # tests/features/steps/validation_steps.py:28
+      ASSERT FAILED: Keyword '@smoke' not found in output:
+      89
+
+
+  Scenario: Parse data tables                        # tests/features/parsing.feature:31
+    Given a Gherkin file "data_tables.feature"       # tests/features/steps/parsing_steps.py:8
+    When I parse the file                            # tests/features/steps/parsing_steps.py:28
+    Then the parser should succeed                   # tests/features/steps/parsing_steps.py:46
+    And the output should contain a "DataTable" node # tests/features/steps/validation_steps.py:19
+      ASSERT FAILED: Output not parsed as JSON yet
+
+
+  Scenario: Parse doc strings                        # tests/features/parsing.feature:37
+    Given a Gherkin file "doc_strings.feature"       # tests/features/steps/parsing_steps.py:8
+    When I parse the file                            # tests/features/steps/parsing_steps.py:28
+    Then the parser should succeed                   # tests/features/steps/parsing_steps.py:46
+    And the output should contain a "DocString" node # tests/features/steps/validation_steps.py:19
+      ASSERT FAILED: Output not parsed as JSON yet
+
+
+  Scenario: Parse comments                         # tests/features/parsing.feature:43
+    Given a Gherkin file "comments.feature"        # tests/features/steps/parsing_steps.py:8
+    When I parse the file                          # tests/features/steps/parsing_steps.py:28
+    Then the parser should succeed                 # tests/features/steps/parsing_steps.py:46
+    And the output should contain a "Comment" node # tests/features/steps/validation_steps.py:19
+      ASSERT FAILED: Output not parsed as JSON yet
+
+
+  Scenario: Parse rules                         # tests/features/parsing.feature:49
+    Given a Gherkin file "rules.feature"        # tests/features/steps/parsing_steps.py:8
+    When I parse the file                       # tests/features/steps/parsing_steps.py:28
+    Then the parser should succeed              # tests/features/steps/parsing_steps.py:46
+    And the output should contain a "Rule" node # tests/features/steps/validation_steps.py:19
+      ASSERT FAILED: Output not parsed as JSON yet
+
+
+  Scenario: Parse inline Gherkin text           # tests/features/parsing.feature:55
+    Given a Gherkin input                       # tests/features/steps/parsing_steps.py:16
+      """
+      Feature: Inline test
+        Scenario: A simple scenario
+          Given something
+          When an action
+          Then a result
+      """
+    When I parse the file                       # tests/features/steps/parsing_steps.py:28
+    Then the parser should succeed              # tests/features/steps/parsing_steps.py:46
+    And the output should contain 1 scenario(s) # tests/features/steps/validation_steps.py:37
+      ASSERT FAILED: Output not parsed as JSON yet
+
+
