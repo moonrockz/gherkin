@@ -2,6 +2,8 @@
 package "moonrockz/gherkin"
 
 // Values
+pub fn[A, N] continuing((A, N) -> A) -> (A, N) -> FoldAction[A]
+
 pub fn parse(String, uri? : String) -> GherkinDocument raise ParseError
 
 pub fn parse_with_handler(String, &GherkinHandler, uri? : String) -> Unit raise ParseError
@@ -143,12 +145,23 @@ pub struct FeatureEvent {
 pub impl Eq for FeatureEvent
 pub impl Show for FeatureEvent
 
+pub enum FoldAction[A] {
+  Continue(A)
+  SkipChildren(A)
+  Stop(A)
+}
+pub fn[A] FoldAction::is_stop(Self[A]) -> Bool
+pub fn[A] FoldAction::value(Self[A]) -> A
+pub impl[A : Eq] Eq for FoldAction[A]
+pub impl[A : Show] Show for FoldAction[A]
+
 pub struct GherkinDocument {
   uri : String?
   feature : Feature?
   comments : Array[Comment]
 }
 pub fn GherkinDocument::accept(Self, &GherkinVisitor) -> Unit
+pub fn[A] GherkinDocument::fold(Self, A, GherkinFold[A]) -> A
 pub impl Eq for GherkinDocument
 pub impl Show for GherkinDocument
 
@@ -172,6 +185,22 @@ pub enum GherkinEvent {
 }
 pub impl Eq for GherkinEvent
 pub impl Show for GherkinEvent
+
+pub(all) struct GherkinFold[A] {
+  visit_document : (A, GherkinDocument) -> FoldAction[A]
+  visit_feature : (A, Feature) -> FoldAction[A]
+  visit_rule : (A, Rule) -> FoldAction[A]
+  visit_background : (A, Background) -> FoldAction[A]
+  visit_scenario : (A, Scenario) -> FoldAction[A]
+  visit_step : (A, Step) -> FoldAction[A]
+  visit_doc_string : (A, DocString) -> FoldAction[A]
+  visit_data_table : (A, DataTable) -> FoldAction[A]
+  visit_examples : (A, Examples) -> FoldAction[A]
+  visit_tag : (A, Tag) -> FoldAction[A]
+  visit_comment : (A, Comment) -> FoldAction[A]
+  visit_table_row : (A, TableRow) -> FoldAction[A]
+}
+pub fn[A] GherkinFold::default() -> Self[A]
 
 pub enum KeywordType {
   Context
