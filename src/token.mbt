@@ -31,14 +31,17 @@ pub enum LexerState {
 ///
 /// This is the core pure function of the lexer. It examines one line at a time,
 /// using the current state to handle doc string regions correctly.
+/// The `language` parameter selects the keyword table for matching Gherkin
+/// keywords (Feature, Scenario, Given, etc.). Defaults to English ("en").
 pub fn classify_line(
   line : String,
   line_num : Int,
   state : LexerState,
+  language~ : String = "en",
 ) -> (Token, LexerState) {
   match state {
     InDocString(delim) => classify_in_docstring(line, line_num, delim)
-    Normal => classify_normal(line, line_num)
+    Normal => classify_normal(line, line_num, get_keywords(language))
   }
 }
 
@@ -77,7 +80,11 @@ fn classify_in_docstring(
 }
 
 ///|
-fn classify_normal(line : String, line_num : Int) -> (Token, LexerState) {
+fn classify_normal(
+  line : String,
+  line_num : Int,
+  keywords : I18nKeywords?,
+) -> (Token, LexerState) {
   let view = line[:]
   lexmatch view {
     // Empty or whitespace-only line
@@ -156,11 +163,27 @@ fn classify_normal(line : String, line_num : Int) -> (Token, LexerState) {
       }
       (Token::DocStringSeparator(loc, "```", media_type), InDocString("```"))
     }
-    // Fallback: keywords and descriptions classified in tokenize pass
-    _ => {
-      let loc : Location = { line: line_num, column: None }
-      (Token::Other(loc, line), Normal)
-    }
+    // Fallback: try keyword matching, then description/other text
+    _ =>
+      match keywords {
+        Some(kw) => {
+          let trimmed = trim_leading_whitespace(line)
+          let leading_len = line.length() - trimmed.length()
+          let col = leading_len + 1
+          let loc : Location = { line: line_num, column: Some(col) }
+          match try_keyword_line(trimmed, kw) {
+            Some(tok) => (set_token_location(tok, loc), Normal)
+            None => {
+              let oloc : Location = { line: line_num, column: None }
+              (Token::Other(oloc, line), Normal)
+            }
+          }
+        }
+        None => {
+          let loc : Location = { line: line_num, column: None }
+          (Token::Other(loc, line), Normal)
+        }
+      }
   }
 }
 
@@ -231,8 +254,7 @@ pub fn tokenize(source : Source) -> Array[Token] {
   for i = 1; i <= source.line_count(); i = i + 1 {
     match source.line(i) {
       Some(line) => {
-        let (tok, next_state) = classify_line(line, i, state)
-        // Detect language directive
+        let (tok, next_state) = classify_line(line, i, state, language=language)
         match tok {
           Language(_, lang) => language = lang
           _ => ()
@@ -245,8 +267,6 @@ pub fn tokenize(source : Source) -> Array[Token] {
   }
   let eof_loc : Location = { line: source.line_count() + 1, column: None }
   tokens.push(Token::Eof(eof_loc))
-  // Classify keyword tokens via the keyword table (all languages including English)
-  classify_keywords(tokens, language)
   tokens
 }
 
@@ -256,12 +276,12 @@ pub struct Lexer {
   priv mut line_num : Int
   priv mut state : LexerState
   priv mut done : Bool
-  priv mut keywords : I18nKeywords?
+  priv mut language : String
 } derive(Show)
 
 ///|
 pub fn Lexer::new(source : Source) -> Lexer {
-  { source, line_num: 1, state: Normal, done: false, keywords: get_keywords("en") }
+  { source, line_num: 1, state: Normal, done: false, language: "en" }
 }
 
 ///|
@@ -270,15 +290,16 @@ pub fn Lexer::next(self : Lexer) -> Token? {
   while self.line_num <= self.source.line_count() {
     match self.source.line(self.line_num) {
       Some(line) => {
-        let (tok, next_state) = classify_line(line, self.line_num, self.state)
+        let (tok, next_state) = classify_line(
+          line, self.line_num, self.state, language=self.language,
+        )
         self.line_num = self.line_num + 1
         self.state = next_state
-        // Update language on Language directive
         match tok {
-          Language(_, lang) => self.keywords = get_keywords(lang)
+          Language(_, lang) => self.language = lang
           _ => ()
         }
-        return Some(self.classify_token(tok))
+        return Some(tok)
       }
       None => self.line_num = self.line_num + 1
     }
@@ -292,28 +313,6 @@ pub fn Lexer::next(self : Lexer) -> Token? {
     return Some(Token::Eof(eof_loc))
   }
   None
-}
-
-///|
-/// Classify a single Other token as a keyword using the current keyword table.
-fn Lexer::classify_token(self : Lexer, tok : Token) -> Token {
-  match tok {
-    Other(loc, text) =>
-      match self.keywords {
-        Some(kw) => {
-          let trimmed = trim_leading_whitespace(text)
-          let leading_len = text.length() - trimmed.length()
-          let col = leading_len + 1
-          let kloc : Location = { line: loc.line, column: Some(col) }
-          match try_keyword_line(trimmed, kw) {
-            Some(t) => set_token_location(t, kloc)
-            None => tok
-          }
-        }
-        None => tok
-      }
-    _ => tok
-  }
 }
 
 ///|
@@ -338,7 +337,7 @@ priv struct I18nKeywords {
   then_ : Array[String]
   and_ : Array[String]
   but_ : Array[String]
-} derive(Show)
+}
 
 ///|
 fn get_keywords(lang : String) -> I18nKeywords? {
@@ -372,30 +371,6 @@ fn get_keywords(lang : String) -> I18nKeywords? {
         but_: ["Mais "],
       })
     _ => None
-  }
-}
-
-///|
-/// Classify Other tokens as keyword tokens using the language keyword table.
-fn classify_keywords(tokens : Array[Token], lang : String) -> Unit {
-  let kw = match get_keywords(lang) {
-    Some(k) => k
-    None => return
-  }
-  for i = 0; i < tokens.length(); i = i + 1 {
-    match tokens[i] {
-      Other(loc, text) => {
-        let trimmed = trim_leading_whitespace(text)
-        let leading_len = text.length() - trimmed.length()
-        let col = leading_len + 1
-        let kloc : Location = { line: loc.line, column: Some(col) }
-        match try_keyword_line(trimmed, kw) {
-          Some(tok) => tokens[i] = set_token_location(tok, kloc)
-          None => ()
-        }
-      }
-      _ => ()
-    }
   }
 }
 

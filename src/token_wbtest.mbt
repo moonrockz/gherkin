@@ -193,12 +193,15 @@ test "classify_line: triple-quote inside backtick docstring is content" {
   inspect(state, content="InDocString(\"```\")")
 }
 
-// ── classify_line: keywords now return Other (classified in tokenize) ──
+// ── classify_line: keyword classification via language parameter ──
 
 ///|
-test "classify_line: keyword lines return Other" {
+test "classify_line: keywords classified with default English" {
   let (tok, _) = classify_line("Feature: Login", 1, Normal)
-  inspect(tok, content="Other({line: 1, column: None}, \"Feature: Login\")")
+  inspect(
+    tok,
+    content="FeatureLine({line: 1, column: Some(1)}, \"Feature\", \"Login\")",
+  )
 }
 
 // ── tokenize: keyword classification ──
