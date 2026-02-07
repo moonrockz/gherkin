@@ -462,3 +462,153 @@ test "parse: rule sections" {
   inspect(s2.name, content="Second rule scenario")
   inspect(s2.steps.length(), content="3")
 }
+
+// ── visitor: accept traversal ──
+
+///|
+/// A recording visitor that tracks visit calls in order.
+struct RecordingVisitor {
+  events : Array[String]
+}
+
+///|
+impl GherkinVisitor for RecordingVisitor with visit_document(_self, _doc) {
+  _self.events.push("document")
+}
+
+///|
+impl GherkinVisitor for RecordingVisitor with visit_feature(_self, f) {
+  _self.events.push("feature:" + f.name)
+}
+
+///|
+impl GherkinVisitor for RecordingVisitor with visit_scenario(_self, s) {
+  _self.events.push("scenario:" + s.name)
+}
+
+///|
+impl GherkinVisitor for RecordingVisitor with visit_step(_self, s) {
+  _self.events.push("step:" + s.text)
+}
+
+///|
+impl GherkinVisitor for RecordingVisitor with visit_tag(_self, t) {
+  _self.events.push("tag:" + t.name)
+}
+
+///|
+impl GherkinVisitor for RecordingVisitor with visit_comment(_self, c) {
+  _self.events.push("comment:" + c.text)
+}
+
+///|
+impl GherkinVisitor for RecordingVisitor with visit_background(_self, bg) {
+  _self.events.push("background:" + bg.name)
+}
+
+///|
+impl GherkinVisitor for RecordingVisitor with visit_rule(_self, r) {
+  _self.events.push("rule:" + r.name)
+}
+
+///|
+impl GherkinVisitor for RecordingVisitor with visit_examples(_self, e) {
+  _self.events.push("examples:" + e.keyword)
+}
+
+///|
+test "accept: visitor dispatches events in document order" {
+  let src = Source::from_string(
+    "# file comment\n@smoke\nFeature: Login\n  Background:\n    Given setup\n  Scenario: Basic\n    Given a user\n    When login\n    Then success\n",
+  )
+  let doc = parse(src)
+  let v : RecordingVisitor = { events: [] }
+  doc.accept(v)
+  inspect(v.events[0], content="document")
+  inspect(v.events[1], content="comment:# file comment")
+  inspect(v.events[2], content="feature:Login")
+  inspect(v.events[3], content="tag:@smoke")
+  inspect(v.events[4], content="background:")
+  inspect(v.events[5], content="step:setup")
+  inspect(v.events[6], content="scenario:Basic")
+  inspect(v.events[7], content="step:a user")
+  inspect(v.events[8], content="step:login")
+  inspect(v.events[9], content="step:success")
+  inspect(v.events.length(), content="10")
+}
+
+// ── fold: accumulation ──
+
+///|
+test "fold: count scenarios" {
+  let src = Source::from_string(
+    "Feature: Multi\n  Scenario: First\n    Given a\n  Scenario: Second\n    When b\n  Scenario: Third\n    Then c\n",
+  )
+  let doc = parse(src)
+  let count = doc.fold(0, {
+    ..GherkinFold::default(),
+    visit_scenario: continuing(fn(n, _s) { n + 1 }),
+  })
+  inspect(count, content="3")
+}
+
+///|
+test "fold: collect step texts" {
+  let src = Source::from_string(
+    "Feature: Steps\n  Scenario: S1\n    Given a\n    When b\n    Then c\n",
+  )
+  let doc = parse(src)
+  let texts : Array[String] = doc.fold([], {
+    ..GherkinFold::default(),
+    visit_step: fn(acc, s) {
+      acc.push(s.text)
+      Continue(acc)
+    },
+  })
+  inspect(texts.length(), content="3")
+  inspect(texts[0], content="a")
+  inspect(texts[1], content="b")
+  inspect(texts[2], content="c")
+}
+
+///|
+test "fold: SkipChildren skips scenario steps" {
+  let src = Source::from_string(
+    "Feature: Skip\n  Scenario: S1\n    Given a\n    When b\n  Scenario: S2\n    Then c\n",
+  )
+  let doc = parse(src)
+  let result : Array[String] = doc.fold([], {
+    ..GherkinFold::default(),
+    visit_scenario: fn(acc, s) {
+      acc.push("scenario:" + s.name)
+      if s.name == "S1" {
+        SkipChildren(acc)
+      } else {
+        Continue(acc)
+      }
+    },
+    visit_step: fn(acc, s) {
+      acc.push("step:" + s.text)
+      Continue(acc)
+    },
+  })
+  // S1's steps should be skipped, S2's step should be included
+  inspect(result.length(), content="3")
+  inspect(result[0], content="scenario:S1")
+  inspect(result[1], content="scenario:S2")
+  inspect(result[2], content="step:c")
+}
+
+///|
+test "fold: Stop halts traversal" {
+  let src = Source::from_string(
+    "Feature: Stop\n  Scenario: S1\n    Given a\n  Scenario: S2\n    When b\n",
+  )
+  let doc = parse(src)
+  let count = doc.fold(0, {
+    ..GherkinFold::default(),
+    visit_scenario: fn(n, _s) { if n >= 1 { Stop(n) } else { Continue(n + 1) } },
+  })
+  // Should stop after first scenario
+  inspect(count, content="1")
+}

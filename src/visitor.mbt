@@ -84,76 +84,120 @@ impl GherkinVisitor with visit_table_row(_self, _r) {
 ///|
 /// Accept a visitor on a GherkinDocument, traversing the entire tree
 /// in depth-first document order.
-#declaration_only
 pub fn GherkinDocument::accept(
   self : GherkinDocument,
   visitor : &GherkinVisitor,
 ) -> Unit {
-  ...
+  visitor.visit_document(self)
+  for c in self.comments {
+    c.accept(visitor)
+  }
+  match self.feature {
+    Some(f) => f.accept(visitor)
+    None => ()
+  }
 }
 
 ///|
-#declaration_only
 pub fn Feature::accept(self : Feature, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_feature(self)
+  for t in self.tags {
+    t.accept(visitor)
+  }
+  for child in self.children {
+    match child {
+      FeatureChild::Background(bg) => bg.accept(visitor)
+      FeatureChild::Scenario(s) => s.accept(visitor)
+      FeatureChild::Rule(r) => r.accept(visitor)
+    }
+  }
 }
 
 ///|
-#declaration_only
 pub fn Rule::accept(self : Rule, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_rule(self)
+  for t in self.tags {
+    t.accept(visitor)
+  }
+  for child in self.children {
+    match child {
+      RuleChild::Background(bg) => bg.accept(visitor)
+      RuleChild::Scenario(s) => s.accept(visitor)
+    }
+  }
 }
 
 ///|
-#declaration_only
 pub fn Background::accept(self : Background, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_background(self)
+  for s in self.steps {
+    s.accept(visitor)
+  }
 }
 
 ///|
-#declaration_only
 pub fn Scenario::accept(self : Scenario, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_scenario(self)
+  for t in self.tags {
+    t.accept(visitor)
+  }
+  for s in self.steps {
+    s.accept(visitor)
+  }
+  for e in self.examples {
+    e.accept(visitor)
+  }
 }
 
 ///|
-#declaration_only
 pub fn Step::accept(self : Step, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_step(self)
+  match self.argument {
+    Some(StepArgument::DocString(ds)) => ds.accept(visitor)
+    Some(StepArgument::DataTable(dt)) => dt.accept(visitor)
+    None => ()
+  }
 }
 
 ///|
-#declaration_only
 pub fn Examples::accept(self : Examples, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_examples(self)
+  for t in self.tags {
+    t.accept(visitor)
+  }
+  match self.table_header {
+    Some(h) => h.accept(visitor)
+    None => ()
+  }
+  for r in self.table_body {
+    r.accept(visitor)
+  }
 }
 
 ///|
-#declaration_only
 pub fn DataTable::accept(self : DataTable, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_data_table(self)
+  for r in self.rows {
+    r.accept(visitor)
+  }
 }
 
 ///|
-#declaration_only
 pub fn DocString::accept(self : DocString, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_doc_string(self)
 }
 
 ///|
-#declaration_only
 pub fn Tag::accept(self : Tag, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_tag(self)
 }
 
 ///|
-#declaration_only
 pub fn Comment::accept(self : Comment, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_comment(self)
 }
 
 ///|
-#declaration_only
 pub fn TableRow::accept(self : TableRow, visitor : &GherkinVisitor) -> Unit {
-  ...
+  visitor.visit_table_row(self)
 }
