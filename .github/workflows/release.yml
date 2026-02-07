@@ -94,6 +94,11 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Configure git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
       - name: Create and push tag
         run: |
           VERSION="v${{ needs.validate.outputs.version }}"
@@ -112,7 +117,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: v${{ needs.validate.outputs.version }}
           fetch-depth: 0
 
       - uses: hustcer/setup-moonbit@v1
@@ -155,8 +159,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.validate.outputs.version }}
 
       - uses: hustcer/setup-moonbit@v1
 
@@ -186,8 +188,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: v${{ needs.validate.outputs.version }}
 
       - uses: hustcer/setup-moonbit@v1
 
