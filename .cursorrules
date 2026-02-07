@@ -45,6 +45,15 @@ Always use `mise run <task>` -- never raw `moon`, `uv`, or `wasm-tools` commands
 - `mise run release:bump` -- update moon.mod.json version
 - `mise run release:changelog` -- regenerate CHANGELOG.md
 
+## Release Conventions
+
+- Releases go to mooncakes.io (primary) and GitHub Releases (artifacts)
+- Tags and releases are immutable -- never force-push or delete
+- Release tasks: `release:pre-check`, `release:publish`, `release:credentials`
+- Release workflow has 5 phases: validate -> tag -> publish -> build -> release
+- Mooncakes publish is a HARD GATE before GitHub artifacts are built
+- `mise run release:pre-check` validates readiness before release
+
 ## Design Philosophy
 
 This is a functional programming project. See `AGENTS.md` for:

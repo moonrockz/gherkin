@@ -1,0 +1,178 @@
+#!/usr/bin/env python3
+"""Release retrospective report generator for moonrockz/gherkin.
+
+Generates a markdown report analyzing a release cycle:
+- Release timeline
+- Commit summary by type
+- Contributors
+- Artifact inventory
+- Changelog excerpt
+"""
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from datetime import datetime
+
+
+def run(cmd: list[str]) -> subprocess.CompletedProcess:
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=30)
+
+
+def get_previous_tag(tag: str) -> str | None:
+    """Get the tag immediately before the given tag."""
+    result = run(["git", "tag", "--sort=-creatordate", "--list"])
+    if result.returncode != 0:
+        return None
+    tags = [t.strip() for t in result.stdout.strip().splitlines() if t.strip()]
+    try:
+        idx = tags.index(tag)
+        if idx + 1 < len(tags):
+            return tags[idx + 1]
+    except ValueError:
+        pass
+    return None
+
+
+def release_timeline(tag: str) -> str:
+    lines = []
+    result = run(["git", "log", "-1", "--format=%ci", tag])
+    if result.returncode == 0:
+        lines.append(f"- **Tag created:** {result.stdout.strip()}")
+
+    result = run(["gh", "release", "view", tag, "--json", "createdAt,publishedAt"])
+    if result.returncode == 0:
+        data = json.loads(result.stdout)
+        if data.get("publishedAt"):
+            lines.append(f"- **Release published:** {data['publishedAt']}")
+
+    return "\n".join(lines) if lines else "- Timeline data not available"
+
+
+def commit_summary(tag: str, prev_tag: str | None) -> str:
+    range_spec = f"{prev_tag}..{tag}" if prev_tag else tag
+    result = run(["git", "log", "--oneline", range_spec])
+    if result.returncode != 0:
+        return "Could not retrieve commits"
+
+    commits = result.stdout.strip().splitlines()
+    total = len(commits)
+
+    type_counts: dict[str, int] = {}
+    non_conventional = 0
+    for line in commits:
+        match = re.match(r"^[a-f0-9]+ (\w+)(?:\([^)]*\))?[!]?:", line)
+        if match:
+            ctype = match.group(1)
+            type_counts[ctype] = type_counts.get(ctype, 0) + 1
+        else:
+            non_conventional += 1
+
+    lines = [f"- **Total commits:** {total}"]
+    for ctype, count in sorted(type_counts.items(), key=lambda x: -x[1]):
+        lines.append(f"  - `{ctype}`: {count}")
+    if non_conventional:
+        lines.append(f"  - non-conventional: {non_conventional}")
+
+    return "\n".join(lines)
+
+
+def contributors(tag: str, prev_tag: str | None) -> str:
+    range_spec = f"{prev_tag}..{tag}" if prev_tag else tag
+    result = run(["git", "log", "--format=%aN <%aE>", range_spec])
+    if result.returncode != 0:
+        return "Could not retrieve contributors"
+
+    authors = sorted(set(
+        line.strip() for line in result.stdout.strip().splitlines() if line.strip()
+    ))
+    return "\n".join(f"- {a}" for a in authors) if authors else "- No contributors found"
+
+
+def artifact_inventory(tag: str) -> str:
+    result = run(["gh", "release", "view", tag, "--json", "assets"])
+    if result.returncode != 0:
+        return "Could not retrieve release assets (release may not exist yet)"
+
+    data = json.loads(result.stdout)
+    assets = data.get("assets", [])
+    if not assets:
+        return "- No artifacts found"
+
+    lines = []
+    for asset in sorted(assets, key=lambda a: a["name"]):
+        size_mb = asset.get("size", 0) / (1024 * 1024)
+        downloads = asset.get("downloadCount", 0)
+        lines.append(
+            f"- `{asset['name']}` ({size_mb:.1f} MB, {downloads} downloads)"
+        )
+
+    return "\n".join(lines)
+
+
+def changelog_excerpt(version: str) -> str:
+    result = run(["mise", "run", "release:notes"])
+    if result.returncode == 0 and result.stdout.strip():
+        return result.stdout.strip()
+
+    try:
+        with open("CHANGELOG.md") as f:
+            content = f.read()
+        pattern = rf"## \[{re.escape(version)}\].*?\n(.*?)(?=\n## \[|\Z)"
+        match = re.search(pattern, content, re.DOTALL)
+        if match:
+            return match.group(1).strip()
+    except Exception:
+        pass
+
+    return "No changelog excerpt available"
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Release retrospective report")
+    parser.add_argument(
+        "--version", required=True,
+        help="Version to analyze (e.g., 0.2.0)"
+    )
+    args = parser.parse_args()
+
+    tag = f"v{args.version}"
+    prev_tag = get_previous_tag(tag)
+
+    report = f"""# Release Retrospective: {args.version}
+
+**Generated:** {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+**Tag:** `{tag}`
+**Previous tag:** `{prev_tag or "none (initial release)"}`
+
+## Timeline
+
+{release_timeline(tag)}
+
+## Commit Summary
+
+{commit_summary(tag, prev_tag)}
+
+## Contributors
+
+{contributors(tag, prev_tag)}
+
+## Artifact Inventory
+
+{artifact_inventory(tag)}
+
+## Changelog
+
+{changelog_excerpt(args.version)}
+
+---
+*Generated by release-manager skill*
+"""
+
+    print(report)
+
+
+if __name__ == "__main__":
+    main()

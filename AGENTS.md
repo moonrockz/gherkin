@@ -279,6 +279,10 @@ Run `mise tasks` to list all tasks. Key tasks:
 | `release:changelog`     | Generate CHANGELOG.md                             |
 | `release:notes`         | Generate release notes for latest version         |
 | `release:bump`          | Update moon.mod.json version                      |
+| `release:pre-check`    | Validate release readiness                        |
+| `release:credentials`  | Set up mooncakes.io credentials (CI only)         |
+| `release:publish`      | Publish package to mooncakes.io                   |
+| `release:prepare-assets`| Prepare release assets from build artifacts       |
 
 ### Creating New Tasks
 
@@ -301,6 +305,59 @@ Use subdirectories for namespacing: `mise-tasks/build/native` becomes `build:nat
 - **GitHub workflows** must call `mise run <task>` instead of inline shell
   scripts. If a workflow needs a new operation, create a mise task for it first.
 - The `.mise.toml` file contains only `[tools]` -- no `[tasks]` sections.
+
+## Release Process
+
+This project publishes to **mooncakes.io** (MoonBit package registry) and
+**GitHub Releases**.
+
+### Release Pipeline (5 Phases)
+
+1. **Validate** -- Pre-checks, version computation, release notes generation
+2. **Tag** -- Create immutable git tag `v{version}` (workflow_dispatch only)
+3. **Publish to Mooncakes** -- `moon publish` to mooncakes.io (MUST succeed
+   before artifacts are built)
+4. **Build Artifacts** -- Native binaries (Linux, macOS, Windows) + WASM
+   components
+5. **Create GitHub Release** -- Upload artifacts with release notes
+
+### Immutability Rules
+
+- Tags are **immutable**: never `git tag --force`, never `git push --force` tags
+- GitHub Releases are **immutable**: never delete and recreate
+- If a release has problems, create a new **patch release** (e.g., 0.2.1 to
+  fix 0.2.0)
+
+### How to Release
+
+Releases are triggered by:
+- **Tag push**: Push a tag matching `v*` to trigger the pipeline from Phase 3
+- **workflow_dispatch**: Manually trigger from GitHub Actions (computes version,
+  creates tag, then runs full pipeline)
+
+For manual releases from the CLI:
+```bash
+# 1. Ensure on main, all tests pass
+mise run release:pre-check
+
+# 2. Bump version and changelog
+mise run release:bump
+mise run release:changelog
+
+# 3. Commit and tag
+VERSION=$(mise run release:version)
+git add moon.mod.json CHANGELOG.md
+git commit -m "chore(release): v${VERSION}"
+git tag -a "v${VERSION}" -m "Release v${VERSION}"
+git push origin main --tags
+```
+
+### Mooncakes.io Publishing
+
+- Package published as `moonrockz/gherkin` on mooncakes.io
+- Requires `MOONCAKES_USER_TOKEN` secret in GitHub Actions
+- Credentials stored at `~/.moon/credentials.json`
+- Pre-publish checks: `moon check`, `moon test`, `moon fmt`
 
 ## Tooling
 

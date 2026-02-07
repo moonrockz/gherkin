@@ -43,3 +43,13 @@ GitHub workflows must call `mise run <task>` instead of inline shell blocks.
 - `mise run release:version` computes the next version from commit history
 - `mise run release:bump` updates `moon.mod.json` version to match
 - `mise run release:changelog` regenerates the full changelog
+
+## Release Management
+
+- Use `/release-manager` skill for release tasks
+- Releases publish to **mooncakes.io first**, then GitHub Releases
+- Tags and releases are **immutable** -- never force-push tags or delete releases
+- `mise run release:pre-check` validates readiness before release
+- `mise run release:publish` publishes to mooncakes.io
+- Release workflow: validate -> tag -> publish -> build -> release
+- Mooncakes credentials: `MOONCAKES_USER_TOKEN` secret in GitHub Actions

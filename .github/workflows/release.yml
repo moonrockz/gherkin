@@ -4,26 +4,47 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      skip_publish:
+        description: "Skip mooncakes.io publish (for troubleshooting)"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: write
 
 jobs:
-  version:
+  validate:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
       prerelease: ${{ steps.version.outputs.prerelease }}
       notes: ${{ steps.notes.outputs.notes }}
+      tag_exists: ${{ steps.check_tag.outputs.exists }}
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - uses: hustcer/setup-moonbit@v1
+
       - uses: jdx/mise-action@v2
         with:
           install: true
           cache: true
+
+      - name: Guard branch
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          BRANCH="${GITHUB_REF_NAME}"
+          if [ "$BRANCH" != "main" ]; then
+            echo "Error: Releases can only be triggered from main branch (current: $BRANCH)" >&2
+            exit 1
+          fi
+
+      - name: Install dependencies
+        run: moon update
 
       - name: Determine version
         id: version
@@ -31,17 +52,24 @@ jobs:
           if [[ "${{ github.ref_type }}" == "tag" ]]; then
             VERSION="${{ github.ref_name }}"
             VERSION="${VERSION#v}"
-            PRERELEASE=false
           else
             VERSION=$(mise run release:version)
-            if [[ "$VERSION" == *-* ]]; then
-              PRERELEASE=true
-            else
-              PRERELEASE=false
-            fi
+          fi
+          PRERELEASE=false
+          if [[ "$VERSION" == *-* ]]; then
+            PRERELEASE=true
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+      - name: Check if tag already exists
+        id: check_tag
+        run: |
+          if git tag -l "v${{ steps.version.outputs.version }}" | grep -q .; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Generate release notes
         id: notes
@@ -52,8 +80,65 @@ jobs:
           echo "$NOTES" >> "$GITHUB_OUTPUT"
           echo "$EOF" >> "$GITHUB_OUTPUT"
 
+      - name: Pre-release checks
+        run: |
+          moon check
+          moon test
+
+  tag:
+    needs: validate
+    if: github.event_name == 'workflow_dispatch' && needs.validate.outputs.tag_exists == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create and push tag
+        run: |
+          VERSION="v${{ needs.validate.outputs.version }}"
+          git tag -a "$VERSION" -m "Release $VERSION"
+          git push origin "$VERSION"
+          echo "Created and pushed tag $VERSION"
+
+  publish:
+    needs: [validate, tag]
+    if: |
+      always() &&
+      needs.validate.result == 'success' &&
+      (needs.tag.result == 'success' || needs.tag.result == 'skipped') &&
+      !(github.event.inputs.skip_publish == 'true')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.validate.outputs.version }}
+          fetch-depth: 0
+
+      - uses: hustcer/setup-moonbit@v1
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+
+      - name: Install dependencies
+        run: moon update
+
+      - name: Set up mooncakes credentials
+        run: mise run release:credentials
+        env:
+          MOONCAKES_USER_TOKEN: ${{ secrets.MOONCAKES_USER_TOKEN }}
+
+      - name: Publish to mooncakes.io
+        run: moon publish
+
   build-native:
-    needs: version
+    needs: [validate, publish]
+    if: |
+      always() &&
+      needs.validate.result == 'success' &&
+      (needs.publish.result == 'success' || needs.publish.result == 'skipped')
     strategy:
       fail-fast: false
       matrix:
@@ -70,6 +155,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.validate.outputs.version }}
 
       - uses: hustcer/setup-moonbit@v1
 
@@ -91,10 +178,16 @@ jobs:
           path: ${{ matrix.binary }}
 
   build-wasm:
-    needs: version
+    needs: [validate, publish]
+    if: |
+      always() &&
+      needs.validate.result == 'success' &&
+      (needs.publish.result == 'success' || needs.publish.result == 'skipped')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: v${{ needs.validate.outputs.version }}
 
       - uses: hustcer/setup-moonbit@v1
 
@@ -122,7 +215,12 @@ jobs:
           path: _build/gherkin.component.wasm
 
   release:
-    needs: [version, build-native, build-wasm]
+    needs: [validate, build-native, build-wasm]
+    if: |
+      always() &&
+      needs.validate.result == 'success' &&
+      needs.build-native.result == 'success' &&
+      needs.build-wasm.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -143,8 +241,9 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.version.outputs.version }}
-          name: Release ${{ needs.version.outputs.version }}
-          body: ${{ needs.version.outputs.notes }}
-          prerelease: ${{ needs.version.outputs.prerelease }}
+          tag_name: v${{ needs.validate.outputs.version }}
+          name: Release ${{ needs.validate.outputs.version }}
+          body: ${{ needs.validate.outputs.notes }}
+          prerelease: ${{ needs.validate.outputs.prerelease }}
           files: release/*
+          make_latest: true

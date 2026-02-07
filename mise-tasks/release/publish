@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+#MISE description="Publish package to mooncakes.io registry"
+set -euo pipefail
+
+# Pre-publish quality gates
+echo "Running pre-publish checks..."
+moon check
+moon test
+
+# Check formatting produces no changes
+moon fmt
+if ! git diff --exit-code --quiet; then
+  echo "Error: moon fmt produced changes. Commit formatting first." >&2
+  exit 1
+fi
+
+# Verify credentials exist
+if [ ! -f ~/.moon/credentials.json ]; then
+  echo "Error: Mooncakes credentials not found at ~/.moon/credentials.json" >&2
+  echo "Run 'mise run release:credentials' first or set MOONCAKES_USER_TOKEN." >&2
+  exit 1
+fi
+
+echo "Publishing to mooncakes.io..."
+moon publish
+
+echo "Published successfully to mooncakes.io"
