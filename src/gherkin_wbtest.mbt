@@ -133,3 +133,137 @@ test "Source::line out of range" {
   inspect(src.line(3), content="None")
   inspect(src.line(-1), content="None")
 }
+
+// ── parse: minimal feature ──
+
+///|
+test "parse: simplest case" {
+  let src = Source::from_string("Feature: X\n  Scenario: Y\n    Given z")
+  let doc = parse(src)
+  guard doc.feature is Some(f) else { abort("expected feature") }
+  inspect(f.name, content="X")
+}
+
+///|
+test "parse: minimal feature file" {
+  let src = Source::from_string(
+    "Feature: Minimal\n  A feature with a single scenario.\n\n  Scenario: First scenario\n    Given a precondition\n    When an action is performed\n    Then an outcome is observed\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.keyword, content="Feature")
+  inspect(feature.name, content="Minimal")
+  inspect(feature.language, content="en")
+  inspect(feature.children.length(), content="1")
+  guard feature.children[0] is FeatureChild::Scenario(scenario) else {
+    abort("expected scenario")
+  }
+  inspect(scenario.keyword, content="Scenario")
+  inspect(scenario.name, content="First scenario")
+  inspect(scenario.steps.length(), content="3")
+  inspect(scenario.steps[0].keyword, content="Given ")
+  inspect(scenario.steps[0].keyword_type, content="Context")
+  inspect(scenario.steps[0].text, content="a precondition")
+  inspect(scenario.steps[1].keyword, content="When ")
+  inspect(scenario.steps[1].keyword_type, content="Action")
+  inspect(scenario.steps[1].text, content="an action is performed")
+  inspect(scenario.steps[2].keyword, content="Then ")
+  inspect(scenario.steps[2].keyword_type, content="Outcome")
+  inspect(scenario.steps[2].text, content="an outcome is observed")
+}
+
+///|
+test "parse: inline feature text" {
+  let src = Source::from_string(
+    "Feature: Login\n  Scenario: Basic\n    Given a user\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.name, content="Login")
+  inspect(feature.children.length(), content="1")
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.name, content="Basic")
+  inspect(s.steps.length(), content="1")
+  inspect(s.steps[0].keyword, content="Given ")
+  inspect(s.steps[0].text, content="a user")
+}
+
+///|
+test "parse: feature with description" {
+  let src = Source::from_string(
+    "Feature: Minimal\n  A feature with a single scenario.\n\n  Scenario: First scenario\n    Given a precondition\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.description, content="A feature with a single scenario.")
+}
+
+///|
+test "parse: location tracking" {
+  let src = Source::from_string(
+    "Feature: Test\n  Scenario: S1\n    Given step one\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.location, content="{line: 1, column: Some(1)}")
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.location, content="{line: 2, column: Some(3)}")
+  inspect(s.steps[0].location, content="{line: 3, column: Some(5)}")
+}
+
+///|
+test "parse: multiple scenarios" {
+  let src = Source::from_string(
+    "Feature: Multi\n  Scenario: First\n    Given a\n  Scenario: Second\n    When b\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.children.length(), content="2")
+  guard feature.children[0] is FeatureChild::Scenario(s1) else {
+    abort("expected scenario 1")
+  }
+  guard feature.children[1] is FeatureChild::Scenario(s2) else {
+    abort("expected scenario 2")
+  }
+  inspect(s1.name, content="First")
+  inspect(s2.name, content="Second")
+  inspect(s1.steps.length(), content="1")
+  inspect(s2.steps.length(), content="1")
+}
+
+///|
+test "parse: error message for missing Feature keyword" {
+  let src = Source::from_string("Scenario: Oops\n  Given a step\n")
+  let mut msg = ""
+  try parse(src) |> ignore catch {
+    UnexpectedToken(message~, ..) => msg = message
+    _ => abort("unexpected error type")
+  }
+  inspect(msg.contains("expected 'Feature:' keyword"), content="true")
+  inspect(msg.contains("line 1"), content="true")
+  inspect(msg.contains("'Scenario:' keyword"), content="true")
+  inspect(msg.contains("Scenario: Oops"), content="true")
+}
+
+///|
+test "parse: step keyword types" {
+  let src = Source::from_string(
+    "Feature: Steps\n  Scenario: All steps\n    Given context\n    When action\n    Then outcome\n    And more\n    But not this\n    * wildcard\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.steps.length(), content="6")
+  inspect(s.steps[0].keyword_type, content="Context")
+  inspect(s.steps[1].keyword_type, content="Action")
+  inspect(s.steps[2].keyword_type, content="Outcome")
+  inspect(s.steps[3].keyword_type, content="Conjunction")
+  inspect(s.steps[4].keyword_type, content="Conjunction")
+  inspect(s.steps[5].keyword_type, content="Unknown")
+}
