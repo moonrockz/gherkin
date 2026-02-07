@@ -193,146 +193,158 @@ test "classify_line: triple-quote inside backtick docstring is content" {
   inspect(state, content="InDocString(\"```\")")
 }
 
-// ── classify_line: keywords ──
+// ── classify_line: keywords now return Other (classified in tokenize) ──
 
 ///|
-test "classify_line: Feature keyword" {
+test "classify_line: keyword lines return Other" {
   let (tok, _) = classify_line("Feature: Login", 1, Normal)
+  inspect(tok, content="Other({line: 1, column: None}, \"Feature: Login\")")
+}
+
+// ── tokenize: keyword classification ──
+
+///|
+test "tokenize: Feature keyword" {
+  let tokens = tokenize(Source::from_string("Feature: Login"))
   inspect(
-    tok,
+    tokens[0],
     content="FeatureLine({line: 1, column: Some(1)}, \"Feature\", \"Login\")",
   )
 }
 
 ///|
-test "classify_line: Scenario keyword" {
-  let (tok, _) = classify_line("  Scenario: First scenario", 4, Normal)
+test "tokenize: Scenario keyword" {
+  let tokens = tokenize(Source::from_string("  Scenario: First scenario"))
   inspect(
-    tok,
-    content="ScenarioLine({line: 4, column: Some(3)}, \"Scenario\", \"First scenario\")",
+    tokens[0],
+    content="ScenarioLine({line: 1, column: Some(3)}, \"Scenario\", \"First scenario\")",
   )
 }
 
 ///|
-test "classify_line: Scenario Outline keyword" {
-  let (tok, _) = classify_line(
-    "  Scenario Outline: Eating cucumbers",
-    3,
-    Normal,
+test "tokenize: Scenario Outline keyword" {
+  let tokens = tokenize(
+    Source::from_string("  Scenario Outline: Eating cucumbers"),
   )
   inspect(
-    tok,
-    content="ScenarioLine({line: 3, column: Some(3)}, \"Scenario Outline\", \"Eating cucumbers\")",
+    tokens[0],
+    content="ScenarioLine({line: 1, column: Some(3)}, \"Scenario Outline\", \"Eating cucumbers\")",
   )
 }
 
 ///|
-test "classify_line: Background keyword" {
-  let (tok, _) = classify_line("  Background:", 3, Normal)
+test "tokenize: Background keyword" {
+  let tokens = tokenize(Source::from_string("  Background:"))
   inspect(
-    tok,
-    content="BackgroundLine({line: 3, column: Some(3)}, \"Background\", \"\")",
+    tokens[0],
+    content="BackgroundLine({line: 1, column: Some(3)}, \"Background\", \"\")",
   )
 }
 
 ///|
-test "classify_line: Rule keyword" {
-  let (tok, _) = classify_line("  Rule: Business rule one", 3, Normal)
+test "tokenize: Rule keyword" {
+  let tokens = tokenize(Source::from_string("  Rule: Business rule one"))
   inspect(
-    tok,
-    content="RuleLine({line: 3, column: Some(3)}, \"Rule\", \"Business rule one\")",
+    tokens[0],
+    content="RuleLine({line: 1, column: Some(3)}, \"Rule\", \"Business rule one\")",
   )
 }
 
 ///|
-test "classify_line: Examples keyword" {
-  let (tok, _) = classify_line("    Examples:", 8, Normal)
+test "tokenize: Examples keyword" {
+  let tokens = tokenize(Source::from_string("    Examples:"))
   inspect(
-    tok,
-    content="ExamplesLine({line: 8, column: Some(5)}, \"Examples\", \"\")",
+    tokens[0],
+    content="ExamplesLine({line: 1, column: Some(5)}, \"Examples\", \"\")",
   )
 }
 
 ///|
-test "classify_line: Example as synonym for Scenario" {
-  let (tok, _) = classify_line("  Example: A test", 4, Normal)
+test "tokenize: Example as synonym for Scenario" {
+  let tokens = tokenize(Source::from_string("  Example: A test"))
   inspect(
-    tok,
-    content="ScenarioLine({line: 4, column: Some(3)}, \"Example\", \"A test\")",
+    tokens[0],
+    content="ScenarioLine({line: 1, column: Some(3)}, \"Example\", \"A test\")",
   )
 }
 
 ///|
-test "classify_line: Scenario Template synonym" {
-  let (tok, _) = classify_line("  Scenario Template: Parameterized", 3, Normal)
+test "tokenize: Scenario Template synonym" {
+  let tokens = tokenize(
+    Source::from_string("  Scenario Template: Parameterized"),
+  )
   inspect(
-    tok,
-    content="ScenarioLine({line: 3, column: Some(3)}, \"Scenario Template\", \"Parameterized\")",
+    tokens[0],
+    content="ScenarioLine({line: 1, column: Some(3)}, \"Scenario Template\", \"Parameterized\")",
   )
 }
 
 ///|
-test "classify_line: Scenarios synonym for Examples" {
-  let (tok, _) = classify_line("    Scenarios:", 8, Normal)
+test "tokenize: Scenarios synonym for Examples" {
+  let tokens = tokenize(Source::from_string("    Scenarios:"))
   inspect(
-    tok,
-    content="ExamplesLine({line: 8, column: Some(5)}, \"Scenarios\", \"\")",
+    tokens[0],
+    content="ExamplesLine({line: 1, column: Some(5)}, \"Scenarios\", \"\")",
   )
 }
 
-// ── classify_line: steps ──
+// ── tokenize: step classification ──
 
 ///|
-test "classify_line: Given step" {
-  let (tok, _) = classify_line("    Given a precondition", 5, Normal)
+test "tokenize: Given step" {
+  let tokens = tokenize(Source::from_string("    Given a precondition"))
   inspect(
-    tok,
-    content="StepLine({line: 5, column: Some(5)}, \"Given \", Context, \"a precondition\")",
-  )
-}
-
-///|
-test "classify_line: When step" {
-  let (tok, _) = classify_line("    When an action is performed", 6, Normal)
-  inspect(
-    tok,
-    content="StepLine({line: 6, column: Some(5)}, \"When \", Action, \"an action is performed\")",
+    tokens[0],
+    content="StepLine({line: 1, column: Some(5)}, \"Given \", Context, \"a precondition\")",
   )
 }
 
 ///|
-test "classify_line: Then step" {
-  let (tok, _) = classify_line("    Then an outcome is observed", 7, Normal)
+test "tokenize: When step" {
+  let tokens = tokenize(
+    Source::from_string("    When an action is performed"),
+  )
   inspect(
-    tok,
-    content="StepLine({line: 7, column: Some(5)}, \"Then \", Outcome, \"an outcome is observed\")",
+    tokens[0],
+    content="StepLine({line: 1, column: Some(5)}, \"When \", Action, \"an action is performed\")",
   )
 }
 
 ///|
-test "classify_line: And step" {
-  let (tok, _) = classify_line("    And another step", 6, Normal)
+test "tokenize: Then step" {
+  let tokens = tokenize(
+    Source::from_string("    Then an outcome is observed"),
+  )
   inspect(
-    tok,
-    content="StepLine({line: 6, column: Some(5)}, \"And \", Conjunction, \"another step\")",
+    tokens[0],
+    content="StepLine({line: 1, column: Some(5)}, \"Then \", Outcome, \"an outcome is observed\")",
   )
 }
 
 ///|
-test "classify_line: But step" {
-  let (tok, _) = classify_line("    But not this", 7, Normal)
+test "tokenize: And step" {
+  let tokens = tokenize(Source::from_string("    And another step"))
   inspect(
-    tok,
-    content="StepLine({line: 7, column: Some(5)}, \"But \", Conjunction, \"not this\")",
+    tokens[0],
+    content="StepLine({line: 1, column: Some(5)}, \"And \", Conjunction, \"another step\")",
   )
 }
 
 ///|
-test "classify_line: star step" {
-  let (tok, _) = classify_line("  * I have eggs", 5, Normal)
+test "tokenize: But step" {
+  let tokens = tokenize(Source::from_string("    But not this"))
   inspect(
-    tok,
-    content="StepLine({line: 5, column: Some(3)}, \"* \", Unknown, \"I have eggs\")",
+    tokens[0],
+    content="StepLine({line: 1, column: Some(5)}, \"But \", Conjunction, \"not this\")",
+  )
+}
+
+///|
+test "tokenize: star step" {
+  let tokens = tokenize(Source::from_string("  * I have eggs"))
+  inspect(
+    tokens[0],
+    content="StepLine({line: 1, column: Some(3)}, \"* \", Unknown, \"I have eggs\")",
   )
 }
 

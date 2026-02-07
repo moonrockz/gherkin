@@ -156,148 +156,7 @@ fn classify_normal(line : String, line_num : Int) -> (Token, LexerState) {
       }
       (Token::DocStringSeparator(loc, "```", media_type), InDocString("```"))
     }
-    // Multi-word keywords (must come before single-word to take priority)
-    (
-      ("[[:blank:]]*" as leading)
-      "Scenario Outline"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      (".*" as name)
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::ScenarioLine(loc, "Scenario Outline", name.to_string()), Normal)
-    }
-    (
-      ("[[:blank:]]*" as leading)
-      "Scenario Template"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      (".*" as name)
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::ScenarioLine(loc, "Scenario Template", name.to_string()), Normal)
-    }
-    // Single-word keywords
-    (
-      ("[[:blank:]]*" as leading)
-      "Feature"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      (".*" as name)
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::FeatureLine(loc, "Feature", name.to_string()), Normal)
-    }
-    (
-      ("[[:blank:]]*" as leading)
-      "Rule"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      (".*" as name)
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::RuleLine(loc, "Rule", name.to_string()), Normal)
-    }
-    (
-      ("[[:blank:]]*" as leading)
-      "Background"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      (".*" as name)
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::BackgroundLine(loc, "Background", name.to_string()), Normal)
-    }
-    (
-      ("[[:blank:]]*" as leading)
-      "Scenario"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      (".*" as name)
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::ScenarioLine(loc, "Scenario", name.to_string()), Normal)
-    }
-    (
-      ("[[:blank:]]*" as leading)
-      "Example"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      (".*" as name)
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::ScenarioLine(loc, "Example", name.to_string()), Normal)
-    }
-    (
-      ("[[:blank:]]*" as leading)
-      "Examples"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      (".*" as name)
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::ExamplesLine(loc, "Examples", name.to_string()), Normal)
-    }
-    (
-      ("[[:blank:]]*" as leading)
-      "Scenarios"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      (".*" as name)
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::ExamplesLine(loc, "Scenarios", name.to_string()), Normal)
-    }
-    // Step keywords
-    (("[[:blank:]]*" as leading) "Given " (".*" as text)) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::StepLine(loc, "Given ", Context, text.to_string()), Normal)
-    }
-    (("[[:blank:]]*" as leading) "When " (".*" as text)) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::StepLine(loc, "When ", Action, text.to_string()), Normal)
-    }
-    (("[[:blank:]]*" as leading) "Then " (".*" as text)) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::StepLine(loc, "Then ", Outcome, text.to_string()), Normal)
-    }
-    (("[[:blank:]]*" as leading) "And " (".*" as text)) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::StepLine(loc, "And ", Conjunction, text.to_string()), Normal)
-    }
-    (("[[:blank:]]*" as leading) "But " (".*" as text)) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::StepLine(loc, "But ", Conjunction, text.to_string()), Normal)
-    }
-    (("[[:blank:]]*" as leading) "[*] " (".*" as text)) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::StepLine(loc, "* ", Unknown, text.to_string()), Normal)
-    }
-    // Fallback: description / other text
+    // Fallback: keywords and descriptions classified in tokenize pass
     _ => {
       let loc : Location = { line: line_num, column: None }
       (Token::Other(loc, line), Normal)
@@ -386,10 +245,8 @@ pub fn tokenize(source : Source) -> Array[Token] {
   }
   let eof_loc : Location = { line: source.line_count() + 1, column: None }
   tokens.push(Token::Eof(eof_loc))
-  // If non-English, re-classify Other tokens as i18n keywords
-  if language != "en" {
-    reclassify_i18n(tokens, language)
-  }
+  // Classify keyword tokens via the keyword table (all languages including English)
+  classify_keywords(tokens, language)
   tokens
 }
 
@@ -399,11 +256,12 @@ pub struct Lexer {
   priv mut line_num : Int
   priv mut state : LexerState
   priv mut done : Bool
+  priv mut keywords : I18nKeywords?
 } derive(Show)
 
 ///|
 pub fn Lexer::new(source : Source) -> Lexer {
-  { source, line_num: 1, state: Normal, done: false }
+  { source, line_num: 1, state: Normal, done: false, keywords: get_keywords("en") }
 }
 
 ///|
@@ -415,7 +273,12 @@ pub fn Lexer::next(self : Lexer) -> Token? {
         let (tok, next_state) = classify_line(line, self.line_num, self.state)
         self.line_num = self.line_num + 1
         self.state = next_state
-        return Some(tok)
+        // Update language on Language directive
+        match tok {
+          Language(_, lang) => self.keywords = get_keywords(lang)
+          _ => ()
+        }
+        return Some(self.classify_token(tok))
       }
       None => self.line_num = self.line_num + 1
     }
@@ -429,6 +292,28 @@ pub fn Lexer::next(self : Lexer) -> Token? {
     return Some(Token::Eof(eof_loc))
   }
   None
+}
+
+///|
+/// Classify a single Other token as a keyword using the current keyword table.
+fn Lexer::classify_token(self : Lexer, tok : Token) -> Token {
+  match tok {
+    Other(loc, text) =>
+      match self.keywords {
+        Some(kw) => {
+          let trimmed = trim_leading_whitespace(text)
+          let leading_len = text.length() - trimmed.length()
+          let col = leading_len + 1
+          let kloc : Location = { line: loc.line, column: Some(col) }
+          match try_keyword_line(trimmed, kw) {
+            Some(t) => set_token_location(t, kloc)
+            None => tok
+          }
+        }
+        None => tok
+      }
+    _ => tok
+  }
 }
 
 ///|
@@ -453,11 +338,25 @@ priv struct I18nKeywords {
   then_ : Array[String]
   and_ : Array[String]
   but_ : Array[String]
-}
+} derive(Show)
 
 ///|
 fn get_keywords(lang : String) -> I18nKeywords? {
   match lang {
+    "en" =>
+      Some({
+        feature: ["Feature"],
+        rule: ["Rule"],
+        background: ["Background"],
+        scenario: ["Scenario", "Example"],
+        scenario_outline: ["Scenario Outline", "Scenario Template"],
+        examples: ["Examples", "Scenarios"],
+        given: ["Given "],
+        when_: ["When "],
+        then_: ["Then "],
+        and_: ["And "],
+        but_: ["But "],
+      })
     "fr" =>
       Some({
         feature: ["Fonctionnalité"],
@@ -477,8 +376,8 @@ fn get_keywords(lang : String) -> I18nKeywords? {
 }
 
 ///|
-/// Re-classify Other tokens as i18n keywords for non-English languages.
-fn reclassify_i18n(tokens : Array[Token], lang : String) -> Unit {
+/// Classify Other tokens as keyword tokens using the language keyword table.
+fn classify_keywords(tokens : Array[Token], lang : String) -> Unit {
   let kw = match get_keywords(lang) {
     Some(k) => k
     None => return
@@ -571,6 +470,11 @@ fn try_keyword_line(trimmed : String, kw : I18nKeywords) -> Token? {
       Some(text) => return Some(Token::StepLine(dummy, k, Conjunction, text))
       None => ()
     }
+  }
+  // Universal step keyword: "* " (language-independent)
+  match try_match_step(trimmed, "* ") {
+    Some(text) => return Some(Token::StepLine(dummy, "* ", Unknown, text))
+    None => ()
   }
   None
 }
