@@ -220,7 +220,7 @@ test "tokenize: Scenario keyword" {
   let tokens = tokenize(Source::from_string("  Scenario: First scenario"))
   inspect(
     tokens[0],
-    content="ScenarioLine({line: 1, column: Some(3)}, \"Scenario\", \"First scenario\")",
+    content="ScenarioLine({line: 1, column: Some(3)}, \"Scenario\", \"First scenario\", Scenario)",
   )
 }
 
@@ -231,7 +231,7 @@ test "tokenize: Scenario Outline keyword" {
   )
   inspect(
     tokens[0],
-    content="ScenarioLine({line: 1, column: Some(3)}, \"Scenario Outline\", \"Eating cucumbers\")",
+    content="ScenarioLine({line: 1, column: Some(3)}, \"Scenario Outline\", \"Eating cucumbers\", ScenarioOutline)",
   )
 }
 
@@ -267,7 +267,7 @@ test "tokenize: Example as synonym for Scenario" {
   let tokens = tokenize(Source::from_string("  Example: A test"))
   inspect(
     tokens[0],
-    content="ScenarioLine({line: 1, column: Some(3)}, \"Example\", \"A test\")",
+    content="ScenarioLine({line: 1, column: Some(3)}, \"Example\", \"A test\", Scenario)",
   )
 }
 
@@ -278,7 +278,7 @@ test "tokenize: Scenario Template synonym" {
   )
   inspect(
     tokens[0],
-    content="ScenarioLine({line: 1, column: Some(3)}, \"Scenario Template\", \"Parameterized\")",
+    content="ScenarioLine({line: 1, column: Some(3)}, \"Scenario Template\", \"Parameterized\", ScenarioOutline)",
   )
 }
 
@@ -387,7 +387,7 @@ test "tokenize: simple feature" {
   )
   inspect(
     tokens[1],
-    content="ScenarioLine({line: 2, column: Some(3)}, \"Scenario\", \"Basic login\")",
+    content="ScenarioLine({line: 2, column: Some(3)}, \"Scenario\", \"Basic login\", Scenario)",
   )
   inspect(
     tokens[2],

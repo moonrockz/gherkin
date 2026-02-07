@@ -24,6 +24,7 @@ test "FeatureChild pattern matching" {
   let s : Scenario = {
     location: { line: 3, column: None },
     tags: [],
+    kind: Scenario,
     keyword: "Scenario",
     name: "test",
     description: "",
@@ -67,6 +68,7 @@ test "continuing helper wraps in Continue" {
   let s : Scenario = {
     location: { line: 1, column: None },
     tags: [],
+    kind: Scenario,
     keyword: "Scenario",
     name: "test",
     description: "",

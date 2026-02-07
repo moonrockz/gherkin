@@ -186,6 +186,7 @@ fn dispatch_scenario(s : Scenario, handler : &GherkinHandler) -> Unit {
   handler.on_scenario({
     location: s.location,
     tags: s.tags,
+    kind: s.kind,
     keyword: s.keyword,
     name: s.name,
     description: s.description,

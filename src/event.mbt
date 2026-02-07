@@ -33,6 +33,7 @@ pub struct BackgroundEvent {
 pub struct ScenarioEvent {
   location : Location
   tags : Array[Tag]
+  kind : ScenarioKind
   keyword : String
   name : String
   description : String

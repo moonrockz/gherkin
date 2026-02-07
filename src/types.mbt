@@ -6,6 +6,13 @@ pub(all) struct Location {
 } derive(Show, Eq, ToJson)
 
 ///|
+/// Distinguishes a Scenario from a Scenario Outline.
+pub enum ScenarioKind {
+  Scenario
+  ScenarioOutline
+} derive(Show, Eq, ToJson)
+
+///|
 /// The type of a step keyword, classifying its semantic role.
 pub enum KeywordType {
   /// "Given" -- establishes context
@@ -114,6 +121,7 @@ pub struct Background {
 pub struct Scenario {
   location : Location
   tags : Array[Tag]
+  kind : ScenarioKind
   keyword : String
   name : String
   description : String

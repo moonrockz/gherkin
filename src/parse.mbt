@@ -132,7 +132,7 @@ fn Parser::parse_feature(
         }
         self.advance() |> ignore
       }
-      ScenarioLine(_, _, _) => {
+      ScenarioLine(_, _, _, _) => {
         let scenario = self.parse_scenario()
         children.push(FeatureChild::Scenario(scenario))
       }
@@ -173,8 +173,8 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
     }
   }
   // Consume ScenarioLine
-  let (loc, keyword, name) = match self.advance() {
-    ScenarioLine(loc, kw, name) => (loc, kw, name)
+  let (loc, keyword, name, kind) = match self.advance() {
+    ScenarioLine(loc, kw, name, kind) => (loc, kw, name, kind)
     other => {
       let loc = token_location(other)
       let hint = self.source_line_hint(loc)
@@ -207,7 +207,7 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
         examples.push(example)
       }
       // Stop when we hit another structural element
-      ScenarioLine(_, _, _)
+      ScenarioLine(_, _, _, _)
       | BackgroundLine(_, _, _)
       | RuleLine(_, _, _)
       | FeatureLine(_, _, _)
@@ -219,6 +219,7 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
   {
     location: loc,
     tags,
+    kind,
     keyword,
     name,
     description,
@@ -512,7 +513,7 @@ fn Parser::parse_rule(
         self.advance() |> ignore
       }
       Comment(_, _) => self.advance() |> ignore
-      ScenarioLine(_, _, _) | TagLine(_, _) => {
+      ScenarioLine(_, _, _, _) | TagLine(_, _) => {
         let scenario = self.parse_scenario()
         children.push(RuleChild::Scenario(scenario))
       }
@@ -551,7 +552,7 @@ fn token_location(tok : Token) -> Location {
     FeatureLine(loc, _, _) => loc
     RuleLine(loc, _, _) => loc
     BackgroundLine(loc, _, _) => loc
-    ScenarioLine(loc, _, _) => loc
+    ScenarioLine(loc, _, _, _) => loc
     ExamplesLine(loc, _, _) => loc
     StepLine(loc, _, _, _) => loc
     DocStringSeparator(loc, _, _) => loc
@@ -571,7 +572,7 @@ fn token_name(tok : Token) -> String {
     FeatureLine(_, kw, _) => "'\{kw}:' keyword"
     RuleLine(_, kw, _) => "'\{kw}:' keyword"
     BackgroundLine(_, kw, _) => "'\{kw}:' keyword"
-    ScenarioLine(_, kw, _) => "'\{kw}:' keyword"
+    ScenarioLine(_, kw, _, _) => "'\{kw}:' keyword"
     ExamplesLine(_, kw, _) => "'\{kw}:' keyword"
     StepLine(_, kw, _, _) => "'\{kw}' step"
     DocStringSeparator(_, delim, _) => "doc string delimiter (\{delim})"

@@ -5,7 +5,7 @@ pub enum Token {
   FeatureLine(Location, String, String)
   RuleLine(Location, String, String)
   BackgroundLine(Location, String, String)
-  ScenarioLine(Location, String, String)
+  ScenarioLine(Location, String, String, ScenarioKind)
   ExamplesLine(Location, String, String)
   StepLine(Location, String, KeywordType, String)
   DocStringSeparator(Location, String, String?)
@@ -399,13 +399,14 @@ fn try_keyword_line(trimmed : String, kw : I18nKeywords) -> Token? {
   // Scenario outline before scenario (longer match first)
   for k in kw.scenario_outline {
     match try_match_keyword_colon(trimmed, k) {
-      Some(name) => return Some(Token::ScenarioLine(dummy, k, name))
+      Some(name) =>
+        return Some(Token::ScenarioLine(dummy, k, name, ScenarioOutline))
       None => ()
     }
   }
   for k in kw.scenario {
     match try_match_keyword_colon(trimmed, k) {
-      Some(name) => return Some(Token::ScenarioLine(dummy, k, name))
+      Some(name) => return Some(Token::ScenarioLine(dummy, k, name, Scenario))
       None => ()
     }
   }
@@ -519,7 +520,7 @@ fn set_token_location(tok : Token, loc : Location) -> Token {
     FeatureLine(_, kw, name) => FeatureLine(loc, kw, name)
     RuleLine(_, kw, name) => RuleLine(loc, kw, name)
     BackgroundLine(_, kw, name) => BackgroundLine(loc, kw, name)
-    ScenarioLine(_, kw, name) => ScenarioLine(loc, kw, name)
+    ScenarioLine(_, kw, name, kind) => ScenarioLine(loc, kw, name, kind)
     ExamplesLine(_, kw, name) => ExamplesLine(loc, kw, name)
     StepLine(_, kw, kt, text) => StepLine(loc, kw, kt, text)
     other => other
