@@ -776,3 +776,80 @@ test "GherkinDocument::to_json produces valid JSON" {
   assert_true(text.contains("Basic"))
   assert_true(text.contains("a user"))
 }
+
+// ── Parser tag bug fix (gherkin-3uy) ──
+
+///|
+test "tag before second scenario is not consumed as examples" {
+  let src = Source::from_string(
+    "Feature: Multi scenario\n  Scenario: First\n    Given step one\n\n  @wip\n  Scenario: Second\n    Given step two",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.children.length(), content="2")
+  guard feature.children[0] is FeatureChild::Scenario(s1) else {
+    abort("expected scenario 1")
+  }
+  inspect(s1.name, content="First")
+  inspect(s1.tags.length(), content="0")
+  guard feature.children[1] is FeatureChild::Scenario(s2) else {
+    abort("expected scenario 2")
+  }
+  inspect(s2.name, content="Second")
+  inspect(s2.tags.length(), content="1")
+  inspect(s2.tags[0].name, content="@wip")
+}
+
+///|
+test "tagged examples still work after tag bug fix" {
+  let src = Source::from_string(
+    "Feature: Outline\n  Scenario Outline: With examples\n    Given <thing>\n\n  @important\n  Examples:\n    | thing |\n    | apple |",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.children.length(), content="1")
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.examples.length(), content="1")
+  inspect(s.examples[0].tags.length(), content="1")
+  inspect(s.examples[0].tags[0].name, content="@important")
+}
+
+///|
+test "multiple tagged examples sections" {
+  let src = Source::from_string(
+    "Feature: Multi examples\n  Scenario Outline: Test\n    Given <val>\n\n  @smoke\n  Examples: Smoke\n    | val   |\n    | one   |\n\n  @nightly\n  Examples: Nightly\n    | val   |\n    | two   |",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.examples.length(), content="2")
+  inspect(s.examples[0].tags[0].name, content="@smoke")
+  inspect(s.examples[0].name, content="Smoke")
+  inspect(s.examples[1].tags[0].name, content="@nightly")
+  inspect(s.examples[1].name, content="Nightly")
+}
+
+///|
+test "tags between scenarios in Scenario Outline" {
+  let src = Source::from_string(
+    "Feature: Mixed\n  Scenario Outline: First\n    Given <a>\n\n  Examples:\n    | a |\n    | 1 |\n\n  @next\n  Scenario: Second\n    Given something",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.children.length(), content="2")
+  guard feature.children[0] is FeatureChild::Scenario(s1) else {
+    abort("expected scenario outline")
+  }
+  inspect(s1.name, content="First")
+  inspect(s1.examples.length(), content="1")
+  guard feature.children[1] is FeatureChild::Scenario(s2) else {
+    abort("expected second scenario")
+  }
+  inspect(s2.name, content="Second")
+  inspect(s2.tags.length(), content="1")
+  inspect(s2.tags[0].name, content="@next")
+}

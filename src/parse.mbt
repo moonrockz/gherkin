@@ -44,6 +44,20 @@ fn Parser::advance(self : Parser) -> Token {
 }
 
 ///|
+/// Look ahead past consecutive TagLine tokens and return the first non-tag token.
+/// Does not advance the parser position.
+fn Parser::peek_past_tags(self : Parser) -> Token {
+  let mut i = self.pos
+  while i < self.tokens.length() {
+    match self.tokens[i] {
+      TagLine(_, _) => i = i + 1
+      other => return other
+    }
+  }
+  Token::Eof({ line: 0, column: None })
+}
+
+///|
 fn Parser::parse_document(self : Parser) -> GherkinDocument raise ParseError {
   let comments : Array[Comment] = []
   // Skip leading empty lines, comments, and language directives
@@ -202,9 +216,19 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
         steps.push(step)
       }
       Comment(_, _) => self.advance() |> ignore
-      ExamplesLine(_, _, _) | TagLine(_, _) => {
+      ExamplesLine(_, _, _) => {
         let example = self.parse_examples()
         examples.push(example)
+      }
+      TagLine(_, _) => {
+        // Peek past consecutive tags to see what follows
+        match self.peek_past_tags() {
+          ExamplesLine(_, _, _) => {
+            let example = self.parse_examples()
+            examples.push(example)
+          }
+          _ => break // Tags belong to next scenario; let parent consume
+        }
       }
       // Stop when we hit another structural element
       ScenarioLine(_, _, _, _)
