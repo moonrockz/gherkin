@@ -202,13 +202,15 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
         steps.push(step)
       }
       Comment(_, _) => self.advance() |> ignore
+      ExamplesLine(_, _, _) | TagLine(_, _) => {
+        let example = self.parse_examples()
+        examples.push(example)
+      }
       // Stop when we hit another structural element
       ScenarioLine(_, _, _)
       | BackgroundLine(_, _, _)
       | RuleLine(_, _, _)
       | FeatureLine(_, _, _)
-      | ExamplesLine(_, _, _)
-      | TagLine(_, _)
       | Eof(_) => break
       _ => self.advance() |> ignore
     }
@@ -254,6 +256,94 @@ fn Parser::parse_step(self : Parser) -> Step raise ParseError {
         location=loc,
       )
     }
+  }
+}
+
+///|
+fn Parser::parse_examples(self : Parser) -> Examples raise ParseError {
+  // Collect tags if present before ExamplesLine
+  let tags : Array[Tag] = []
+  while not(self.at_eof()) {
+    match self.peek() {
+      TagLine(loc, tag_names) => {
+        for t in tag_names {
+          tags.push({ location: loc, name: t, id: self.next_id() })
+        }
+        self.advance() |> ignore
+      }
+      _ => break
+    }
+  }
+  // Consume ExamplesLine
+  let (loc, keyword, name) = match self.advance() {
+    ExamplesLine(loc, kw, name) => (loc, kw, name)
+    other => {
+      let loc = token_location(other)
+      let hint = self.source_line_hint(loc)
+      raise UnexpectedToken(
+        message="expected 'Examples:' keyword at line \{loc.line}, but found \{token_name(other)}\{hint}",
+        location=loc,
+      )
+    }
+  }
+  // Collect description lines
+  let description_lines : Array[String] = []
+  while not(self.at_eof()) {
+    match self.peek() {
+      Empty(_) => self.advance() |> ignore
+      Other(_, text) => {
+        description_lines.push(trim_description(text))
+        self.advance() |> ignore
+      }
+      _ => break
+    }
+  }
+  // Parse table: first row is header, rest are body
+  let table_header : TableRow? = match self.peek() {
+    TableRow(rloc, cells) => {
+      let table_cells : Array[TableCell] = []
+      for i, cell in cells {
+        table_cells.push({
+          location: { line: rloc.line, column: Some(i + 1) },
+          value: cell,
+        })
+      }
+      self.advance() |> ignore
+      Some({ location: rloc, id: self.next_id(), cells: table_cells })
+    }
+    _ => None
+  }
+  let table_body : Array[TableRow] = []
+  while not(self.at_eof()) {
+    match self.peek() {
+      TableRow(rloc, cells) => {
+        let table_cells : Array[TableCell] = []
+        for i, cell in cells {
+          table_cells.push({
+            location: { line: rloc.line, column: Some(i + 1) },
+            value: cell,
+          })
+        }
+        table_body.push({
+          location: rloc,
+          id: self.next_id(),
+          cells: table_cells,
+        })
+        self.advance() |> ignore
+      }
+      _ => break
+    }
+  }
+  let description = build_description(description_lines)
+  {
+    location: loc,
+    tags,
+    keyword,
+    name,
+    description,
+    id: self.next_id(),
+    table_header,
+    table_body,
   }
 }
 

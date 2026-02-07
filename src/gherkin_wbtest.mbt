@@ -388,3 +388,77 @@ test "parse: step with data table" {
   inspect(dt.rows[1].cells[0].value, content="Alice")
   inspect(dt.rows[2].cells[0].value, content="Bob")
 }
+
+// ── parse: scenario outline + examples ──
+
+///|
+test "parse: scenario outline with examples" {
+  let src = Source::from_string(
+    "Feature: Scenario Outline example\n\n  Scenario Outline: Eating cucumbers\n    Given there are <start> cucumbers\n    When I eat <eat> cucumbers\n    Then I should have <left> cucumbers\n\n    Examples:\n      | start | eat | left |\n      |    12 |   5 |    7 |\n      |    20 |   5 |   15 |\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.name, content="Scenario Outline example")
+  inspect(feature.children.length(), content="1")
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.keyword, content="Scenario Outline")
+  inspect(s.name, content="Eating cucumbers")
+  inspect(s.steps.length(), content="3")
+  // Placeholder syntax should be preserved in step text
+  inspect(s.steps[0].text, content="there are <start> cucumbers")
+  // Examples should be parsed
+  inspect(s.examples.length(), content="1")
+  guard s.examples[0] is { keyword, name, table_header, table_body, .. } else {
+    abort("expected examples")
+  }
+  inspect(keyword, content="Examples")
+  inspect(name, content="")
+  // Table header
+  guard table_header is Some(header) else { abort("expected table header") }
+  inspect(header.cells.length(), content="3")
+  inspect(header.cells[0].value, content="start")
+  inspect(header.cells[1].value, content="eat")
+  inspect(header.cells[2].value, content="left")
+  // Table body
+  inspect(table_body.length(), content="2")
+  inspect(table_body[0].cells[0].value, content="12")
+  inspect(table_body[1].cells[0].value, content="20")
+  inspect(table_body[1].cells[2].value, content="15")
+}
+
+// ── parse: rules ──
+
+///|
+test "parse: rule sections" {
+  let src = Source::from_string(
+    "Feature: Gherkin 6 Rules\n\n  Rule: Business rule one\n    Scenario: First rule scenario\n      Given a context\n      When an event\n      Then an outcome\n\n  Rule: Business rule two\n    Scenario: Second rule scenario\n      Given another context\n      When another event\n      Then another outcome\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.name, content="Gherkin 6 Rules")
+  inspect(feature.children.length(), content="2")
+  guard feature.children[0] is FeatureChild::Rule(r1) else {
+    abort("expected rule 1")
+  }
+  guard feature.children[1] is FeatureChild::Rule(r2) else {
+    abort("expected rule 2")
+  }
+  inspect(r1.keyword, content="Rule")
+  inspect(r1.name, content="Business rule one")
+  inspect(r1.children.length(), content="1")
+  guard r1.children[0] is RuleChild::Scenario(s1) else {
+    abort("expected scenario in rule 1")
+  }
+  inspect(s1.name, content="First rule scenario")
+  inspect(s1.steps.length(), content="3")
+  inspect(r2.keyword, content="Rule")
+  inspect(r2.name, content="Business rule two")
+  inspect(r2.children.length(), content="1")
+  guard r2.children[0] is RuleChild::Scenario(s2) else {
+    abort("expected scenario in rule 2")
+  }
+  inspect(s2.name, content="Second rule scenario")
+  inspect(s2.steps.length(), content="3")
+}
