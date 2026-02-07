@@ -3,6 +3,7 @@
 set -euo pipefail
 
 BASE_VERSION=$(git cliff --bumped-version 2>/dev/null || echo "0.1.0")
+BASE_VERSION="${BASE_VERSION#v}"
 
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
