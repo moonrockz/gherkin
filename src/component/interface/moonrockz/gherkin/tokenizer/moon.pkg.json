@@ -1,0 +1,6 @@
+{
+  "import": [
+    { "path": "moonrockz/gherkin", "alias": "lib" }
+  ],
+  "warn-list": "-44"
+}

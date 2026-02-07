@@ -405,6 +405,45 @@ test "tokenize: empty source" {
   inspect(tokens[1], content="Eof({line: 2, column: None})")
 }
 
+// ── Token::to_json ──
+
+///|
+test "Token::to_json: FeatureLine" {
+  let tok : Token = FeatureLine({ line: 1, column: Some(1) }, "Feature", "Login")
+  let json = tok.to_json().stringify()
+  assert_true(json.contains("FeatureLine"))
+  assert_true(json.contains("Feature"))
+  assert_true(json.contains("Login"))
+}
+
+///|
+test "Token::to_json: StepLine" {
+  let tok : Token = StepLine(
+    { line: 3, column: Some(5) },
+    "Given ",
+    Context,
+    "a precondition",
+  )
+  let json = tok.to_json().stringify()
+  assert_true(json.contains("StepLine"))
+  assert_true(json.contains("Given"))
+  assert_true(json.contains("a precondition"))
+}
+
+///|
+test "tokenize to JSON array" {
+  let src = Source::from_string(
+    "Feature: Login\n  Scenario: Test\n    Given a user",
+  )
+  let tokens = tokenize(src)
+  let json = tokens.to_json().stringify()
+  assert_true(json.has_prefix("["))
+  assert_true(json.has_suffix("]"))
+  assert_true(json.contains("FeatureLine"))
+  assert_true(json.contains("ScenarioLine"))
+  assert_true(json.contains("StepLine"))
+}
+
 // ── Lexer iterator ──
 
 ///|

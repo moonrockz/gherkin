@@ -16,7 +16,7 @@ pub enum Token {
   Empty(Location)
   Other(Location, String)
   Eof(Location)
-} derive(Show, Eq)
+} derive(Show, Eq, ToJson)
 
 ///|
 /// Internal state tracked between lines during tokenization.
@@ -24,7 +24,7 @@ pub enum Token {
 pub enum LexerState {
   Normal
   InDocString(String)
-} derive(Show, Eq)
+} derive(Show, Eq, ToJson)
 
 ///|
 /// Classify a single source line into a Token, returning the updated LexerState.

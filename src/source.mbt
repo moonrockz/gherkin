@@ -76,3 +76,27 @@ pub fn Source::line_count(self : Source) -> Int {
 pub impl ToJson for Source with to_json(self) {
   { "uri": self.uri.to_json(), "data": self.content().to_json() }
 }
+
+///|
+/// Deserialize a Source from JSON with `uri` and `data` fields.
+pub impl @json.FromJson for Source with from_json(json, path) {
+  guard json is Object(obj) else {
+    raise @json.JsonDecodeError((path, "expected object for Source"))
+  }
+  let data = match obj.get("data") {
+    Some(String(s)) => s
+    _ =>
+      raise @json.JsonDecodeError(
+        (path, "expected string field 'data' in Source"),
+      )
+  }
+  let uri = match obj.get("uri") {
+    Some(String(s)) => Some(s)
+    Some(Null) | None => None
+    _ =>
+      raise @json.JsonDecodeError(
+        (path, "expected string or null field 'uri' in Source"),
+      )
+  }
+  Source::from_string(data, uri?)
+}

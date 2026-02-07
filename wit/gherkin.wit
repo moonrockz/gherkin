@@ -1,0 +1,25 @@
+package moonrockz:gherkin@0.1.0;
+
+interface parser {
+    /// Parse Gherkin source text into a JSON AST.
+    /// Returns the JSON string on success, or an error message on failure.
+    parse: func(source: string) -> result<string, string>;
+}
+
+interface tokenizer {
+    /// Tokenize Gherkin source text into a JSON token array.
+    /// Returns the JSON string on success, or an error message on failure.
+    tokenize: func(source: string) -> result<string, string>;
+}
+
+interface writer {
+    /// Convert a JSON AST back to formatted Gherkin text.
+    /// Returns the Gherkin string on success, or an error message on failure.
+    write: func(json-ast: string) -> result<string, string>;
+}
+
+world gherkin {
+    export parser;
+    export tokenizer;
+    export writer;
+}
