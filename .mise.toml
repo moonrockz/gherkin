@@ -1,6 +1,22 @@
 [tools]
 uv = "0.10.0"
 "cargo:wasm-tools" = "1.229.0"
+"cargo:wit-bindgen-cli" = "0.52.0"
+
+# --- Generate tasks ---
+
+[tasks."generate:wit-bindgen"]
+description = "Regenerate MoonBit WIT bindings from wit/ definitions"
+run = """
+wit-bindgen moonbit wit/ \
+  --out-dir src/ \
+  --gen-dir component \
+  --project-name moonrockz/gherkin \
+  --ignore-module-file \
+  --ignore-stub \
+  --derive-show \
+  --derive-eq
+"""
 
 # --- Build tasks ---
 
