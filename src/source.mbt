@@ -70,3 +70,9 @@ pub fn Source::line(self : Source, n : Int) -> String? {
 pub fn Source::line_count(self : Source) -> Int {
   self.lines.length()
 }
+
+///|
+/// Serialize a Source to JSON with `uri` and `data` fields.
+pub impl ToJson for Source with to_json(self) {
+  { "uri": self.uri.to_json(), "data": self.content().to_json() }
+}

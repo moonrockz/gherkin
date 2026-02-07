@@ -758,3 +758,19 @@ test "parse: French i18n with language directive" {
   inspect(s.steps[1].keyword_type, content="Action")
   inspect(s.steps[2].keyword_type, content="Outcome")
 }
+
+// ── JSON serialization ──
+
+///|
+test "GherkinDocument::to_json produces valid JSON" {
+  let src = Source::from_string(
+    "Feature: Login\n  Scenario: Basic\n    Given a user",
+  )
+  let doc = parse(src)
+  let json = doc.to_json()
+  let text = json.stringify()
+  // Should contain key fields
+  assert_true(text.contains("Login"))
+  assert_true(text.contains("Basic"))
+  assert_true(text.contains("a user"))
+}

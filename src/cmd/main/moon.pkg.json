@@ -4,6 +4,8 @@
     {
       "path": "moonrockz/gherkin",
       "alias": "lib"
-    }
+    },
+    "moonbitlang/x/fs",
+    "moonbitlang/core/env"
   ]
 }
