@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse a Gherkin feature file using the WASM component.
+"""Parse a Gherkin feature file using the WASM component with typed interfaces.
 
 Usage:
     python parse_feature.py [path/to/file.feature]
@@ -11,19 +11,25 @@ The WASM component must be built first:
     mise run build:component
 """
 
-import json
 import sys
 from pathlib import Path
+from types import SimpleNamespace
 from wasmtime import Engine, Store
 from wasmtime.component import Component, Linker
+from wasmtime.component._types import VariantLikeType, VariantType
+
+# Workaround for wasmtime-py MRO bug with option<variant> lowering.
+# VariantType.add_classes resolves to the abstract no-op in ValType
+# instead of the concrete implementation in VariantLikeType.
+VariantType.add_classes = VariantLikeType.add_classes
 
 # Path to the built component
 COMPONENT_PATH = Path(__file__).parent.parent.parent / "_build" / "gherkin.component.wasm"
 
-# WIT interface names
-PARSER_IFACE = "moonrockz:gherkin/parser@0.1.0"
-TOKENIZER_IFACE = "moonrockz:gherkin/tokenizer@0.1.0"
-WRITER_IFACE = "moonrockz:gherkin/writer@0.1.0"
+# WIT interface names (v0.2.0 — typed interfaces)
+PARSER_IFACE = "moonrockz:gherkin/parser@0.2.0"
+TOKENIZER_IFACE = "moonrockz:gherkin/tokenizer@0.2.0"
+WRITER_IFACE = "moonrockz:gherkin/writer@0.2.0"
 
 
 def create_instance():
@@ -43,31 +49,50 @@ def get_func(instance, store, interface, name):
     return instance.get_func(store, func_idx)
 
 
-def parse(source: str) -> dict:
-    """Parse Gherkin source text into a JSON AST."""
+def make_source(data, uri=None):
+    """Create a typed source record for the component."""
+    return SimpleNamespace(uri=uri, data=data)
+
+
+def parse(source_text):
+    """Parse Gherkin source text into a typed document.
+
+    Returns a Record with fields: source, feature, comments.
+    On error returns a list of parse error Records.
+    """
     _, store, instance = create_instance()
     func = get_func(instance, store, PARSER_IFACE, "parse")
-    result = func(store, source)
-    if result.tag == "err":
-        raise RuntimeError(f"Parse error: {result.payload}")
-    return json.loads(result.payload)
+    result = func(store, make_source(source_text))
+    # result<gherkin-document, list<parse-error>>:
+    #   ok  -> Record with .source, .feature, .comments
+    #   err -> list of Record with .message, .line, .column
+    if isinstance(result, list):
+        messages = [f"  line {e.line}: {e.message}" for e in result]
+        raise RuntimeError(f"Parse error:\n" + "\n".join(messages))
+    return result
 
 
-def tokenize(source: str) -> list:
-    """Tokenize Gherkin source text into a token array."""
+def tokenize(source_text):
+    """Tokenize Gherkin source text into typed tokens.
+
+    Returns a list of Variant objects with .tag and .payload.
+    """
     _, store, instance = create_instance()
     func = get_func(instance, store, TOKENIZER_IFACE, "tokenize")
-    result = func(store, source)
+    result = func(store, make_source(source_text))
+    # result<list<token>, list<parse-error>>:
+    #   Both are lists, so result is a Variant with .tag/.payload
     if result.tag == "err":
         raise RuntimeError(f"Tokenize error: {result.payload}")
-    return json.loads(result.payload)
+    return result.payload
 
 
-def write(ast_json: str) -> str:
-    """Convert a JSON AST back to formatted Gherkin text."""
+def write(document):
+    """Convert a typed document back to formatted Gherkin text."""
     _, store, instance = create_instance()
     func = get_func(instance, store, WRITER_IFACE, "write")
-    result = func(store, ast_json)
+    result = func(store, document)
+    # result<string, string>: Variant with .tag/.payload
     if result.tag == "err":
         raise RuntimeError(f"Write error: {result.payload}")
     return result.payload
@@ -99,34 +124,53 @@ Feature: User Authentication
     Then they should see an error message
 """
 
-    # --- Parse to AST ---
+    # --- Parse to typed AST ---
     print("=== Parsing ===")
-    ast = parse(source)
-    feature = ast.get("feature")
+    doc = parse(source)
+    feature = doc.feature
     if feature:
-        print(f"Feature: {feature['name']}")
-        print(f"Language: {feature['language']}")
-        print(f"Tags: {[t['name'] for t in feature.get('tags', [])]}")
-        for child in feature.get("children", []):
-            tag, node = child[0], child[1]
-            if tag == "Background":
-                print(f"  Background: {len(node['steps'])} steps")
-            elif tag == "Scenario":
-                tags = [t["name"] for t in node.get("tags", [])]
-                print(f"  Scenario: {node['name']} (tags: {tags}, steps: {len(node['steps'])})")
+        print(f"Feature: {feature.name}")
+        print(f"Keyword: {feature.keyword}")
+        print(f"Language: {feature.language}")
+        print(f"Tags: {[t.name for t in feature.tags]}")
+        if feature.description:
+            print(f"Description: {feature.description.strip()[:80]}...")
+        for child in feature.children:
+            val = child.payload
+            if child.tag == "background":
+                print(f"  Background: {len(val.steps)} steps")
+            elif child.tag == "scenario":
+                tags = [t.name for t in val.tags]
+                kind = val.kind  # "scenario" or "scenario-outline"
+                print(f"  {kind}: {val.name} (tags: {tags}, steps: {len(val.steps)})")
+            elif child.tag == "rule":
+                print(f"  Rule: {val.name} ({len(val.children)} children)")
+    else:
+        print("(no feature found)")
+
+    if doc.comments:
+        print(f"Comments: {len(doc.comments)}")
 
     # --- Tokenize ---
     print("\n=== Tokenizing ===")
     tokens = tokenize(source)
-    for token in tokens[:10]:
-        tag = token[0]
-        print(f"  {tag}")
+    for tok in tokens[:10]:
+        info = ""
+        if tok.payload is not None:
+            p = tok.payload
+            if hasattr(p, "keyword"):
+                info = f" keyword={p.keyword!r}"
+            if hasattr(p, "name"):
+                info += f" name={p.name!r}"
+            if hasattr(p, "text"):
+                info += f" text={p.text!r}"
+        print(f"  {tok.tag}{info}")
     if len(tokens) > 10:
         print(f"  ... and {len(tokens) - 10} more tokens")
 
     # --- Round-trip: parse then write ---
     print("\n=== Round-trip (parse -> write) ===")
-    written = write(json.dumps(ast))
+    written = write(doc)
     print(written)
 
 

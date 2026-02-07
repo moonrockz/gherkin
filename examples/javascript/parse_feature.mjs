@@ -2,7 +2,7 @@
  * Parse a Gherkin feature file using the WASM component via jco.
  *
  * This example demonstrates using the Gherkin WASM component with the
- * JavaScript Component Model tooling (jco/preview2-shim).
+ * JavaScript Component Model tooling (jco/preview2-shim) and typed interfaces.
  *
  * Setup:
  *   npm install @bytecodealliance/jco @bytecodealliance/preview2-shim
@@ -45,52 +45,55 @@ Feature: User Authentication
     Then they should see an error message
 `;
 
-// --- Parse to AST ---
+// --- Parse to typed AST ---
+// parse() takes a source record { uri, data } and returns a typed document.
+// jco maps WIT records to plain JS objects and WIT variants to tagged objects.
 console.log("=== Parsing ===");
-const result = parse(source);
-if (result.tag === "err") {
-  console.error("Parse error:", result.val);
-  process.exit(1);
-}
-const ast = JSON.parse(result.val);
-const feature = ast.feature;
+const doc = parse({ uri: undefined, data: source });
+const feature = doc.feature;
 if (feature) {
   console.log(`Feature: ${feature.name}`);
+  console.log(`Keyword: ${feature.keyword}`);
   console.log(`Language: ${feature.language}`);
   console.log(
     `Tags: ${(feature.tags || []).map((t) => t.name).join(", ") || "(none)"}`
   );
   for (const child of feature.children || []) {
-    const [tag, node] = child;
-    if (tag === "Background") {
-      console.log(`  Background: ${node.steps.length} steps`);
-    } else if (tag === "Scenario") {
-      const tags = (node.tags || []).map((t) => t.name).join(", ");
+    // jco represents WIT variants as { tag: string, val: payload }
+    const { tag, val } = child;
+    if (tag === "background") {
+      console.log(`  Background: ${val.steps.length} steps`);
+    } else if (tag === "scenario") {
+      const tags = (val.tags || []).map((t) => t.name).join(", ");
       console.log(
-        `  Scenario: ${node.name} (tags: ${tags || "(none)"}, steps: ${node.steps.length})`
+        `  ${val.kind}: ${val.name} (tags: ${tags || "(none)"}, steps: ${val.steps.length})`
       );
+    } else if (tag === "rule") {
+      console.log(`  Rule: ${val.name} (${val.children.length} children)`);
     }
   }
 }
 
 // --- Tokenize ---
+// tokenize() takes a source record and returns a list of typed tokens.
 console.log("\n=== Tokenizing ===");
-const tokResult = tokenize(source);
-if (tokResult.tag === "ok") {
-  const tokens = JSON.parse(tokResult.val);
-  for (const token of tokens.slice(0, 10)) {
-    console.log(`  ${token[0]}`);
+const tokens = tokenize({ uri: undefined, data: source });
+for (const tok of tokens.slice(0, 10)) {
+  let info = "";
+  if (tok.val != null) {
+    if (tok.val.keyword) info += ` keyword=${JSON.stringify(tok.val.keyword)}`;
+    if (tok.val.name !== undefined)
+      info += ` name=${JSON.stringify(tok.val.name)}`;
+    if (tok.val.text) info += ` text=${JSON.stringify(tok.val.text)}`;
   }
-  if (tokens.length > 10) {
-    console.log(`  ... and ${tokens.length - 10} more tokens`);
-  }
+  console.log(`  ${tok.tag}${info}`);
+}
+if (tokens.length > 10) {
+  console.log(`  ... and ${tokens.length - 10} more tokens`);
 }
 
 // --- Round-trip: parse then write ---
+// write() takes a typed document record and returns Gherkin text.
 console.log("\n=== Round-trip (parse -> write) ===");
-const writeResult = write(result.val);
-if (writeResult.tag === "ok") {
-  console.log(writeResult.val);
-} else {
-  console.error("Write error:", writeResult.val);
-}
+const written = write(doc);
+console.log(written);
