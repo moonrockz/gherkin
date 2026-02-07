@@ -1,6 +1,6 @@
 ///|
 /// A feature start event. Children arrive as subsequent events.
-pub struct FeatureEvent {
+pub(all) struct FeatureEvent {
   location : Location
   tags : Array[Tag]
   language : String
@@ -11,7 +11,7 @@ pub struct FeatureEvent {
 
 ///|
 /// A rule start event. Children arrive as subsequent events.
-pub struct RuleEvent {
+pub(all) struct RuleEvent {
   location : Location
   tags : Array[Tag]
   keyword : String
@@ -21,7 +21,7 @@ pub struct RuleEvent {
 
 ///|
 /// A background start event. Steps arrive as subsequent events.
-pub struct BackgroundEvent {
+pub(all) struct BackgroundEvent {
   location : Location
   keyword : String
   name : String
@@ -30,7 +30,7 @@ pub struct BackgroundEvent {
 
 ///|
 /// A scenario start event. Steps/examples arrive as subsequent events.
-pub struct ScenarioEvent {
+pub(all) struct ScenarioEvent {
   location : Location
   tags : Array[Tag]
   kind : ScenarioKind
@@ -41,7 +41,7 @@ pub struct ScenarioEvent {
 
 ///|
 /// A step event (leaf -- no children).
-pub struct StepEvent {
+pub(all) struct StepEvent {
   location : Location
   keyword : String
   keyword_type : KeywordType
@@ -50,7 +50,7 @@ pub struct StepEvent {
 
 ///|
 /// A doc string event (leaf).
-pub struct DocStringEvent {
+pub(all) struct DocStringEvent {
   location : Location
   media_type : String?
   content : String
@@ -59,14 +59,14 @@ pub struct DocStringEvent {
 
 ///|
 /// A data table event (self-contained with all rows).
-pub struct DataTableEvent {
+pub(all) struct DataTableEvent {
   location : Location
   rows : Array[TableRow]
 } derive(Show, Eq)
 
 ///|
 /// An examples table event (self-contained with header + body).
-pub struct ExamplesEvent {
+pub(all) struct ExamplesEvent {
   location : Location
   tags : Array[Tag]
   keyword : String
@@ -78,14 +78,14 @@ pub struct ExamplesEvent {
 
 ///|
 /// A tag event (leaf).
-pub struct TagEvent {
+pub(all) struct TagEvent {
   location : Location
   name : String
 } derive(Show, Eq)
 
 ///|
 /// A comment event (leaf).
-pub struct CommentEvent {
+pub(all) struct CommentEvent {
   location : Location
   text : String
 } derive(Show, Eq)
@@ -93,7 +93,7 @@ pub struct CommentEvent {
 ///|
 /// Events emitted during pull-based parsing.
 /// Follows nested lifecycle: Document -> Feature -> (Background|Scenario|Rule) -> Steps -> End*
-pub enum GherkinEvent {
+pub(all) enum GherkinEvent {
   DocumentStart
   DocumentEnd
   FeatureStart(FeatureEvent)

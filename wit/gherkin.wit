@@ -1,21 +1,389 @@
-package moonrockz:gherkin@0.1.0;
+package moonrockz:gherkin@0.2.0;
+
+interface types {
+    // ── Source ──
+
+    /// Input source with optional URI and content.
+    record source {
+        uri: option<string>,
+        data: string,
+    }
+
+    // ── Location ──
+
+    /// A location in the source text.
+    record location {
+        line: s32,
+        column: option<s32>,
+    }
+
+    // ── Enums ──
+
+    /// Distinguishes a Scenario from a Scenario Outline.
+    enum scenario-kind {
+        scenario,
+        scenario-outline,
+    }
+
+    /// The semantic role of a step keyword.
+    enum keyword-type {
+        context,
+        action,
+        outcome,
+        conjunction,
+        unknown,
+    }
+
+    // ── AST records ──
+
+    /// A tag as it appears in source (name includes '@' prefix).
+    record tag {
+        location: location,
+        name: string,
+        id: string,
+    }
+
+    /// A comment line in the source.
+    record comment {
+        location: location,
+        text: string,
+    }
+
+    /// A single cell in a data table row.
+    record table-cell {
+        location: location,
+        value: string,
+    }
+
+    /// A row in a data table or examples table.
+    record table-row {
+        location: location,
+        id: string,
+        cells: list<table-cell>,
+    }
+
+    /// A doc string step argument.
+    record doc-string {
+        location: location,
+        media-type: option<string>,
+        content: string,
+        delimiter: string,
+    }
+
+    /// A data table step argument.
+    record data-table {
+        location: location,
+        rows: list<table-row>,
+    }
+
+    /// A step argument is either a DocString or a DataTable.
+    variant step-argument {
+        doc-string(doc-string),
+        data-table(data-table),
+    }
+
+    /// A single step within a scenario or background.
+    record step {
+        location: location,
+        keyword: string,
+        keyword-type: keyword-type,
+        text: string,
+        id: string,
+        argument: option<step-argument>,
+    }
+
+    /// An examples table attached to a scenario outline.
+    record examples {
+        location: location,
+        tags: list<tag>,
+        keyword: string,
+        name: string,
+        description: string,
+        id: string,
+        table-header: option<table-row>,
+        table-body: list<table-row>,
+    }
+
+    /// A background section providing shared setup steps.
+    record background {
+        location: location,
+        keyword: string,
+        name: string,
+        description: string,
+        id: string,
+        steps: list<step>,
+    }
+
+    /// A scenario (or scenario outline) within a feature or rule.
+    record scenario {
+        location: location,
+        tags: list<tag>,
+        kind: scenario-kind,
+        keyword: string,
+        name: string,
+        description: string,
+        id: string,
+        steps: list<step>,
+        examples: list<examples>,
+    }
+
+    /// A child element of a Rule.
+    variant rule-child {
+        background(background),
+        scenario(scenario),
+    }
+
+    /// A rule grouping related scenarios under a business rule.
+    record rule {
+        location: location,
+        tags: list<tag>,
+        keyword: string,
+        name: string,
+        description: string,
+        id: string,
+        children: list<rule-child>,
+    }
+
+    /// A child element of a Feature.
+    variant feature-child {
+        background(background),
+        scenario(scenario),
+        rule(rule),
+    }
+
+    /// A feature, the top-level structural element in a Gherkin document.
+    record feature {
+        location: location,
+        tags: list<tag>,
+        language: string,
+        keyword: string,
+        name: string,
+        description: string,
+        children: list<feature-child>,
+    }
+
+    /// The root of a parsed Gherkin document.
+    record gherkin-document {
+        source: source,
+        feature: option<feature>,
+        comments: list<comment>,
+    }
+
+    // ── Parse errors ──
+
+    /// A parse error with location information.
+    record parse-error {
+        message: string,
+        line: s32,
+        column: option<s32>,
+    }
+
+    // ── Token types (record wrappers for variant payloads) ──
+
+    record feature-line-data {
+        location: location,
+        keyword: string,
+        name: string,
+    }
+
+    record rule-line-data {
+        location: location,
+        keyword: string,
+        name: string,
+    }
+
+    record background-line-data {
+        location: location,
+        keyword: string,
+        name: string,
+    }
+
+    record scenario-line-data {
+        location: location,
+        keyword: string,
+        name: string,
+        kind: scenario-kind,
+    }
+
+    record examples-line-data {
+        location: location,
+        keyword: string,
+        name: string,
+    }
+
+    record step-line-data {
+        location: location,
+        keyword: string,
+        keyword-type: keyword-type,
+        text: string,
+    }
+
+    record doc-string-separator-data {
+        location: location,
+        delimiter: string,
+        media-type: option<string>,
+    }
+
+    record token-table-row-data {
+        location: location,
+        cells: list<string>,
+    }
+
+    record tag-line-data {
+        location: location,
+        tags: list<string>,
+    }
+
+    record comment-line-data {
+        location: location,
+        text: string,
+    }
+
+    record language-data {
+        location: location,
+        language: string,
+    }
+
+    record other-line-data {
+        location: location,
+        text: string,
+    }
+
+    /// A token produced by the lexer, representing a classified source line.
+    variant token {
+        feature-line(feature-line-data),
+        rule-line(rule-line-data),
+        background-line(background-line-data),
+        scenario-line(scenario-line-data),
+        examples-line(examples-line-data),
+        step-line(step-line-data),
+        doc-string-separator(doc-string-separator-data),
+        token-table-row(token-table-row-data),
+        tag-line(tag-line-data),
+        comment-line(comment-line-data),
+        language(language-data),
+        empty(location),
+        other(other-line-data),
+        eof(location),
+    }
+
+    // ── Event types ──
+
+    record feature-event {
+        location: location,
+        tags: list<tag>,
+        language: string,
+        keyword: string,
+        name: string,
+        description: string,
+    }
+
+    record rule-event {
+        location: location,
+        tags: list<tag>,
+        keyword: string,
+        name: string,
+        description: string,
+    }
+
+    record background-event {
+        location: location,
+        keyword: string,
+        name: string,
+        description: string,
+    }
+
+    record scenario-event {
+        location: location,
+        tags: list<tag>,
+        kind: scenario-kind,
+        keyword: string,
+        name: string,
+        description: string,
+    }
+
+    record step-event {
+        location: location,
+        keyword: string,
+        keyword-type: keyword-type,
+        text: string,
+    }
+
+    record doc-string-event {
+        location: location,
+        media-type: option<string>,
+        content: string,
+        delimiter: string,
+    }
+
+    record data-table-event {
+        location: location,
+        rows: list<table-row>,
+    }
+
+    record examples-event {
+        location: location,
+        tags: list<tag>,
+        keyword: string,
+        name: string,
+        description: string,
+        table-header: option<table-row>,
+        table-body: list<table-row>,
+    }
+
+    record tag-event {
+        location: location,
+        name: string,
+    }
+
+    record comment-event {
+        location: location,
+        text: string,
+    }
+
+    /// Events emitted during pull-based parsing.
+    variant gherkin-event {
+        document-start,
+        document-end,
+        feature-start(feature-event),
+        feature-end,
+        rule-start(rule-event),
+        rule-end,
+        background-start(background-event),
+        background-end,
+        scenario-start(scenario-event),
+        scenario-end,
+        step(step-event),
+        doc-string(doc-string-event),
+        data-table(data-table-event),
+        examples(examples-event),
+        tag(tag-event),
+        comment(comment-event),
+    }
+}
 
 interface parser {
-    /// Parse Gherkin source text into a JSON AST.
-    /// Returns the JSON string on success, or an error message on failure.
-    parse: func(source: string) -> result<string, string>;
+    use types.{source, gherkin-document, parse-error};
+
+    /// Parse Gherkin source into a typed document AST.
+    parse: func(source: source) -> result<gherkin-document, list<parse-error>>;
 }
 
 interface tokenizer {
-    /// Tokenize Gherkin source text into a JSON token array.
-    /// Returns the JSON string on success, or an error message on failure.
-    tokenize: func(source: string) -> result<string, string>;
+    use types.{source, token, parse-error};
+
+    /// Tokenize Gherkin source into a list of typed tokens.
+    tokenize: func(source: source) -> result<list<token>, list<parse-error>>;
 }
 
 interface writer {
-    /// Convert a JSON AST back to formatted Gherkin text.
-    /// Returns the Gherkin string on success, or an error message on failure.
-    write: func(json-ast: string) -> result<string, string>;
+    use types.{gherkin-document, gherkin-event};
+
+    /// Convert a typed document AST back to formatted Gherkin text.
+    write: func(document: gherkin-document) -> result<string, string>;
+
+    /// Convert a list of events back to formatted Gherkin text.
+    write-events: func(events: list<gherkin-event>) -> result<string, string>;
 }
 
 world gherkin {

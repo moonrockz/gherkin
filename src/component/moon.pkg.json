@@ -2,11 +2,11 @@
 {
       "link": {
             "wasm": {
-                  "exports": ["mbt_ffi_cabi_realloc:cabi_realloc", "wasmExportParse:moonrockz:gherkin/parser@0.1.0#parse", "wasmExportParsePostReturn:cabi_post_moonrockz:gherkin/parser@0.1.0#parse", "wasmExportTokenize:moonrockz:gherkin/tokenizer@0.1.0#tokenize", "wasmExportTokenizePostReturn:cabi_post_moonrockz:gherkin/tokenizer@0.1.0#tokenize", "wasmExportWrite:moonrockz:gherkin/writer@0.1.0#write", "wasmExportWritePostReturn:cabi_post_moonrockz:gherkin/writer@0.1.0#write"],
+                  "exports": ["mbt_ffi_cabi_realloc:cabi_realloc", "wasmExportParse:moonrockz:gherkin/parser@0.2.0#parse", "wasmExportParsePostReturn:cabi_post_moonrockz:gherkin/parser@0.2.0#parse", "wasmExportTokenize:moonrockz:gherkin/tokenizer@0.2.0#tokenize", "wasmExportTokenizePostReturn:cabi_post_moonrockz:gherkin/tokenizer@0.2.0#tokenize", "wasmExportWrite:moonrockz:gherkin/writer@0.2.0#write", "wasmExportWriteEvents:moonrockz:gherkin/writer@0.2.0#write-events", "wasmExportWriteEventsPostReturn:cabi_post_moonrockz:gherkin/writer@0.2.0#write-events", "wasmExportWritePostReturn:cabi_post_moonrockz:gherkin/writer@0.2.0#write"],
                   "export-memory-name": "memory",
                   "heap-start-address": 16
             }
       }
-      ,"import": [{ "path" : "moonrockz/gherkin/component/interface/moonrockz/gherkin/parser", "alias" : "parser" }, { "path" : "moonrockz/gherkin/component/interface/moonrockz/gherkin/tokenizer", "alias" : "tokenizer" }, { "path" : "moonrockz/gherkin/component/interface/moonrockz/gherkin/writer", "alias" : "writer" }]
+      ,"import": [{ "path" : "moonrockz/gherkin/component/interface/moonrockz/gherkin/parser", "alias" : "parser" }, { "path" : "moonrockz/gherkin/component/interface/moonrockz/gherkin/tokenizer", "alias" : "tokenizer" }, { "path" : "moonrockz/gherkin/component/interface/moonrockz/gherkin/writer", "alias" : "writer" }, { "path" : "moonrockz/gherkin/interface/moonrockz/gherkin/types", "alias" : "types" }]
       , "warn-list": "-44"
 }

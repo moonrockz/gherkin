@@ -1,7 +1,7 @@
 {
   "import": [
     { "path": "moonrockz/gherkin", "alias": "lib" },
-    "moonbitlang/core/json"
+    { "path": "moonrockz/gherkin/interface/moonrockz/gherkin/types", "alias": "types" }
   ],
   "warn-list": "-44"
 }

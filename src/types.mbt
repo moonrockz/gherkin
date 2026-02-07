@@ -7,14 +7,14 @@ pub(all) struct Location {
 
 ///|
 /// Distinguishes a Scenario from a Scenario Outline.
-pub enum ScenarioKind {
+pub(all) enum ScenarioKind {
   Scenario
   ScenarioOutline
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
 /// The type of a step keyword, classifying its semantic role.
-pub enum KeywordType {
+pub(all) enum KeywordType {
   /// "Given" -- establishes context
   Context
   /// "When" -- describes an action
@@ -30,7 +30,7 @@ pub enum KeywordType {
 ///|
 /// A tag as it appears in source.
 /// The `name` field includes the '@' prefix (e.g., "@smoke").
-pub struct Tag {
+pub(all) struct Tag {
   location : Location
   name : String
   id : String
@@ -38,21 +38,21 @@ pub struct Tag {
 
 ///|
 /// A comment line in the source.
-pub struct Comment {
+pub(all) struct Comment {
   location : Location
   text : String
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
 /// A single cell in a data table row.
-pub struct TableCell {
+pub(all) struct TableCell {
   location : Location
   value : String
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
 /// A row in a data table or examples table.
-pub struct TableRow {
+pub(all) struct TableRow {
   location : Location
   id : String
   cells : Array[TableCell]
@@ -60,7 +60,7 @@ pub struct TableRow {
 
 ///|
 /// A doc string step argument.
-pub struct DocString {
+pub(all) struct DocString {
   location : Location
   media_type : String?
   content : String
@@ -69,21 +69,21 @@ pub struct DocString {
 
 ///|
 /// A data table step argument.
-pub struct DataTable {
+pub(all) struct DataTable {
   location : Location
   rows : Array[TableRow]
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
 /// A step argument is either a DocString or a DataTable.
-pub enum StepArgument {
+pub(all) enum StepArgument {
   DocString(DocString)
   DataTable(DataTable)
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
 /// A single step within a scenario or background.
-pub struct Step {
+pub(all) struct Step {
   location : Location
   keyword : String
   keyword_type : KeywordType
@@ -94,7 +94,7 @@ pub struct Step {
 
 ///|
 /// An examples table attached to a scenario outline.
-pub struct Examples {
+pub(all) struct Examples {
   location : Location
   tags : Array[Tag]
   keyword : String
@@ -107,7 +107,7 @@ pub struct Examples {
 
 ///|
 /// A background section providing shared setup steps.
-pub struct Background {
+pub(all) struct Background {
   location : Location
   keyword : String
   name : String
@@ -118,7 +118,7 @@ pub struct Background {
 
 ///|
 /// A scenario (or scenario outline) within a feature or rule.
-pub struct Scenario {
+pub(all) struct Scenario {
   location : Location
   tags : Array[Tag]
   kind : ScenarioKind
@@ -132,14 +132,14 @@ pub struct Scenario {
 
 ///|
 /// A child element of a Rule: either a Background or a Scenario.
-pub enum RuleChild {
+pub(all) enum RuleChild {
   Background(Background)
   Scenario(Scenario)
 } derive(Show, Eq, ToJson, FromJson)
 
 ///|
 /// A rule grouping related scenarios under a business rule.
-pub struct Rule {
+pub(all) struct Rule {
   location : Location
   tags : Array[Tag]
   keyword : String
@@ -151,7 +151,7 @@ pub struct Rule {
 
 ///|
 /// A child element of a Feature: Background, Scenario, or Rule.
-pub enum FeatureChild {
+pub(all) enum FeatureChild {
   Background(Background)
   Scenario(Scenario)
   Rule(Rule)
@@ -159,7 +159,7 @@ pub enum FeatureChild {
 
 ///|
 /// A feature, the top-level structural element in a Gherkin document.
-pub struct Feature {
+pub(all) struct Feature {
   location : Location
   tags : Array[Tag]
   language : String
@@ -171,7 +171,7 @@ pub struct Feature {
 
 ///|
 /// The root of a parsed Gherkin document.
-pub struct GherkinDocument {
+pub(all) struct GherkinDocument {
   source : Source
   feature : Feature?
   comments : Array[Comment]

@@ -1,6 +1,7 @@
 {
   "import": [
-    { "path": "moonrockz/gherkin", "alias": "lib" }
+    { "path": "moonrockz/gherkin", "alias": "lib" },
+    { "path": "moonrockz/gherkin/interface/moonrockz/gherkin/types", "alias": "types" }
   ],
   "warn-list": "-44"
 }
