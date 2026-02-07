@@ -1,5 +1,29 @@
 [tools]
 uv = "0.10.0"
+"cargo:wasm-tools" = "1.229.0"
+
+# --- Build tasks ---
+
+[tasks."build:native"]
+description = "Build native CLI binary"
+run = "moon build --target native"
+
+[tasks."build:wasm"]
+description = "Build core WASM module"
+run = "moon build --target wasm"
+
+[tasks."build:component"]
+description = "Build WASM component from core WASM + WIT"
+depends = ["build:wasm"]
+run = """
+wasm-tools component embed wit/ --world gherkin \
+  _build/wasm/release/build/cmd/wasm/wasm.wasm \
+  -o _build/gherkin.embedded.wasm
+wasm-tools component new _build/gherkin.embedded.wasm \
+  -o _build/gherkin.component.wasm
+"""
+
+# --- Test tasks ---
 
 [tasks.test]
 description = "Run all tests"
@@ -10,5 +34,14 @@ description = "Run MoonBit unit tests"
 run = "moon test"
 
 [tasks."test:bdd"]
-description = "Run BDD tests with behave"
-run = "uv run behave"
+description = "Run CLI BDD tests with behave"
+run = "uv run behave tests/features/"
+
+[tasks."test:wasm"]
+description = "Run WASM component BDD tests"
+depends = ["build:component"]
+run = "uv run behave tests/wasm-features/"
+
+[tasks."test:all"]
+description = "Run all tests including WASM"
+depends = ["test:unit", "test:bdd", "test:wasm"]

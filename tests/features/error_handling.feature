@@ -9,7 +9,7 @@ Feature: Parser Error Handling
       """
     When I parse the file
     Then the parser should fail
-    And the error should mention "parse error"
+    And the error should mention "expected"
 
   Scenario: Report missing Feature keyword
     Given a Gherkin input

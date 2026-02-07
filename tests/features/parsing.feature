@@ -64,3 +64,36 @@ Feature: Gherkin Parser
     When I parse the file
     Then the parser should succeed
     And the output should contain 1 scenario(s)
+
+  Scenario: Parse multiple scenarios
+    Given a Gherkin file "multiple_scenarios.feature"
+    When I parse the file
+    Then the parser should succeed
+    And the output should contain 3 scenario(s)
+
+  Scenario: Parse scenario kind distinction
+    Given a Gherkin file "scenario_kind.feature"
+    When I parse the file
+    Then the parser should succeed
+    And the output should contain a "Scenario" node
+    And the output should contain a "ScenarioOutline" node
+
+  Scenario: Parse feature with descriptions
+    Given a Gherkin file "descriptions.feature"
+    When I parse the file
+    Then the parser should succeed
+    And the feature description should not be empty
+
+  Scenario: Parse complex feature with rules and tags
+    Given a Gherkin file "complex.feature"
+    When I parse the file
+    Then the parser should succeed
+    And the output should contain a "Rule" node
+    And the output should contain keyword "@integration"
+    And the output should contain keyword "@admin"
+
+  Scenario: Parse i18n feature
+    Given a Gherkin file "i18n.feature"
+    When I parse the file
+    Then the parser should succeed
+    And the output should contain keyword "Fonctionnalit"

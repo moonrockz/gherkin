@@ -5,6 +5,21 @@ enum Input {
 }
 
 ///|
+fn eprintln(msg : String) -> Unit {
+  try {
+    @fs.write_string_to_file("/dev/stderr", msg + "\n")
+  } catch {
+    _ => println(msg)
+  }
+}
+
+///|
+fn die(msg : String) -> Unit {
+  eprintln(msg)
+  @sys.exit(1)
+}
+
+///|
 fn main {
   let args = @env.args()
   let input = if args.length() > 1 {
@@ -21,7 +36,7 @@ fn main {
         @fs.read_file_to_string("/dev/stdin")
       } catch {
         @fs.IOError(msg) => {
-          println("Error reading stdin: \{msg}")
+          die("Error reading stdin: \{msg}")
           return
         }
       }
@@ -32,7 +47,7 @@ fn main {
         @fs.read_file_to_string(path)
       } catch {
         @fs.IOError(msg) => {
-          println("Error reading \{path}: \{msg}")
+          die("Error reading \{path}: \{msg}")
           return
         }
       }
@@ -44,15 +59,15 @@ fn main {
     @lib.parse(src)
   } catch {
     @lib.UnexpectedToken(message~, ..) => {
-      println(message)
+      die(message)
       return
     }
     @lib.UnexpectedEof(message~, ..) => {
-      println(message)
+      die(message)
       return
     }
     @lib.InconsistentTableCells(message~, ..) => {
-      println(message)
+      die(message)
       return
     }
     @lib.CompositeError(errors~) => {
@@ -60,10 +75,11 @@ fn main {
         match e {
           @lib.UnexpectedToken(message~, ..)
           | @lib.UnexpectedEof(message~, ..)
-          | @lib.InconsistentTableCells(message~, ..) => println(message)
+          | @lib.InconsistentTableCells(message~, ..) => eprintln(message)
           _ => ()
         }
       }
+      @sys.exit(1)
       return
     }
   }
