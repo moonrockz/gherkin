@@ -267,3 +267,124 @@ test "parse: step keyword types" {
   inspect(s.steps[4].keyword_type, content="Conjunction")
   inspect(s.steps[5].keyword_type, content="Unknown")
 }
+
+// ── parse: comments ──
+
+///|
+test "parse: comments collected in document" {
+  let src = Source::from_string(
+    "# This is a file-level comment\nFeature: Comments\n  # This is a feature-level comment\n\n  # Pre-scenario comment\n  Scenario: Commented scenario\n    # Step comment\n    Given something\n    When action\n    Then result\n",
+  )
+  let doc = parse(src)
+  // Comments should be collected in document.comments
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.name, content="Comments")
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.name, content="Commented scenario")
+  inspect(s.steps.length(), content="3")
+  // Comments should be in the document
+  inspect(doc.comments.length() > 0, content="true")
+  inspect(doc.comments[0].text, content="# This is a file-level comment")
+}
+
+// ── parse: tags ──
+
+///|
+test "parse: feature and scenario tags" {
+  let src = Source::from_string(
+    "@smoke @regression\nFeature: Tagged feature\n\n  @wip\n  Scenario: Tagged scenario\n    Given something\n    When action\n    Then result\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.name, content="Tagged feature")
+  // Feature tags
+  inspect(feature.tags.length(), content="2")
+  inspect(feature.tags[0].name, content="@smoke")
+  inspect(feature.tags[1].name, content="@regression")
+  // Scenario tags
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.tags.length(), content="1")
+  inspect(s.tags[0].name, content="@wip")
+}
+
+// ── parse: background ──
+
+///|
+test "parse: feature with background" {
+  let src = Source::from_string(
+    "Feature: Background example\n\n  Background:\n    Given a common precondition\n    And another common setup step\n\n  Scenario: First scenario\n    When an action\n    Then a result\n\n  Scenario: Second scenario\n    When a different action\n    Then a different result\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.name, content="Background example")
+  inspect(feature.children.length(), content="3")
+  // First child should be Background
+  guard feature.children[0] is FeatureChild::Background(bg) else {
+    abort("expected background")
+  }
+  inspect(bg.keyword, content="Background")
+  inspect(bg.steps.length(), content="2")
+  inspect(bg.steps[0].text, content="a common precondition")
+  inspect(bg.steps[1].text, content="another common setup step")
+  // Second and third children should be Scenarios
+  guard feature.children[1] is FeatureChild::Scenario(s1) else {
+    abort("expected scenario 1")
+  }
+  guard feature.children[2] is FeatureChild::Scenario(s2) else {
+    abort("expected scenario 2")
+  }
+  inspect(s1.name, content="First scenario")
+  inspect(s2.name, content="Second scenario")
+}
+
+// ── parse: doc strings ──
+
+///|
+test "parse: step with doc string" {
+  let src = Source::from_string(
+    "Feature: Doc Strings\n\n  Scenario: A step with a doc string\n    Given the following text:\n      \"\"\"\n      This is a doc string.\n      It can span multiple lines.\n      \"\"\"\n    When I process the text\n    Then it should be captured\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.steps.length(), content="3")
+  inspect(s.steps[0].text, content="the following text:")
+  // First step should have a doc string argument
+  guard s.steps[0].argument is Some(StepArgument::DocString(ds)) else {
+    abort("expected doc string argument")
+  }
+  inspect(ds.delimiter, content="\"\"\"")
+  inspect(ds.content.contains("This is a doc string."), content="true")
+  inspect(ds.content.contains("It can span multiple lines."), content="true")
+}
+
+// ── parse: data tables ──
+
+///|
+test "parse: step with data table" {
+  let src = Source::from_string(
+    "Feature: Data Tables\n\n  Scenario: A step with a data table\n    Given the following users exist:\n      | name  | email          | role  |\n      | Alice | alice@test.com | admin |\n      | Bob   | bob@test.com   | user  |\n    When I list all users\n    Then I should see 2 users\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.steps.length(), content="3")
+  inspect(s.steps[0].text, content="the following users exist:")
+  // First step should have a data table argument
+  guard s.steps[0].argument is Some(StepArgument::DataTable(dt)) else {
+    abort("expected data table argument")
+  }
+  inspect(dt.rows.length(), content="3")
+  inspect(dt.rows[0].cells.length(), content="3")
+  inspect(dt.rows[0].cells[0].value, content="name")
+  inspect(dt.rows[1].cells[0].value, content="Alice")
+  inspect(dt.rows[2].cells[0].value, content="Bob")
+}

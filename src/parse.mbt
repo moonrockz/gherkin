@@ -62,8 +62,22 @@ fn Parser::parse_document(self : Parser) -> GherkinDocument raise ParseError {
       _ => break
     }
   }
+  // Collect feature-level tags
+  let feature_tags : Array[Tag] = []
+  while not(self.at_eof()) {
+    match self.peek() {
+      TagLine(loc, tag_names) => {
+        for t in tag_names {
+          feature_tags.push({ location: loc, name: t, id: self.next_id() })
+        }
+        self.advance() |> ignore
+      }
+      _ => break
+    }
+  }
   let feature : Feature? = match self.peek() {
-    FeatureLine(_, _, _) => Some(self.parse_feature(language, comments))
+    FeatureLine(_, _, _) =>
+      Some(self.parse_feature(language, comments, feature_tags))
     Eof(_) => None
     other => {
       let loc = token_location(other)
@@ -82,6 +96,7 @@ fn Parser::parse_feature(
   self : Parser,
   language : String,
   comments : Array[Comment],
+  tags : Array[Tag],
 ) -> Feature raise ParseError {
   // Consume FeatureLine
   let (loc, keyword, name) = match self.advance() {
@@ -139,7 +154,7 @@ fn Parser::parse_feature(
     }
   }
   let description = build_description(description_lines)
-  { location: loc, tags: [], language, keyword, name, description, children }
+  { location: loc, tags, language, keyword, name, description, children }
 }
 
 ///|
@@ -214,15 +229,23 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
 ///|
 fn Parser::parse_step(self : Parser) -> Step raise ParseError {
   match self.advance() {
-    StepLine(loc, keyword, keyword_type, text) =>
+    StepLine(loc, keyword, keyword_type, text) => {
+      // Check for step argument (doc string or data table)
+      let argument : StepArgument? = match self.peek() {
+        DocStringSeparator(_, _, _) =>
+          Some(StepArgument::DocString(self.parse_doc_string()))
+        TableRow(_, _) => Some(StepArgument::DataTable(self.parse_data_table()))
+        _ => None
+      }
       {
         location: loc,
         keyword,
         keyword_type,
         text,
         id: self.next_id(),
-        argument: None,
+        argument,
       }
+    }
     other => {
       let loc = token_location(other)
       let hint = self.source_line_hint(loc)
@@ -232,6 +255,97 @@ fn Parser::parse_step(self : Parser) -> Step raise ParseError {
       )
     }
   }
+}
+
+///|
+fn Parser::parse_doc_string(self : Parser) -> DocString raise ParseError {
+  let (loc, delimiter, media_type) = match self.advance() {
+    DocStringSeparator(loc, delim, mt) => (loc, delim, mt)
+    other => {
+      let loc = token_location(other)
+      let hint = self.source_line_hint(loc)
+      raise UnexpectedToken(
+        message="expected doc string delimiter at line \{loc.line}, but found \{token_name(other)}\{hint}",
+        location=loc,
+      )
+    }
+  }
+  let content_lines : Array[String] = []
+  while not(self.at_eof()) {
+    match self.peek() {
+      DocStringSeparator(_, _, _) => {
+        self.advance() |> ignore
+        break
+      }
+      Other(_, text) => {
+        content_lines.push(text)
+        self.advance() |> ignore
+      }
+      Empty(_) => {
+        content_lines.push("")
+        self.advance() |> ignore
+      }
+      _ =>
+        // Unexpected token inside doc string — treat as content
+        self.advance() |> ignore
+    }
+  }
+  // Dedent content: find minimum indentation and strip it
+  let content = dedent_doc_string(content_lines, loc)
+  { location: loc, media_type, content, delimiter }
+}
+
+///|
+fn dedent_doc_string(lines : Array[String], opener_loc : Location) -> String {
+  // The indent level is determined by the opening delimiter's column
+  let indent = match opener_loc.column {
+    Some(col) => col - 1
+    None => 0
+  }
+  let result : Array[String] = []
+  for line in lines {
+    if line.length() == 0 {
+      result.push("")
+    } else {
+      // Strip up to `indent` characters of leading whitespace
+      let chars = line.to_array()
+      let mut start = 0
+      while start < indent &&
+            start < chars.length() &&
+            (chars[start] == ' ' || chars[start] == '\t') {
+        start = start + 1
+      }
+      result.push(String::from_array(chars[start:].to_array()))
+    }
+  }
+  result.join("\n")
+}
+
+///|
+fn Parser::parse_data_table(self : Parser) -> DataTable {
+  let rows : Array[TableRow] = []
+  while not(self.at_eof()) {
+    match self.peek() {
+      TableRow(loc, cells) => {
+        let table_cells : Array[TableCell] = []
+        for i, cell in cells {
+          table_cells.push({
+            location: { line: loc.line, column: Some(i + 1) },
+            value: cell,
+          })
+        }
+        rows.push({ location: loc, id: self.next_id(), cells: table_cells })
+        self.advance() |> ignore
+      }
+      _ => break
+    }
+  }
+  let table_loc = if rows.length() > 0 {
+    rows[0].location
+  } else {
+    { line: 0, column: None }
+  }
+  { location: table_loc, rows }
 }
 
 ///|
