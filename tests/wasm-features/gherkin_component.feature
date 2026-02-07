@@ -1,6 +1,6 @@
 Feature: WASM Component Model Integration
   As a cross-language consumer
-  I want to use the Gherkin parser via its WASM component interface
+  I want to use the Gherkin parser via its typed WASM component interface
   So that I can parse, tokenize, and write Gherkin in any language
 
   # --- Parser: basic parsing ---
@@ -14,11 +14,12 @@ Feature: WASM Component Model Integration
           When they enter credentials
           Then they see the dashboard
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "Feature"
-    And the JSON should contain "Login"
-    And the JSON should contain "Scenario"
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the document should have a feature
+    And the feature name should be "Login"
+    And the feature keyword should be "Feature"
+    And the feature should have 1 children
 
   Scenario: Parse a feature with Background
     Given a Gherkin source
@@ -37,11 +38,11 @@ Feature: WASM Component Model Integration
           When a different action
           Then a different result
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the parsed JSON should have a "feature" node
-    And the parsed JSON feature should have a "Background" child
-    And the parsed JSON feature should have 3 children
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the document should have a feature
+    And the feature should have a "background" child
+    And the feature should have 3 children
 
   Scenario: Parse a Scenario Outline with Examples
     Given a Gherkin source
@@ -58,11 +59,11 @@ Feature: WASM Component Model Integration
             |    12 |   5 |    7 |
             |    20 |   5 |   15 |
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "Scenario Outline"
-    And the JSON should contain "Examples"
-    And the parsed JSON should have a "feature" node
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the document should have a feature
+    And the feature should have a "scenario" child with kind "scenario-outline"
+    And the first scenario should have examples with header "start,eat,left"
 
   Scenario: Parse tags on feature and scenario
     Given a Gherkin source
@@ -76,11 +77,10 @@ Feature: WASM Component Model Integration
           When action
           Then result
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "@smoke"
-    And the JSON should contain "@regression"
-    And the JSON should contain "@wip"
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the feature should have tags "@smoke,@regression"
+    And the first scenario should have tags "@wip"
 
   Scenario: Parse a step with a data table
     Given a Gherkin source
@@ -95,11 +95,11 @@ Feature: WASM Component Model Integration
           When I list all users
           Then I should see 2 users
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "DataTable"
-    And the JSON should contain "Alice"
-    And the JSON should contain "alice@test.com"
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the first step should have a data table argument
+    And the data table should have 3 rows
+    And the data table header should be "name,email,role"
 
   Scenario: Parse a step with a doc string
     Given a Gherkin source
@@ -115,10 +115,10 @@ Feature: WASM Component Model Integration
           When I process the text
           Then it should be captured
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "DocString"
-    And the JSON should contain "This is a doc string."
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the first step should have a doc string argument
+    And the doc string content should contain "This is a doc string."
 
   Scenario: Parse comments
     Given a Gherkin source
@@ -134,10 +134,10 @@ Feature: WASM Component Model Integration
           When action
           Then result
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "Comment"
-    And the JSON should contain "file-level comment"
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the document should have comments
+    And a comment should contain "file-level comment"
 
   Scenario: Parse Gherkin 6 Rules
     Given a Gherkin source
@@ -156,11 +156,12 @@ Feature: WASM Component Model Integration
             When another event
             Then another outcome
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "Rule"
-    And the JSON should contain "Business rule one"
-    And the JSON should contain "Business rule two"
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the feature should have a "rule" child
+    And the feature should have 2 children
+    And the rule child 0 should have name "Business rule one"
+    And the rule child 1 should have name "Business rule two"
 
   Scenario: Parse multiple scenarios
     Given a Gherkin source
@@ -173,10 +174,9 @@ Feature: WASM Component Model Integration
         Scenario: Third
           Given step three
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the parsed JSON should have a "feature" node
-    And the parsed JSON feature should have 3 children
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the feature should have 3 children
 
   Scenario: Parse feature with descriptions
     Given a Gherkin source
@@ -189,9 +189,9 @@ Feature: WASM Component Model Integration
         Scenario: Described scenario
           Given something
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "As a developer"
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the feature description should contain "As a developer"
 
   Scenario: Parse i18n feature (French)
     Given a Gherkin source
@@ -202,10 +202,10 @@ Feature: WASM Component Model Integration
         Scénario: Succès
           Soit un utilisateur
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "Fonctionnalit"
-    And the JSON should contain "fr"
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the feature language should be "fr"
+    And the feature keyword should be "Fonctionnalité"
 
   Scenario: Parse complex feature with rules, tags, and background
     Given a Gherkin source
@@ -232,14 +232,12 @@ Feature: WASM Component Model Integration
               | user  | home    | dashboard    |
               | guest | home    | login prompt |
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "@integration"
-    And the JSON should contain "@admin"
-    And the JSON should contain "Rule"
-    And the JSON should contain "Background"
-    And the JSON should contain "Scenario Outline"
-    And the JSON should contain "Examples"
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the feature should have tags "@integration"
+    And the feature should have a "background" child
+    And the feature should have a "rule" child
+    And the feature should have 3 children
 
   # --- Parser: error handling ---
 
@@ -248,9 +246,9 @@ Feature: WASM Component Model Integration
       """
       not a valid feature file
       """
-    When I call the parse function via the component
-    Then the result should be an error
-    And the error should contain "expected"
+    When I parse the source via the component
+    Then the parse result should be an error list
+    And the first parse error should mention "expected"
 
   Scenario: Parse returns error for missing Feature keyword
     Given a Gherkin source
@@ -258,17 +256,17 @@ Feature: WASM Component Model Integration
       Scenario: Orphan scenario
         Given something
       """
-    When I call the parse function via the component
-    Then the result should be an error
-    And the error should contain "Feature"
+    When I parse the source via the component
+    Then the parse result should be an error list
+    And the first parse error should mention "Feature"
 
   Scenario: Parse empty input returns document with no feature
     Given a Gherkin source
       """
       """
-    When I call the parse function via the component
-    Then the result should be ok
-    And the JSON should contain "source"
+    When I parse the source via the component
+    Then the parse result should be a document
+    And the document should not have a feature
 
   # --- Tokenizer ---
 
@@ -279,11 +277,11 @@ Feature: WASM Component Model Integration
         Scenario: World
           Given something
       """
-    When I call the tokenize function via the component
-    Then the result should be ok
-    And the JSON should contain "FeatureLine"
-    And the JSON should contain "ScenarioLine"
-    And the JSON should contain "StepLine"
+    When I tokenize the source via the component
+    Then the tokenize result should be ok
+    And the tokens should include a "feature-line" token
+    And the tokens should include a "scenario-line" token
+    And the tokens should include a "step-line" token
 
   Scenario: Tokenize a feature with all constructs
     Given a Gherkin source
@@ -299,15 +297,15 @@ Feature: WASM Component Model Integration
             | input |
             | foo   |
       """
-    When I call the tokenize function via the component
-    Then the result should be ok
-    And the JSON should contain "TagLine"
-    And the JSON should contain "FeatureLine"
-    And the JSON should contain "BackgroundLine"
-    And the JSON should contain "ScenarioLine"
-    And the JSON should contain "StepLine"
-    And the JSON should contain "ExamplesLine"
-    And the JSON should contain "TableRow"
+    When I tokenize the source via the component
+    Then the tokenize result should be ok
+    And the tokens should include a "tag-line" token
+    And the tokens should include a "feature-line" token
+    And the tokens should include a "background-line" token
+    And the tokens should include a "scenario-line" token
+    And the tokens should include a "step-line" token
+    And the tokens should include a "examples-line" token
+    And the tokens should include a "token-table-row" token
 
   Scenario: Tokenize a feature with data table
     Given a Gherkin source
@@ -318,10 +316,10 @@ Feature: WASM Component Model Integration
             | name  | age |
             | Alice | 30  |
       """
-    When I call the tokenize function via the component
-    Then the result should be ok
-    And the JSON should contain "TableRow"
-    And the JSON should contain "Alice"
+    When I tokenize the source via the component
+    Then the tokenize result should be ok
+    And the tokens should include a "token-table-row" token
+    And a token-table-row should have a cell containing "Alice"
 
   Scenario: Tokenize a feature with doc string
     Given a Gherkin source
@@ -333,9 +331,9 @@ Feature: WASM Component Model Integration
             {"key": "value"}
             ```
       """
-    When I call the tokenize function via the component
-    Then the result should be ok
-    And the JSON should contain "DocString"
+    When I tokenize the source via the component
+    Then the tokenize result should be ok
+    And the tokens should include a "doc-string-separator" token
 
   Scenario: Tokenize a feature with comments
     Given a Gherkin source
@@ -346,14 +344,14 @@ Feature: WASM Component Model Integration
         Scenario: Test
           Given a step
       """
-    When I call the tokenize function via the component
-    Then the result should be ok
-    And the JSON should contain "Comment"
-    And the JSON should contain "File comment"
+    When I tokenize the source via the component
+    Then the tokenize result should be ok
+    And the tokens should include a "comment-line" token
+    And a comment-line token should contain "File comment"
 
   # --- Writer ---
 
-  Scenario: Write a JSON AST back to Gherkin via WASM component
+  Scenario: Write a document back to Gherkin via WASM component
     Given a Gherkin source
       """
       Feature: Round Trip
@@ -362,8 +360,8 @@ Feature: WASM Component Model Integration
           When another step
           Then final step
       """
-    When I call the parse function via the component
-    And I call the write function with the parsed JSON
+    When I parse the source via the component
+    And I write the parsed document via the component
     Then the write result should be ok
     And the written output should contain "Feature: Round Trip"
     And the written output should contain "Given a step"
@@ -380,8 +378,8 @@ Feature: WASM Component Model Integration
           Given a step
           Then a result
       """
-    When I call the parse function via the component
-    And I call the write function with the parsed JSON
+    When I parse the source via the component
+    And I write the parsed document via the component
     Then the write result should be ok
     And the written output should contain "@smoke"
     And the written output should contain "Feature: Tagged Feature"
@@ -397,8 +395,8 @@ Feature: WASM Component Model Integration
             | name  | age |
             | Alice | 30  |
       """
-    When I call the parse function via the component
-    And I call the write function with the parsed JSON
+    When I parse the source via the component
+    And I write the parsed document via the component
     Then the write result should be ok
     And the written output should contain "| name"
     And the written output should contain "| Alice"
@@ -413,8 +411,8 @@ Feature: WASM Component Model Integration
             Some content here
             ```
       """
-    When I call the parse function via the component
-    And I call the write function with the parsed JSON
+    When I parse the source via the component
+    And I write the parsed document via the component
     Then the write result should be ok
     And the written output should contain "Some content here"
 
@@ -430,8 +428,8 @@ Feature: WASM Component Model Integration
           Scenario: In other rule
             Given another step
       """
-    When I call the parse function via the component
-    And I call the write function with the parsed JSON
+    When I parse the source via the component
+    And I write the parsed document via the component
     Then the write result should be ok
     And the written output should contain "Rule: First rule"
     And the written output should contain "Rule: Second rule"
@@ -448,17 +446,12 @@ Feature: WASM Component Model Integration
             | input | output |
             | foo   | bar    |
       """
-    When I call the parse function via the component
-    And I call the write function with the parsed JSON
+    When I parse the source via the component
+    And I write the parsed document via the component
     Then the write result should be ok
     And the written output should contain "Scenario Outline: Template"
     And the written output should contain "Examples:"
     And the written output should contain "| input"
-
-  Scenario: Write returns error for invalid JSON
-    Given an invalid JSON string "{not valid json"
-    When I call the write function with the invalid JSON
-    Then the write result should be an error
 
   # --- Core WASM module validation ---
 
