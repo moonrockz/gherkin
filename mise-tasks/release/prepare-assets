@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+#MISE description="Prepare release assets from build artifacts"
+set -euo pipefail
+
+ARTIFACTS_DIR="${1:-artifacts}"
+RELEASE_DIR="${2:-release}"
+
+mkdir -p "$RELEASE_DIR"
+
+# Native binaries
+cp "$ARTIFACTS_DIR/gherkin-linux-amd64/main.exe" "$RELEASE_DIR/gherkin-linux-amd64"
+cp "$ARTIFACTS_DIR/gherkin-macos-arm64/main.exe" "$RELEASE_DIR/gherkin-macos-arm64"
+cp "$ARTIFACTS_DIR/gherkin-windows-amd64.exe/main.exe" "$RELEASE_DIR/gherkin-windows-amd64.exe"
+
+# WASM artifacts
+cp "$ARTIFACTS_DIR/gherkin-core.wasm/component.wasm" "$RELEASE_DIR/gherkin-core.wasm"
+cp "$ARTIFACTS_DIR/gherkin.component.wasm/gherkin.component.wasm" "$RELEASE_DIR/gherkin.component.wasm"
+
+# Make Unix binaries executable
+chmod +x "$RELEASE_DIR/gherkin-linux-amd64" "$RELEASE_DIR/gherkin-macos-arm64"
+
+echo "Release assets prepared in $RELEASE_DIR/"
+ls -la "$RELEASE_DIR/"

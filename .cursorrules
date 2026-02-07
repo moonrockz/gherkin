@@ -1,0 +1,53 @@
+# Cursor Rules for moonrockz/gherkin
+
+## Quick Reference
+
+- **Language:** MoonBit (functional, ADT-based)
+- **Build system:** mise (file-based tasks in `mise-tasks/`)
+- **Commits:** Conventional Commits (`type(scope): description`)
+- **Full guide:** See `AGENTS.md` for design philosophy, TDD, and coding conventions
+
+## Commit Messages
+
+All commits MUST use Conventional Commits format:
+
+```
+type(scope): description
+```
+
+Types: `feat`, `fix`, `docs`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, `style`
+
+Breaking changes: add `!` after type (e.g., `feat(parser)!: change return type`)
+
+## Build & Test via Mise
+
+Always use `mise run <task>` -- never raw `moon`, `uv`, or `wasm-tools` commands:
+
+- `mise run test:unit` -- MoonBit unit tests
+- `mise run test:bdd` -- CLI BDD tests (behave)
+- `mise run test:wasm` -- WASM component tests
+- `mise run test:all` -- All tests
+- `mise run build:native` -- Native binary
+- `mise run build:component` -- WASM component
+- `mise tasks` -- List all available tasks
+
+## Mise Task Convention
+
+- Tasks are file-based scripts in `mise-tasks/` -- never add inline `[tasks]` to `.mise.toml`
+- New tasks: create executable script in `mise-tasks/` with `#MISE` metadata comments
+- Subdirectories create namespaced tasks: `mise-tasks/build/native` = `build:native`
+- GitHub workflows MUST call `mise run <task>` instead of inline shell scripts
+
+## Versioning & Changelog
+
+- CHANGELOG.md is auto-generated from conventional commits via `git cliff` -- never edit manually
+- `mise run release:version` -- compute next version
+- `mise run release:bump` -- update moon.mod.json version
+- `mise run release:changelog` -- regenerate CHANGELOG.md
+
+## Design Philosophy
+
+This is a functional programming project. See `AGENTS.md` for:
+- Algebraic data types, immutability, pattern matching
+- Strict TDD (Red-Green-Refactor)
+- Two testing layers: unit tests + BDD acceptance tests

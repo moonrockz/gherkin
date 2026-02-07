@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Generate CHANGELOG.md from conventional commits"
+set -euo pipefail
+
+git cliff --bump -o CHANGELOG.md
+echo "CHANGELOG.md updated."

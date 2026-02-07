@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Build native CLI binary"
+set -euo pipefail
+
+moon build --target native

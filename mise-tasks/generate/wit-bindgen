@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+#MISE description="Regenerate MoonBit WIT bindings from wit/ definitions"
+set -euo pipefail
+
+wit-bindgen moonbit wit/ \
+  --out-dir src/ \
+  --gen-dir component \
+  --project-name moonrockz/gherkin \
+  --ignore-module-file \
+  --ignore-stub \
+  --derive-show \
+  --derive-eq

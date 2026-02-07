@@ -3,12 +3,57 @@ name: Release
 on:
   push:
     tags: ["v*"]
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+      notes: ${{ steps.notes.outputs.notes }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            VERSION="${{ github.ref_name }}"
+            VERSION="${VERSION#v}"
+            PRERELEASE=false
+          else
+            VERSION=$(mise run release:version)
+            if [[ "$VERSION" == *-* ]]; then
+              PRERELEASE=true
+            else
+              PRERELEASE=false
+            fi
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRERELEASE" >> "$GITHUB_OUTPUT"
+
+      - name: Generate release notes
+        id: notes
+        run: |
+          NOTES=$(mise run release:notes 2>/dev/null || echo "Release ${{ steps.version.outputs.version }}")
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "notes<<$EOF" >> "$GITHUB_OUTPUT"
+          echo "$NOTES" >> "$GITHUB_OUTPUT"
+          echo "$EOF" >> "$GITHUB_OUTPUT"
+
   build-native:
+    needs: version
     strategy:
       fail-fast: false
       matrix:
@@ -28,11 +73,16 @@ jobs:
 
       - uses: hustcer/setup-moonbit@v1
 
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+
       - name: Install dependencies
         run: moon update
 
       - name: Build native binary
-        run: moon build --target native
+        run: mise run build:native
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -41,6 +91,7 @@ jobs:
           path: ${{ matrix.binary }}
 
   build-wasm:
+    needs: version
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -55,10 +106,7 @@ jobs:
       - name: Install dependencies
         run: moon update
 
-      - name: Build core WASM
-        run: moon build --target wasm
-
-      - name: Build WASM component
+      - name: Build WASM artifacts
         run: mise run build:component
 
       - name: Upload core WASM
@@ -74,29 +122,29 @@ jobs:
           path: _build/gherkin.component.wasm
 
   release:
-    needs: [build-native, build-wasm]
+    needs: [version, build-native, build-wasm]
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
           path: artifacts
 
       - name: Prepare release assets
-        run: |
-          mkdir -p release
-          # Native binaries
-          cp artifacts/gherkin-linux-amd64/main.exe release/gherkin-linux-amd64
-          cp artifacts/gherkin-macos-arm64/main.exe release/gherkin-macos-arm64
-          cp artifacts/gherkin-windows-amd64.exe/main.exe release/gherkin-windows-amd64.exe
-          # WASM artifacts
-          cp artifacts/gherkin-core.wasm/component.wasm release/gherkin-core.wasm
-          cp artifacts/gherkin.component.wasm/gherkin.component.wasm release/gherkin.component.wasm
-          # Make Unix binaries executable
-          chmod +x release/gherkin-linux-amd64 release/gherkin-macos-arm64
+        run: mise run release:prepare-assets artifacts release
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          generate_release_notes: true
+          tag_name: v${{ needs.version.outputs.version }}
+          name: Release ${{ needs.version.outputs.version }}
+          body: ${{ needs.version.outputs.notes }}
+          prerelease: ${{ needs.version.outputs.prerelease }}
           files: release/*

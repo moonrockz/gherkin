@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Build core WASM module"
+set -euo pipefail
+
+moon build --target wasm

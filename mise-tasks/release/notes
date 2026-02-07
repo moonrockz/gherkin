@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Generate release notes for the latest version"
+set -euo pipefail
+
+git cliff --latest --strip header

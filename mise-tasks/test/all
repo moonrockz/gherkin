@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Run all tests including WASM"
+#MISE depends=["test:unit", "test:bdd", "test:wasm"]
+set -euo pipefail
+
+echo "All tests passed."
