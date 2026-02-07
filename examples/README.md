@@ -70,6 +70,39 @@ Key patterns for JavaScript with jco:
 
 See [javascript/parse_feature.mjs](javascript/parse_feature.mjs) for the full example.
 
+## Go
+
+No Go WASM runtime supports the Component Model yet, so the Go example uses the **core WASM module** directly via [wazero](https://github.com/tetratelabs/wazero) (pure Go, zero CGO). A clean `gherkin` package encapsulates all canonical ABI details behind an idiomatic Go API.
+
+Build the core WASM module (not the component):
+
+```bash
+mise run build:wasm
+
+# Run the example
+cd examples/go
+go run . [path/to/file.feature]
+```
+
+The `gherkin` package provides an `Engine` that compiles the WASM module once and creates fresh instances per call:
+
+```go
+engine, err := gherkin.NewEngine(ctx, wasmPath)
+defer engine.Close(ctx)
+
+doc, err := engine.Parse(ctx, source)       // → *Document
+tokens, err := engine.Tokenize(ctx, source) // → []Token
+formatted, err := engine.Format(ctx, source) // → string (round-trip)
+```
+
+Key patterns for Go with wazero:
+- Compile once, instantiate per call (component model doesn't support re-entrance)
+- All canonical ABI details (UTF-16 encoding, memory layout, post-return cleanup) are hidden inside the `gherkin` package
+- `Format()` avoids re-encoding a `Document` — it passes the raw parse result memory directly to the write export
+- Types mirror the WIT interface: `Document`, `Feature`, `Scenario`, `Step`, `Token`, etc.
+
+See [go/gherkin/](go/gherkin/) for the package and [go/main.go](go/main.go) for the full example.
+
 ## Typed AST Structure
 
 The parsed document is returned as typed records and variants (not JSON). The structure is:
