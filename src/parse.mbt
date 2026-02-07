@@ -12,7 +12,7 @@ priv struct Parser {
   source : Source
   mut pos : Int
   mut id_counter : Int
-} derive(Show)
+}
 
 ///|
 fn Parser::new(tokens : Array[Token], source : Source) -> Parser {
@@ -115,6 +115,11 @@ fn Parser::parse_feature(
   // Consume FeatureLine
   let (loc, keyword, name) = match self.advance() {
     FeatureLine(loc, kw, name) => (loc, kw, name)
+    Eof(loc) =>
+      raise UnexpectedEof(
+        message="unexpected end of file while looking for 'Feature:' keyword",
+        location=loc,
+      )
     other => {
       let loc = token_location(other)
       let hint = self.source_line_hint(loc)
@@ -189,6 +194,11 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
   // Consume ScenarioLine
   let (loc, keyword, name, kind) = match self.advance() {
     ScenarioLine(loc, kw, name, kind) => (loc, kw, name, kind)
+    Eof(loc) =>
+      raise UnexpectedEof(
+        message="unexpected end of file while looking for 'Scenario:' keyword",
+        location=loc,
+      )
     other => {
       let loc = token_location(other)
       let hint = self.source_line_hint(loc)
@@ -273,6 +283,11 @@ fn Parser::parse_step(self : Parser) -> Step raise ParseError {
         argument,
       }
     }
+    Eof(loc) =>
+      raise UnexpectedEof(
+        message="unexpected end of file while looking for a step keyword (Given/When/Then/And/But/*)",
+        location=loc,
+      )
     other => {
       let loc = token_location(other)
       let hint = self.source_line_hint(loc)
@@ -302,6 +317,11 @@ fn Parser::parse_examples(self : Parser) -> Examples raise ParseError {
   // Consume ExamplesLine
   let (loc, keyword, name) = match self.advance() {
     ExamplesLine(loc, kw, name) => (loc, kw, name)
+    Eof(loc) =>
+      raise UnexpectedEof(
+        message="unexpected end of file while looking for 'Examples:' keyword",
+        location=loc,
+      )
     other => {
       let loc = token_location(other)
       let hint = self.source_line_hint(loc)
@@ -376,6 +396,11 @@ fn Parser::parse_examples(self : Parser) -> Examples raise ParseError {
 fn Parser::parse_doc_string(self : Parser) -> DocString raise ParseError {
   let (loc, delimiter, media_type) = match self.advance() {
     DocStringSeparator(loc, delim, mt) => (loc, delim, mt)
+    Eof(loc) =>
+      raise UnexpectedEof(
+        message="unexpected end of file while looking for doc string delimiter",
+        location=loc,
+      )
     other => {
       let loc = token_location(other)
       let hint = self.source_line_hint(loc)
@@ -477,6 +502,11 @@ fn Parser::parse_data_table(self : Parser) -> DataTable raise ParseError {
 fn Parser::parse_background(self : Parser) -> Background raise ParseError {
   let (loc, keyword, name) = match self.advance() {
     BackgroundLine(loc, kw, name) => (loc, kw, name)
+    Eof(loc) =>
+      raise UnexpectedEof(
+        message="unexpected end of file while looking for 'Background:' keyword",
+        location=loc,
+      )
     other => {
       let loc = token_location(other)
       let hint = self.source_line_hint(loc)
@@ -516,6 +546,11 @@ fn Parser::parse_rule(
 ) -> Rule raise ParseError {
   let (loc, keyword, name) = match self.advance() {
     RuleLine(loc, kw, name) => (loc, kw, name)
+    Eof(loc) =>
+      raise UnexpectedEof(
+        message="unexpected end of file while looking for 'Rule:' keyword",
+        location=loc,
+      )
     other => {
       let loc = token_location(other)
       let hint = self.source_line_hint(loc)

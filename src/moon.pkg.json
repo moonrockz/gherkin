@@ -1,5 +1,9 @@
 {
   "import": [
-    "moonbitlang/core/json"
+    "moonbitlang/core/json",
+    {
+      "path": "moonbitlang/core/encoding/utf8",
+      "alias": "utf8"
+    }
   ]
 }

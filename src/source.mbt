@@ -34,9 +34,10 @@ pub fn Source::from_string(content : String, uri? : String) -> Source {
 /// Create a `Source` from UTF-8 encoded bytes.
 ///
 /// Decodes the bytes to a string, then splits into lines.
-#declaration_only
+/// Invalid UTF-8 sequences are replaced with the Unicode replacement character.
 pub fn Source::from_bytes(bytes : Bytes, uri? : String) -> Source {
-  ...
+  let content = @utf8.decode_lossy(bytes[:])
+  Source::from_string(content, uri?)
 }
 
 ///|

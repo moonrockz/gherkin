@@ -704,13 +704,28 @@ test "parse_with_handler: dispatches balanced events" {
 // ── error handling ──
 
 ///|
-test "parse: UnexpectedEof for empty feature" {
+test "parse: empty feature is valid" {
   let src = Source::from_string("Feature: Incomplete")
   // Should parse without error -- empty feature is valid
   let doc = parse(src)
   guard doc.feature is Some(f) else { abort("expected feature") }
   inspect(f.name, content="Incomplete")
   inspect(f.children.length(), content="0")
+}
+
+///|
+test "parse: UnexpectedEof when tags have no following scenario" {
+  // Tags at EOF with no trailing empty line — advance returns Eof directly
+  let src = Source::from_string("Feature: F\n@smoke")
+  let mut got_eof = false
+  try parse(src) |> ignore catch {
+    UnexpectedEof(message~, ..) => {
+      got_eof = true
+      inspect(message.contains("Scenario"), content="true")
+    }
+    _ => abort("expected UnexpectedEof error")
+  }
+  inspect(got_eof, content="true")
 }
 
 ///|
@@ -852,4 +867,51 @@ test "tags between scenarios in Scenario Outline" {
   inspect(s2.name, content="Second")
   inspect(s2.tags.length(), content="1")
   inspect(s2.tags[0].name, content="@next")
+}
+
+// ── Source::from_bytes ──
+
+///|
+test "Source::from_bytes: ASCII content" {
+  let bytes = @utf8.encode("Feature: Hello\n  Scenario: World")
+  let src = Source::from_bytes(bytes)
+  inspect(src.line_count(), content="2")
+  inspect(src.line(1), content="Some(\"Feature: Hello\")")
+  inspect(src.line(2), content="Some(\"  Scenario: World\")")
+}
+
+///|
+test "Source::from_bytes: UTF-8 multibyte content" {
+  let bytes = @utf8.encode("Fonctionnalité: Café\n  Scénario: résumé")
+  let src = Source::from_bytes(bytes)
+  inspect(src.line(1), content="Some(\"Fonctionnalité: Café\")")
+  inspect(src.line(2), content="Some(\"  Scénario: résumé\")")
+}
+
+///|
+test "Source::from_bytes: with URI" {
+  let bytes = @utf8.encode("Feature: F")
+  let src = Source::from_bytes(bytes, uri="test.feature")
+  inspect(src.uri(), content="Some(\"test.feature\")")
+}
+
+///|
+test "Source::from_bytes: empty bytes" {
+  let src = Source::from_bytes(b"")
+  inspect(src.line_count(), content="1")
+  inspect(src.content(), content="")
+}
+
+///|
+test "Source::from_bytes: round-trips with parse" {
+  let bytes = @utf8.encode("Feature: From Bytes\n  Scenario: It works\n    Given a step")
+  let src = Source::from_bytes(bytes)
+  let doc = parse(src)
+  guard doc.feature is Some(f) else { abort("expected feature") }
+  inspect(f.name, content="From Bytes")
+  guard f.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.name, content="It works")
+  inspect(s.steps.length(), content="1")
 }
