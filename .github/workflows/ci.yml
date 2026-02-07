@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hustcer/setup-moonbit@v1
+
+      - name: Install dependencies
+        run: moon update
+
+      - name: Run unit tests
+        run: moon test
+
+  bdd-tests:
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hustcer/setup-moonbit@v1
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: moon update
+
+      - name: Run BDD tests
+        run: uv run behave tests/features/
+
+  wasm-component-tests:
+    needs: unit-tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hustcer/setup-moonbit@v1
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install dependencies
+        run: moon update
+
+      - name: Build WASM component
+        run: mise run build:component
+
+      - name: Run WASM component tests
+        run: uv run behave tests/wasm-features/
+
+  build-native:
+    needs: unit-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            artifact: gherkin-linux-amd64
+          - os: macos-latest
+            artifact: gherkin-macos-arm64
+          - os: windows-latest
+            artifact: gherkin-windows-amd64.exe
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hustcer/setup-moonbit@v1
+
+      - name: Install dependencies
+        run: moon update
+
+      - name: Build native binary
+        run: moon build --target native
