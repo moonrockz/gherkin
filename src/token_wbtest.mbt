@@ -304,9 +304,7 @@ test "tokenize: Given step" {
 
 ///|
 test "tokenize: When step" {
-  let tokens = tokenize(
-    Source::from_string("    When an action is performed"),
-  )
+  let tokens = tokenize(Source::from_string("    When an action is performed"))
   inspect(
     tokens[0],
     content="StepLine({line: 1, column: Some(5)}, \"When \", Action, \"an action is performed\")",
@@ -315,9 +313,7 @@ test "tokenize: When step" {
 
 ///|
 test "tokenize: Then step" {
-  let tokens = tokenize(
-    Source::from_string("    Then an outcome is observed"),
-  )
+  let tokens = tokenize(Source::from_string("    Then an outcome is observed"))
   inspect(
     tokens[0],
     content="StepLine({line: 1, column: Some(5)}, \"Then \", Outcome, \"an outcome is observed\")",
@@ -409,7 +405,11 @@ test "tokenize: empty source" {
 
 ///|
 test "Token::to_json: FeatureLine" {
-  let tok : Token = FeatureLine({ line: 1, column: Some(1) }, "Feature", "Login")
+  let tok : Token = FeatureLine(
+    { line: 1, column: Some(1) },
+    "Feature",
+    "Login",
+  )
   let json = tok.to_json().stringify()
   assert_true(json.contains("FeatureLine"))
   assert_true(json.contains("Feature"))

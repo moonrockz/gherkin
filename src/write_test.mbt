@@ -364,20 +364,14 @@ test "write: custom indent (4 spaces)" {
     #|Feature: Indented
     #|  Scenario: Test
     #|    Given a step
-  let config : WriteConfig = {
-    ..WriteConfig::default(),
-    indent: "    ",
-  }
+  let config : WriteConfig = { ..WriteConfig::default(), indent: "    " }
   let expected =
     #|Feature: Indented
     #|
     #|    Scenario: Test
     #|        Given a step
     #|
-  inspect(
-    write(parse(Source::from_string(input)), config=config),
-    content=expected,
-  )
+  inspect(write(parse(Source::from_string(input)), config~), content=expected)
 }
 
 ///|
@@ -387,7 +381,7 @@ test "write: no trailing newline" {
     trailing_newline: false,
   }
   let doc = parse(Source::from_string("Feature: No trail"))
-  inspect(write(doc, config=config), content="Feature: No trail")
+  inspect(write(doc, config~), content="Feature: No trail")
 }
 
 ///|
@@ -398,10 +392,7 @@ test "write: zero table cell padding" {
     #|    Given a table:
     #|      | a | b |
     #|      | 1 | 2 |
-  let config : WriteConfig = {
-    ..WriteConfig::default(),
-    table_cell_padding: 0,
-  }
+  let config : WriteConfig = { ..WriteConfig::default(), table_cell_padding: 0 }
   let expected =
     #|Feature: Tight
     #|
@@ -410,10 +401,7 @@ test "write: zero table cell padding" {
     #|      |a|b|
     #|      |1|2|
     #|
-  inspect(
-    write(parse(Source::from_string(input)), config=config),
-    content=expected,
-  )
+  inspect(write(parse(Source::from_string(input)), config~), content=expected)
 }
 
 ///|
@@ -433,10 +421,7 @@ test "write: comments excluded via config" {
     #|  Scenario: Test
     #|    Given a step
     #|
-  inspect(
-    write(parse(Source::from_string(input)), config=config),
-    content=expected,
-  )
+  inspect(write(parse(Source::from_string(input)), config~), content=expected)
 }
 
 // ==========================================================================
@@ -491,9 +476,11 @@ test "GherkinWriter: build with data table" {
   w.feature("Feature", "Tables")
   w.scenario("Scenario", "Data")
   w.step("Given ", "users:")
-  w.data_table(
-    [["name", "email"], ["Alice", "alice@test.com"], ["Bob", "bob@test.com"]],
-  )
+  w.data_table([
+    ["name", "email"],
+    ["Alice", "alice@test.com"],
+    ["Bob", "bob@test.com"],
+  ])
   w.end_scenario()
   w.end_feature()
   let expected =
@@ -537,11 +524,10 @@ test "GherkinWriter: build with examples" {
   w.scenario("Scenario Outline", "Eating")
   w.step("Given ", "there are <start> cucumbers")
   w.step("When ", "I eat <eat> cucumbers")
-  w.examples(
-    "Examples",
-    header=["start", "eat", "left"],
-    body=[["12", "5", "7"], ["20", "5", "15"]],
-  )
+  w.examples("Examples", header=["start", "eat", "left"], body=[
+    ["12", "5", "7"],
+    ["20", "5", "15"],
+  ])
   w.end_scenario()
   w.end_feature()
   let expected =
