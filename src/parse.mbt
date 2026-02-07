@@ -1,7 +1,6 @@
 ///|
-/// Parse a Gherkin document from a string.
-/// The optional `uri` identifies the source (file path or URL).
+/// Parse a Gherkin document from a `Source`.
 #declaration_only
-pub fn parse(input : String, uri? : String) -> GherkinDocument raise ParseError {
+pub fn parse(source : Source) -> GherkinDocument raise ParseError {
   ...
 }

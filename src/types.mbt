@@ -164,7 +164,13 @@ pub struct Feature {
 ///|
 /// The root of a parsed Gherkin document.
 pub struct GherkinDocument {
-  uri : String?
+  source : Source
   feature : Feature?
   comments : Array[Comment]
 } derive(Show, Eq)
+
+///|
+/// Create an empty `GherkinDocument` with no feature and no comments.
+pub fn GherkinDocument::empty() -> GherkinDocument {
+  { source: Source::from_string(""), feature: None, comments: [] }
+}

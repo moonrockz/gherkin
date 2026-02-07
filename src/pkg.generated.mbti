@@ -4,9 +4,9 @@ package "moonrockz/gherkin"
 // Values
 pub fn[A, N] continuing((A, N) -> A) -> (A, N) -> FoldAction[A]
 
-pub fn parse(String, uri? : String) -> GherkinDocument raise ParseError
+pub fn parse(Source) -> GherkinDocument raise ParseError
 
-pub fn parse_with_handler(String, &GherkinHandler, uri? : String) -> Unit raise ParseError
+pub fn parse_with_handler(Source, &GherkinHandler) -> Unit raise ParseError
 
 // Errors
 pub suberror ParseError {
@@ -156,7 +156,7 @@ pub impl[A : Eq] Eq for FoldAction[A]
 pub impl[A : Show] Show for FoldAction[A]
 
 pub struct GherkinDocument {
-  uri : String?
+  source : Source
   feature : Feature?
   comments : Array[Comment]
 }
@@ -272,6 +272,18 @@ pub struct ScenarioEvent {
 }
 pub impl Eq for ScenarioEvent
 pub impl Show for ScenarioEvent
+
+pub struct Source {
+  // private fields
+}
+pub fn Source::content(Self) -> String
+pub fn Source::from_bytes(Bytes, uri? : String) -> Self
+pub fn Source::from_string(String, uri? : String) -> Self
+pub fn Source::line(Self, Int) -> String?
+pub fn Source::line_count(Self) -> Int
+pub fn Source::uri(Self) -> String?
+pub impl Eq for Source
+pub impl Show for Source
 
 pub struct Step {
   location : Location

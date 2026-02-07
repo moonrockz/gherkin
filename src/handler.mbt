@@ -106,12 +106,11 @@ impl GherkinHandler with on_data_table(_self, _e) {
 }
 
 ///|
-/// Parse Gherkin input, pushing events to a handler.
+/// Parse a `Source`, pushing events to a handler.
 #declaration_only
 pub fn parse_with_handler(
-  input : String,
+  source : Source,
   handler : &GherkinHandler,
-  uri? : String,
 ) -> Unit raise ParseError {
   ...
 }
