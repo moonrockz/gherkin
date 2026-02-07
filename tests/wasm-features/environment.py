@@ -2,29 +2,35 @@
 
 import os
 import subprocess
-from wasmtime import Engine, Store
+from wasmtime import Engine, Store, Module
 from wasmtime.component import Component, Linker
 
 
-COMPONENT_PATH = os.path.join(
-    os.path.dirname(__file__), "..", "..", "_build", "gherkin.component.wasm"
+PROJECT_ROOT = os.path.join(os.path.dirname(__file__), "..", "..")
+COMPONENT_PATH = os.path.join(PROJECT_ROOT, "_build", "gherkin.component.wasm")
+CORE_PATH = os.path.join(
+    PROJECT_ROOT, "_build", "wasm", "release", "build", "component", "component.wasm"
 )
 
 
 def before_all(context):
     """Build the WASM component and create the engine."""
-    # Build the component
+    # Build the component (also builds core WASM as a dependency)
     result = subprocess.run(
         ["mise", "run", "build:component"],
         capture_output=True,
         text=True,
-        cwd=os.path.join(os.path.dirname(__file__), "..", ".."),
+        cwd=PROJECT_ROOT,
     )
     if result.returncode != 0:
         raise RuntimeError(f"Failed to build component:\n{result.stderr}")
 
     context.engine = Engine()
     context.component = Component.from_file(context.engine, COMPONENT_PATH)
+
+    # Load the core WASM module for export validation tests
+    context.core_module = Module.from_file(context.engine, CORE_PATH)
+    context.core_exports = {exp.name: exp for exp in context.core_module.exports}
 
 
 def _make_instance(context):

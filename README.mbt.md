@@ -57,6 +57,16 @@ Push-based event-driven parsing without building an AST.
 @gherkin.parse_with_handler!(source, my_handler)
 ```
 
+## WASM Component
+
+The parser is available as a [WASM Component](https://component-model.bytecodealliance.org/) for use from any language with a Component Model runtime.
+
+```bash
+mise run build:component    # produces _build/gherkin.component.wasm
+```
+
+Exports three interfaces (`parse`, `tokenize`, `write`) — see [examples/](examples/) for Python and JavaScript usage.
+
 ## CLI
 
 Parse a `.feature` file to JSON:
