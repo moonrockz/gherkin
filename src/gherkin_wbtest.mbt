@@ -612,3 +612,89 @@ test "fold: Stop halts traversal" {
   // Should stop after first scenario
   inspect(count, content="1")
 }
+
+// ── parse_with_handler: SAX-style events ──
+
+///|
+/// A recording handler that captures event names in order.
+struct RecordingHandler {
+  events : Array[String]
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_document(self) {
+  self.events.push("document:start")
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_end_document(self) {
+  self.events.push("document:end")
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_feature(self, e) {
+  self.events.push("feature:" + e.name)
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_end_feature(self) {
+  self.events.push("feature:end")
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_scenario(self, e) {
+  self.events.push("scenario:" + e.name)
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_end_scenario(self) {
+  self.events.push("scenario:end")
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_step(self, e) {
+  self.events.push("step:" + e.text)
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_background(self, e) {
+  self.events.push("background:" + e.name)
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_end_background(self) {
+  self.events.push("background:end")
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_comment(self, e) {
+  self.events.push("comment:" + e.text)
+}
+
+///|
+impl GherkinHandler for RecordingHandler with on_tag(self, e) {
+  self.events.push("tag:" + e.name)
+}
+
+///|
+test "parse_with_handler: dispatches balanced events" {
+  let src = Source::from_string(
+    "# comment\n@smoke\nFeature: Login\n  Background:\n    Given setup\n  Scenario: Basic\n    Given a user\n    When login\n",
+  )
+  let h : RecordingHandler = { events: [] }
+  parse_with_handler(src, h)
+  inspect(h.events[0], content="document:start")
+  inspect(h.events[1], content="comment:# comment")
+  inspect(h.events[2], content="feature:Login")
+  inspect(h.events[3], content="tag:@smoke")
+  inspect(h.events[4], content="background:")
+  inspect(h.events[5], content="step:setup")
+  inspect(h.events[6], content="background:end")
+  inspect(h.events[7], content="scenario:Basic")
+  inspect(h.events[8], content="step:a user")
+  inspect(h.events[9], content="step:login")
+  inspect(h.events[10], content="scenario:end")
+  inspect(h.events[11], content="feature:end")
+  inspect(h.events[12], content="document:end")
+  inspect(h.events.length(), content="13")
+}

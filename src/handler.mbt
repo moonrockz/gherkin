@@ -107,10 +107,127 @@ impl GherkinHandler with on_data_table(_self, _e) {
 
 ///|
 /// Parse a `Source`, pushing events to a handler.
-#declaration_only
 pub fn parse_with_handler(
   source : Source,
   handler : &GherkinHandler,
 ) -> Unit raise ParseError {
-  ...
+  let doc = parse(source)
+  handler.on_document()
+  for c in doc.comments {
+    handler.on_comment({ location: c.location, text: c.text })
+  }
+  match doc.feature {
+    Some(f) => dispatch_feature(f, handler)
+    None => ()
+  }
+  handler.on_end_document()
+}
+
+///|
+fn dispatch_feature(f : Feature, handler : &GherkinHandler) -> Unit {
+  handler.on_feature({
+    location: f.location,
+    tags: f.tags,
+    language: f.language,
+    keyword: f.keyword,
+    name: f.name,
+    description: f.description,
+  })
+  for t in f.tags {
+    handler.on_tag({ location: t.location, name: t.name })
+  }
+  for child in f.children {
+    match child {
+      FeatureChild::Background(bg) => dispatch_background(bg, handler)
+      FeatureChild::Scenario(s) => dispatch_scenario(s, handler)
+      FeatureChild::Rule(r) => dispatch_rule(r, handler)
+    }
+  }
+  handler.on_end_feature()
+}
+
+///|
+fn dispatch_rule(r : Rule, handler : &GherkinHandler) -> Unit {
+  handler.on_rule({
+    location: r.location,
+    tags: r.tags,
+    keyword: r.keyword,
+    name: r.name,
+    description: r.description,
+  })
+  for t in r.tags {
+    handler.on_tag({ location: t.location, name: t.name })
+  }
+  for child in r.children {
+    match child {
+      RuleChild::Background(bg) => dispatch_background(bg, handler)
+      RuleChild::Scenario(s) => dispatch_scenario(s, handler)
+    }
+  }
+  handler.on_end_rule()
+}
+
+///|
+fn dispatch_background(bg : Background, handler : &GherkinHandler) -> Unit {
+  handler.on_background({
+    location: bg.location,
+    keyword: bg.keyword,
+    name: bg.name,
+    description: bg.description,
+  })
+  for s in bg.steps {
+    dispatch_step(s, handler)
+  }
+  handler.on_end_background()
+}
+
+///|
+fn dispatch_scenario(s : Scenario, handler : &GherkinHandler) -> Unit {
+  handler.on_scenario({
+    location: s.location,
+    tags: s.tags,
+    keyword: s.keyword,
+    name: s.name,
+    description: s.description,
+  })
+  for t in s.tags {
+    handler.on_tag({ location: t.location, name: t.name })
+  }
+  for step in s.steps {
+    dispatch_step(step, handler)
+  }
+  for e in s.examples {
+    handler.on_examples({
+      location: e.location,
+      tags: e.tags,
+      keyword: e.keyword,
+      name: e.name,
+      description: e.description,
+      table_header: e.table_header,
+      table_body: e.table_body,
+    })
+  }
+  handler.on_end_scenario()
+}
+
+///|
+fn dispatch_step(s : Step, handler : &GherkinHandler) -> Unit {
+  handler.on_step({
+    location: s.location,
+    keyword: s.keyword,
+    keyword_type: s.keyword_type,
+    text: s.text,
+  })
+  match s.argument {
+    Some(StepArgument::DocString(ds)) =>
+      handler.on_doc_string({
+        location: ds.location,
+        media_type: ds.media_type,
+        content: ds.content,
+        delimiter: ds.delimiter,
+      })
+    Some(StepArgument::DataTable(dt)) =>
+      handler.on_data_table({ location: dt.location, rows: dt.rows })
+    None => ()
+  }
 }
