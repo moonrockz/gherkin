@@ -2,11 +2,15 @@
 package "moonrockz/gherkin"
 
 // Values
+pub fn classify_line(String, Int, LexerState) -> (Token, LexerState)
+
 pub fn[A, N] continuing((A, N) -> A) -> (A, N) -> FoldAction[A]
 
 pub fn parse(Source) -> GherkinDocument raise ParseError
 
 pub fn parse_with_handler(Source, &GherkinHandler) -> Unit raise ParseError
+
+pub fn tokenize(Source) -> Array[Token]
 
 // Errors
 pub suberror ParseError {
@@ -161,6 +165,7 @@ pub struct GherkinDocument {
   comments : Array[Comment]
 }
 pub fn GherkinDocument::accept(Self, &GherkinVisitor) -> Unit
+pub fn GherkinDocument::empty() -> Self
 pub fn[A] GherkinDocument::fold(Self, A, GherkinFold[A]) -> A
 pub impl Eq for GherkinDocument
 pub impl Show for GherkinDocument
@@ -211,6 +216,21 @@ pub enum KeywordType {
 }
 pub impl Eq for KeywordType
 pub impl Show for KeywordType
+
+pub struct Lexer {
+  // private fields
+}
+pub fn Lexer::iter(Self) -> Iter[Token]
+pub fn Lexer::new(Source) -> Self
+pub fn Lexer::next(Self) -> Token?
+pub impl Show for Lexer
+
+pub enum LexerState {
+  Normal
+  InDocString(String)
+}
+pub impl Eq for LexerState
+pub impl Show for LexerState
 
 pub(all) struct Location {
   line : Int
@@ -344,6 +364,25 @@ pub struct TagEvent {
 }
 pub impl Eq for TagEvent
 pub impl Show for TagEvent
+
+pub enum Token {
+  FeatureLine(Location, String, String)
+  RuleLine(Location, String, String)
+  BackgroundLine(Location, String, String)
+  ScenarioLine(Location, String, String)
+  ExamplesLine(Location, String, String)
+  StepLine(Location, String, KeywordType, String)
+  DocStringSeparator(Location, String, String?)
+  TableRow(Location, Array[String])
+  TagLine(Location, Array[String])
+  Comment(Location, String)
+  Language(Location, String)
+  Empty(Location)
+  Other(Location, String)
+  Eof(Location)
+}
+pub impl Eq for Token
+pub impl Show for Token
 
 // Type aliases
 
