@@ -49,7 +49,7 @@ pub struct GherkinWriter {
 ///|
 /// Create a new `GherkinWriter` with the given configuration.
 pub fn GherkinWriter::new(
-  config~ : WriteConfig = WriteConfig::default(),
+  config? : WriteConfig = WriteConfig::default(),
 ) -> GherkinWriter {
   { buf: [], config, depth: 0, needs_blank: false }
 }
@@ -108,10 +108,7 @@ fn split_lines(s : String) -> Array[String] {
 ///|
 /// Format table rows as column-aligned pipe-delimited lines.
 /// Returns an array of formatted row strings (without leading indent).
-fn format_table(
-  rows : Array[Array[String]],
-  padding : Int,
-) -> Array[String] {
+fn format_table(rows : Array[Array[String]], padding : Int) -> Array[String] {
   if rows.is_empty() {
     return []
   }
@@ -160,8 +157,8 @@ pub fn GherkinWriter::feature(
   self : GherkinWriter,
   keyword : String,
   name : String,
-  language~ : String = "en",
-  description~ : String = "",
+  language? : String = "en",
+  description? : String = "",
 ) -> Unit {
   if language != "en" {
     self.buf.push("# language: " + language)
@@ -188,7 +185,7 @@ pub fn GherkinWriter::scenario(
   self : GherkinWriter,
   keyword : String,
   name : String,
-  description~ : String = "",
+  description? : String = "",
 ) -> Unit {
   self.emit_line(keyword + ": " + name)
   self.depth += 1
@@ -211,10 +208,14 @@ pub fn GherkinWriter::end_scenario(self : GherkinWriter) -> Unit {
 pub fn GherkinWriter::background(
   self : GherkinWriter,
   keyword : String,
-  name~ : String = "",
-  description~ : String = "",
+  name? : String = "",
+  description? : String = "",
 ) -> Unit {
-  let header = if name.length() > 0 { keyword + ": " + name } else { keyword + ":" }
+  let header = if name.length() > 0 {
+    keyword + ": " + name
+  } else {
+    keyword + ":"
+  }
   self.emit_line(header)
   self.depth += 1
   if description.length() > 0 {
@@ -237,7 +238,7 @@ pub fn GherkinWriter::rule(
   self : GherkinWriter,
   keyword : String,
   name : String,
-  description~ : String = "",
+  description? : String = "",
 ) -> Unit {
   self.emit_line(keyword + ": " + name)
   self.depth += 1
@@ -275,8 +276,8 @@ pub fn GherkinWriter::step(
 pub fn GherkinWriter::doc_string(
   self : GherkinWriter,
   content : String,
-  delimiter~ : String = "\"\"\"",
-  media_type~ : String? = None,
+  delimiter? : String = "\"\"\"",
+  media_type? : String? = None,
 ) -> Unit {
   let saved_depth = self.depth
   self.depth += 1
@@ -320,13 +321,17 @@ pub fn GherkinWriter::data_table(
 pub fn GherkinWriter::examples(
   self : GherkinWriter,
   keyword : String,
-  name~ : String = "",
-  description~ : String = "",
-  header~ : Array[String] = [],
-  body~ : Array[Array[String]] = [],
+  name? : String = "",
+  description? : String = "",
+  header? : Array[String] = [],
+  body? : Array[Array[String]] = [],
 ) -> Unit {
   self.needs_blank = true
-  let kw_line = if name.length() > 0 { keyword + ": " + name } else { keyword + ":" }
+  let kw_line = if name.length() > 0 {
+    keyword + ": " + name
+  } else {
+    keyword + ":"
+  }
   self.emit_line(kw_line)
   if description.length() > 0 {
     let saved = self.depth
@@ -361,10 +366,7 @@ pub fn GherkinWriter::examples(
 ///
 /// Call before the structural element the tags decorate.
 /// Tags are emitted at the current indent level.
-pub fn GherkinWriter::tags(
-  self : GherkinWriter,
-  names : Array[String],
-) -> Unit {
+pub fn GherkinWriter::tags(self : GherkinWriter, names : Array[String]) -> Unit {
   if names.is_empty() {
     return
   }
@@ -373,10 +375,7 @@ pub fn GherkinWriter::tags(
 
 ///|
 /// Emit a comment line.
-pub fn GherkinWriter::comment(
-  self : GherkinWriter,
-  text : String,
-) -> Unit {
+pub fn GherkinWriter::comment(self : GherkinWriter, text : String) -> Unit {
   self.emit_line(text)
 }
 
@@ -394,9 +393,9 @@ pub fn GherkinWriter::comment(
 /// produces valid Gherkin that, when re-parsed, yields an equivalent AST.
 pub fn write(
   doc : GherkinDocument,
-  config~ : WriteConfig = WriteConfig::default(),
+  config? : WriteConfig = WriteConfig::default(),
 ) -> String {
-  let w = GherkinWriter::new(config=config)
+  let w = GherkinWriter::new(config~)
   if config.include_comments {
     for c in doc.comments {
       w.comment(c.text)
@@ -491,13 +490,7 @@ fn write_examples(w : GherkinWriter, e : Examples) -> Unit {
   for row in e.table_body {
     body.push(row.cells.map(fn(c) { c.value }))
   }
-  w.examples(
-    e.keyword,
-    name=e.name,
-    description=e.description,
-    header=header,
-    body=body,
-  )
+  w.examples(e.keyword, name=e.name, description=e.description, header~, body~)
 }
 
 // ---------------------------------------------------------------------------
@@ -591,8 +584,8 @@ pub impl GherkinHandler for GherkinWriter with on_examples(self, e) {
     e.keyword,
     name=e.name,
     description=e.description,
-    header=header,
-    body=body,
+    header~,
+    body~,
   )
 }
 

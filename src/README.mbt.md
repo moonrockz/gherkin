@@ -9,7 +9,10 @@ All parsing starts with a `Source`, an opaque wrapper around the input text.
 ```moonbit check
 ///|
 test "create a source from a string" {
-  let src = Source::from_string("Feature: Hello\n  Scenario: World", uri="test.feature")
+  let src = Source::from_string(
+    "Feature: Hello\n  Scenario: World",
+    uri="test.feature",
+  )
   inspect(src.uri(), content="Some(\"test.feature\")")
   inspect(src.line_count(), content="2")
   inspect(src.line(1), content="Some(\"Feature: Hello\")")
@@ -117,7 +120,9 @@ All AST types implement `ToJson`.
 ```moonbit check
 ///|
 test "serialize a document to JSON" {
-  let doc = parse(Source::from_string("Feature: JSON\n  Scenario: Test\n    Given a step"))
+  let doc = parse(
+    Source::from_string("Feature: JSON\n  Scenario: Test\n    Given a step"),
+  )
   let text = doc.to_json().stringify()
   assert_true(text.contains("JSON"))
   assert_true(text.contains("Test"))
@@ -186,11 +191,12 @@ test "count steps with fold" {
 `SkipChildren` skips children but continues siblings, `Stop` halts immediately.
 
 ```moonbit skip nocheck
+///|
 let step_count = doc.fold(0, {
   ..GherkinFold::default(),
   visit_scenario: fn(n, scenario) {
     if scenario.tags.iter().any(fn(t) { t.name == "@skip" }) {
-      SkipChildren(n)  // skip steps inside @skip scenarios
+      SkipChildren(n) // skip steps inside @skip scenarios
     } else {
       Continue(n)
     }

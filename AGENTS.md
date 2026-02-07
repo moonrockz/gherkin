@@ -199,6 +199,166 @@ for the full reference on unit tests vs BDD tests vs acceptance tests.
 - Try to keep deprecated blocks in file called `deprecated.mbt` in each
   directory.
 
+## Conventional Commits
+
+This project uses **[Conventional Commits](https://www.conventionalcommits.org)**.
+All commit messages MUST follow this format:
+
+```
+type(scope): description
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Commit Types
+
+| Type       | Purpose                        | Changelog section | Version bump |
+|------------|--------------------------------|-------------------|-------------|
+| `feat`     | New feature                    | Added             | MINOR        |
+| `fix`      | Bug fix                        | Fixed             | PATCH        |
+| `refactor` | Code restructuring             | Changed           | -            |
+| `perf`     | Performance improvement        | Performance       | -            |
+| `docs`     | Documentation only             | Documentation     | -            |
+| `test`     | Adding/updating tests          | (skipped)         | -            |
+| `build`    | Build system changes           | (skipped)         | -            |
+| `ci`       | CI/CD configuration            | (skipped)         | -            |
+| `chore`    | Maintenance tasks              | (skipped)         | -            |
+| `style`    | Code formatting (no logic)     | (skipped)         | -            |
+
+### Breaking Changes
+
+Use `!` after the type to indicate a breaking change (triggers MAJOR bump):
+
+```
+feat(parser)!: change parse() return type to Result
+```
+
+Or use a `BREAKING CHANGE:` footer in the commit body.
+
+### Scopes
+
+Scopes are encouraged to provide context:
+
+- `feat(parser):` / `fix(lexer):` / `refactor(writer):` -- library components
+- `feat(cli):` / `fix(cli):` -- CLI tool
+- `ci(release):` / `build(wasm):` -- infrastructure
+- `docs(api):` -- documentation
+
+### Changelog Generation
+
+Changelogs are generated automatically from commit history using **git-cliff**.
+Never edit `CHANGELOG.md` manually -- it is regenerated from git history.
+
+- `mise run release:changelog` -- regenerate CHANGELOG.md
+- `mise run release:notes` -- generate release notes for latest version
+- `mise run release:version` -- compute next version from commits
+- `mise run release:bump` -- update `moon.mod.json` version to match
+
+## Mise Tasks
+
+All build, test, and release operations are defined as **mise file-based tasks**
+in the `mise-tasks/` directory. Use `mise run <task>` to execute them.
+
+### Available Tasks
+
+Run `mise tasks` to list all tasks. Key tasks:
+
+| Task                    | Purpose                                           |
+|-------------------------|---------------------------------------------------|
+| `test:unit`             | Run MoonBit unit tests                            |
+| `test:bdd`              | Run CLI BDD tests with behave                     |
+| `test:wasm`             | Run WASM component BDD tests                      |
+| `test:all`              | Run all tests (unit + BDD + WASM)                 |
+| `build:native`          | Build native CLI binary                           |
+| `build:wasm`            | Build core WASM module                            |
+| `build:component`       | Build WASM component (embed + new)                |
+| `generate:wit-bindgen`  | Regenerate WIT bindings                           |
+| `release:version`       | Compute next version from conventional commits    |
+| `release:changelog`     | Generate CHANGELOG.md                             |
+| `release:notes`         | Generate release notes for latest version         |
+| `release:bump`          | Update moon.mod.json version                      |
+| `release:pre-check`    | Validate release readiness                        |
+| `release:credentials`  | Set up mooncakes.io credentials (CI only)         |
+| `release:publish`      | Publish package to mooncakes.io                   |
+| `release:prepare-assets`| Prepare release assets from build artifacts       |
+
+### Creating New Tasks
+
+New tasks go in `mise-tasks/` as executable scripts:
+
+```bash
+#!/usr/bin/env bash
+#MISE description="What this task does"
+#MISE depends=["other:task"]
+set -euo pipefail
+
+# task implementation
+```
+
+Use subdirectories for namespacing: `mise-tasks/build/native` becomes `build:native`.
+
+**Rules:**
+- **Always** use file-based tasks in `mise-tasks/` -- never add inline TOML
+  tasks to `.mise.toml`.
+- **GitHub workflows** must call `mise run <task>` instead of inline shell
+  scripts. If a workflow needs a new operation, create a mise task for it first.
+- The `.mise.toml` file contains only `[tools]` -- no `[tasks]` sections.
+
+## Release Process
+
+This project publishes to **mooncakes.io** (MoonBit package registry) and
+**GitHub Releases**.
+
+### Release Pipeline (5 Phases)
+
+1. **Validate** -- Pre-checks, version computation, release notes generation
+2. **Tag** -- Create immutable git tag `v{version}` (workflow_dispatch only)
+3. **Publish to Mooncakes** -- `moon publish` to mooncakes.io (MUST succeed
+   before artifacts are built)
+4. **Build Artifacts** -- Native binaries (Linux, macOS, Windows) + WASM
+   components
+5. **Create GitHub Release** -- Upload artifacts with release notes
+
+### Immutability Rules
+
+- Tags are **immutable**: never `git tag --force`, never `git push --force` tags
+- GitHub Releases are **immutable**: never delete and recreate
+- If a release has problems, create a new **patch release** (e.g., 0.2.1 to
+  fix 0.2.0)
+
+### How to Release
+
+Releases are triggered by:
+- **Tag push**: Push a tag matching `v*` to trigger the pipeline from Phase 3
+- **workflow_dispatch**: Manually trigger from GitHub Actions (computes version,
+  creates tag, then runs full pipeline)
+
+For manual releases from the CLI:
+```bash
+# 1. Ensure on main, all tests pass
+mise run release:pre-check
+
+# 2. Bump version and changelog
+mise run release:bump
+mise run release:changelog
+
+# 3. Commit and tag
+VERSION=$(mise run release:version)
+git add moon.mod.json CHANGELOG.md
+git commit -m "chore(release): v${VERSION}"
+git tag -a "v${VERSION}" -m "Release v${VERSION}"
+git push origin main --tags
+```
+
+### Mooncakes.io Publishing
+
+- Package published as `moonrockz/gherkin` on mooncakes.io
+- Requires `MOONCAKES_USER_TOKEN` secret in GitHub Actions
+- Credentials stored at `~/.moon/credentials.json`
+- Pre-publish checks: `moon check`, `moon test`, `moon fmt`
+
 ## Tooling
 
 - `moon fmt` is used to format your code properly.
@@ -213,7 +373,7 @@ for the full reference on unit tests vs BDD tests vs acceptance tests.
   format the code. Check the diffs of `.mbti` file to see if the changes are
   expected.
 
-- Run `moon test` to check the test is passed. MoonBit supports snapshot
+- Run `mise run test:unit` to check the tests pass. MoonBit supports snapshot
   testing, so when your changes indeed change the behavior of the code, you
   should run `moon test --update` to update the snapshot.
 
@@ -224,9 +384,6 @@ for the full reference on unit tests vs BDD tests vs acceptance tests.
   `assert_eq` when you are in some loops where each snapshot may vary. You can
   use `moon coverage analyze > uncovered.log` to see which parts of your code
   are not covered by tests.
-
-- agent-todo.md has some small tasks that are easy for AI to pick up, agent is
-  welcome to finish the tasks and check the box when you are done
 
 ## Landing the Plane (Session Completion)
 

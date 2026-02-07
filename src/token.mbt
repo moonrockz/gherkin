@@ -37,7 +37,7 @@ pub fn classify_line(
   line : String,
   line_num : Int,
   state : LexerState,
-  language~ : String = "en",
+  language? : String = "en",
 ) -> (Token, LexerState) {
   match state {
     InDocString(delim) => classify_in_docstring(line, line_num, delim)
@@ -254,7 +254,7 @@ pub fn tokenize(source : Source) -> Array[Token] {
   for i = 1; i <= source.line_count(); i = i + 1 {
     match source.line(i) {
       Some(line) => {
-        let (tok, next_state) = classify_line(line, i, state, language=language)
+        let (tok, next_state) = classify_line(line, i, state, language~)
         match tok {
           Language(_, lang) => language = lang
           _ => ()
@@ -291,7 +291,10 @@ pub fn Lexer::next(self : Lexer) -> Token? {
     match self.source.line(self.line_num) {
       Some(line) => {
         let (tok, next_state) = classify_line(
-          line, self.line_num, self.state, language=self.language,
+          line,
+          self.line_num,
+          self.state,
+          language=self.language,
         )
         self.line_num = self.line_num + 1
         self.state = next_state

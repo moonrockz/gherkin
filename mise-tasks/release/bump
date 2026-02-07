@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+#MISE description="Bump version in moon.mod.json to match computed release version"
+#MISE depends=["release:version"]
+set -euo pipefail
+
+VERSION=$(mise run release:version 2>/dev/null | tail -1)
+
+# Update moon.mod.json version field
+if command -v jq &>/dev/null; then
+  jq --arg v "$VERSION" '.version = $v' moon.mod.json > moon.mod.json.tmp
+  mv moon.mod.json.tmp moon.mod.json
+else
+  # Fallback: sed-based replacement
+  sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" moon.mod.json
+fi
+
+echo "Bumped moon.mod.json version to $VERSION"

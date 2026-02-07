@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+#MISE description="Determine next release version from conventional commits"
+set -euo pipefail
+
+BASE_VERSION=$(git cliff --bumped-version 2>/dev/null || echo "0.1.0")
+
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+
+if [ "$BRANCH" = "main" ]; then
+  echo "$BASE_VERSION"
+  exit 0
+fi
+
+# Check for an open PR associated with this branch
+PR_NUMBER=$(gh pr view "$BRANCH" --json number -q .number 2>/dev/null || echo "")
+
+if [ -n "$PR_NUMBER" ]; then
+  echo "${BASE_VERSION}-pr.${PR_NUMBER}"
+else
+  SAFE_BRANCH=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9]/-/g')
+  echo "${BASE_VERSION}-${SAFE_BRANCH}.${GITHUB_RUN_NUMBER:-0}"
+fi

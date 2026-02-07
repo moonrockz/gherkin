@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+#MISE description="Validate release readiness (tests, version, changelog)"
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && cd ../.. && pwd)"
+python3 "$SCRIPT_DIR/.claude/skills/release-manager/scripts/pre_release_check.py" "$@"

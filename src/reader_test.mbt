@@ -309,9 +309,7 @@ test "reader: StepEvent carries correct data" {
   let _ = reader.next() // FeatureStart
   let _ = reader.next() // ScenarioStart
   let event = reader.next()
-  guard event is Some(Step(se)) else {
-    fail("expected Step, got \{event}")
-  }
+  guard event is Some(Step(se)) else { fail("expected Step, got \{event}") }
   inspect(se.text, content="a registered user")
   inspect(se.keyword, content="Given ")
   inspect(se.keyword_type, content="Context")
@@ -326,9 +324,7 @@ test "reader: TagEvent carries correct name" {
   let _ = reader.next() // DocumentStart
   let _ = reader.next() // FeatureStart
   let event = reader.next()
-  guard event is Some(Tag(te)) else {
-    fail("expected Tag, got \{event}")
-  }
+  guard event is Some(Tag(te)) else { fail("expected Tag, got \{event}") }
   inspect(te.name, content="@smoke")
 }
 

@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#MISE description="Build WASM component from core WASM + WIT"
+#MISE depends=["build:wasm"]
+set -euo pipefail
+
+wasm-tools component embed wit/ --world gherkin --encoding utf16 \
+  _build/wasm/release/build/component/component.wasm \
+  -o _build/gherkin.embedded.wasm
+
+wasm-tools component new _build/gherkin.embedded.wasm \
+  -o _build/gherkin.component.wasm

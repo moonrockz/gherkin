@@ -6,6 +6,29 @@ on:
   pull_request:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hustcer/setup-moonbit@v1
+
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+
+      - name: Install dependencies
+        run: moon update
+
+      - name: Check formatting
+        run: |
+          moon fmt
+          git diff --exit-code || (echo "::error::moon fmt produced changes — run 'moon fmt' locally and commit" && exit 1)
+
+      - name: Check code
+        run: moon check
+
   unit-tests:
     runs-on: ubuntu-latest
     steps:
@@ -13,11 +36,16 @@ jobs:
 
       - uses: hustcer/setup-moonbit@v1
 
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+
       - name: Install dependencies
         run: moon update
 
       - name: Run unit tests
-        run: moon test
+        run: mise run test:unit
 
   bdd-tests:
     needs: unit-tests
@@ -27,13 +55,18 @@ jobs:
 
       - uses: hustcer/setup-moonbit@v1
 
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+
       - uses: astral-sh/setup-uv@v6
 
       - name: Install dependencies
         run: moon update
 
       - name: Run BDD tests
-        run: uv run behave tests/features/
+        run: mise run test:bdd
 
   wasm-component-tests:
     needs: unit-tests
@@ -53,11 +86,8 @@ jobs:
       - name: Install dependencies
         run: moon update
 
-      - name: Build WASM component
-        run: mise run build:component
-
       - name: Run WASM component tests
-        run: uv run behave tests/wasm-features/
+        run: mise run test:wasm
 
   build-native:
     needs: unit-tests
@@ -77,8 +107,13 @@ jobs:
 
       - uses: hustcer/setup-moonbit@v1
 
+      - uses: jdx/mise-action@v2
+        with:
+          install: true
+          cache: true
+
       - name: Install dependencies
         run: moon update
 
       - name: Build native binary
-        run: moon build --target native
+        run: mise run build:native
