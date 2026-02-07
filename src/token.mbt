@@ -368,10 +368,16 @@ fn trim_cell(s : String) -> String {
 pub fn tokenize(source : Source) -> Array[Token] {
   let tokens : Array[Token] = []
   let mut state : LexerState = Normal
+  let mut language = "en"
   for i = 1; i <= source.line_count(); i = i + 1 {
     match source.line(i) {
       Some(line) => {
         let (tok, next_state) = classify_line(line, i, state)
+        // Detect language directive
+        match tok {
+          Language(_, lang) => language = lang
+          _ => ()
+        }
         tokens.push(tok)
         state = next_state
       }
@@ -380,6 +386,10 @@ pub fn tokenize(source : Source) -> Array[Token] {
   }
   let eof_loc : Location = { line: source.line_count() + 1, column: None }
   tokens.push(Token::Eof(eof_loc))
+  // If non-English, re-classify Other tokens as i18n keywords
+  if language != "en" {
+    reclassify_i18n(tokens, language)
+  }
   tokens
 }
 
@@ -425,4 +435,214 @@ pub fn Lexer::next(self : Lexer) -> Token? {
 /// Return an Iter[Token] that lazily produces tokens from the source.
 pub fn Lexer::iter(self : Lexer) -> Iter[Token] {
   Iter::new(fn() { self.next() })
+}
+
+// ── i18n keyword support ──
+
+///|
+/// A keyword table for a specific language.
+priv struct I18nKeywords {
+  feature : Array[String]
+  rule : Array[String]
+  background : Array[String]
+  scenario : Array[String]
+  scenario_outline : Array[String]
+  examples : Array[String]
+  given : Array[String]
+  when_ : Array[String]
+  then_ : Array[String]
+  and_ : Array[String]
+  but_ : Array[String]
+}
+
+///|
+fn get_keywords(lang : String) -> I18nKeywords? {
+  match lang {
+    "fr" =>
+      Some({
+        feature: ["Fonctionnalité"],
+        rule: ["Règle"],
+        background: ["Contexte"],
+        scenario: ["Scénario", "Exemple"],
+        scenario_outline: ["Plan du Scénario"],
+        examples: ["Exemples"],
+        given: ["Soit ", "Etant donné ", "Étant donné "],
+        when_: ["Quand ", "Lorsque "],
+        then_: ["Alors "],
+        and_: ["Et "],
+        but_: ["Mais "],
+      })
+    _ => None
+  }
+}
+
+///|
+/// Re-classify Other tokens as i18n keywords for non-English languages.
+fn reclassify_i18n(tokens : Array[Token], lang : String) -> Unit {
+  let kw = match get_keywords(lang) {
+    Some(k) => k
+    None => return
+  }
+  for i = 0; i < tokens.length(); i = i + 1 {
+    match tokens[i] {
+      Other(loc, text) => {
+        let trimmed = trim_leading_whitespace(text)
+        let leading_len = text.length() - trimmed.length()
+        let col = leading_len + 1
+        let kloc : Location = { line: loc.line, column: Some(col) }
+        match try_keyword_line(trimmed, kw) {
+          Some(tok) => tokens[i] = set_token_location(tok, kloc)
+          None => ()
+        }
+      }
+      _ => ()
+    }
+  }
+}
+
+///|
+fn try_keyword_line(trimmed : String, kw : I18nKeywords) -> Token? {
+  let dummy : Location = { line: 0, column: None }
+  // Check structural keywords (keyword + ":" + name)
+  for k in kw.feature {
+    match try_match_keyword_colon(trimmed, k) {
+      Some(name) => return Some(Token::FeatureLine(dummy, k, name))
+      None => ()
+    }
+  }
+  for k in kw.rule {
+    match try_match_keyword_colon(trimmed, k) {
+      Some(name) => return Some(Token::RuleLine(dummy, k, name))
+      None => ()
+    }
+  }
+  for k in kw.background {
+    match try_match_keyword_colon(trimmed, k) {
+      Some(name) => return Some(Token::BackgroundLine(dummy, k, name))
+      None => ()
+    }
+  }
+  // Scenario outline before scenario (longer match first)
+  for k in kw.scenario_outline {
+    match try_match_keyword_colon(trimmed, k) {
+      Some(name) => return Some(Token::ScenarioLine(dummy, k, name))
+      None => ()
+    }
+  }
+  for k in kw.scenario {
+    match try_match_keyword_colon(trimmed, k) {
+      Some(name) => return Some(Token::ScenarioLine(dummy, k, name))
+      None => ()
+    }
+  }
+  for k in kw.examples {
+    match try_match_keyword_colon(trimmed, k) {
+      Some(name) => return Some(Token::ExamplesLine(dummy, k, name))
+      None => ()
+    }
+  }
+  // Check step keywords (keyword includes trailing space)
+  for k in kw.given {
+    match try_match_step(trimmed, k) {
+      Some(text) => return Some(Token::StepLine(dummy, k, Context, text))
+      None => ()
+    }
+  }
+  for k in kw.when_ {
+    match try_match_step(trimmed, k) {
+      Some(text) => return Some(Token::StepLine(dummy, k, Action, text))
+      None => ()
+    }
+  }
+  for k in kw.then_ {
+    match try_match_step(trimmed, k) {
+      Some(text) => return Some(Token::StepLine(dummy, k, Outcome, text))
+      None => ()
+    }
+  }
+  for k in kw.and_ {
+    match try_match_step(trimmed, k) {
+      Some(text) => return Some(Token::StepLine(dummy, k, Conjunction, text))
+      None => ()
+    }
+  }
+  for k in kw.but_ {
+    match try_match_step(trimmed, k) {
+      Some(text) => return Some(Token::StepLine(dummy, k, Conjunction, text))
+      None => ()
+    }
+  }
+  None
+}
+
+///|
+/// Check if trimmed text starts with keyword followed by ":" and extract name.
+fn try_match_keyword_colon(text : String, keyword : String) -> String? {
+  if text.length() < keyword.length() {
+    return None
+  }
+  let chars = text.to_array()
+  let kw_chars = keyword.to_array()
+  for j = 0; j < kw_chars.length(); j = j + 1 {
+    if chars[j] != kw_chars[j] {
+      return None
+    }
+  }
+  // After keyword, skip whitespace then expect ':'
+  let mut pos = kw_chars.length()
+  while pos < chars.length() && (chars[pos] == ' ' || chars[pos] == '\t') {
+    pos = pos + 1
+  }
+  if pos >= chars.length() || chars[pos] != ':' {
+    return None
+  }
+  pos = pos + 1
+  // Skip whitespace after ':'
+  while pos < chars.length() && (chars[pos] == ' ' || chars[pos] == '\t') {
+    pos = pos + 1
+  }
+  Some(String::from_array(chars[pos:].to_array()))
+}
+
+///|
+/// Check if trimmed text starts with a step keyword (which includes trailing space).
+fn try_match_step(text : String, keyword : String) -> String? {
+  if text.length() < keyword.length() {
+    return None
+  }
+  let chars = text.to_array()
+  let kw_chars = keyword.to_array()
+  for j = 0; j < kw_chars.length(); j = j + 1 {
+    if chars[j] != kw_chars[j] {
+      return None
+    }
+  }
+  Some(String::from_array(chars[kw_chars.length():].to_array()))
+}
+
+///|
+fn trim_leading_whitespace(text : String) -> String {
+  let chars = text.to_array()
+  let mut start = 0
+  while start < chars.length() && (chars[start] == ' ' || chars[start] == '\t') {
+    start = start + 1
+  }
+  if start == 0 {
+    text
+  } else {
+    String::from_array(chars[start:].to_array())
+  }
+}
+
+///|
+fn set_token_location(tok : Token, loc : Location) -> Token {
+  match tok {
+    FeatureLine(_, kw, name) => FeatureLine(loc, kw, name)
+    RuleLine(_, kw, name) => RuleLine(loc, kw, name)
+    BackgroundLine(_, kw, name) => BackgroundLine(loc, kw, name)
+    ScenarioLine(_, kw, name) => ScenarioLine(loc, kw, name)
+    ExamplesLine(_, kw, name) => ExamplesLine(loc, kw, name)
+    StepLine(_, kw, kt, text) => StepLine(loc, kw, kt, text)
+    other => other
+  }
 }

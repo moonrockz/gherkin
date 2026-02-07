@@ -698,3 +698,63 @@ test "parse_with_handler: dispatches balanced events" {
   inspect(h.events[12], content="document:end")
   inspect(h.events.length(), content="13")
 }
+
+// ── error handling ──
+
+///|
+test "parse: UnexpectedEof for empty feature" {
+  let src = Source::from_string("Feature: Incomplete")
+  // Should parse without error -- empty feature is valid
+  let doc = parse(src)
+  guard doc.feature is Some(f) else { abort("expected feature") }
+  inspect(f.name, content="Incomplete")
+  inspect(f.children.length(), content="0")
+}
+
+///|
+test "parse: completely invalid input" {
+  let src = Source::from_string("This is not gherkin at all")
+  let mut msg = ""
+  try parse(src) |> ignore catch {
+    UnexpectedToken(message~, ..) => msg = message
+    _ => abort("unexpected error type")
+  }
+  inspect(msg.contains("expected 'Feature:' keyword"), content="true")
+}
+
+///|
+test "parse: InconsistentTableCells detected" {
+  let src = Source::from_string(
+    "Feature: Tables\n  Scenario: Bad table\n    Given a table:\n      | a | b | c |\n      | 1 | 2 |\n",
+  )
+  let mut msg = ""
+  try parse(src) |> ignore catch {
+    InconsistentTableCells(message~, ..) => msg = message
+    _ => abort("unexpected error type")
+  }
+  inspect(msg.contains("inconsistent"), content="true")
+}
+
+// ── i18n: language directive ──
+
+///|
+test "parse: French i18n with language directive" {
+  let src = Source::from_string(
+    "# language: fr\nFonctionnalité: Internationalisation\n\n  Scénario: Scénario en français\n    Soit une précondition\n    Quand une action\n    Alors un résultat\n",
+  )
+  let doc = parse(src)
+  guard doc.feature is Some(feature) else { abort("expected feature") }
+  inspect(feature.language, content="fr")
+  inspect(feature.keyword, content="Fonctionnalité")
+  inspect(feature.name, content="Internationalisation")
+  inspect(feature.children.length(), content="1")
+  guard feature.children[0] is FeatureChild::Scenario(s) else {
+    abort("expected scenario")
+  }
+  inspect(s.keyword, content="Scénario")
+  inspect(s.steps.length(), content="3")
+  inspect(s.steps[0].keyword_type, content="Context")
+  inspect(s.steps[0].text, content="une précondition")
+  inspect(s.steps[1].keyword_type, content="Action")
+  inspect(s.steps[2].keyword_type, content="Outcome")
+}

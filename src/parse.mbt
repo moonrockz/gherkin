@@ -412,8 +412,9 @@ fn dedent_doc_string(lines : Array[String], opener_loc : Location) -> String {
 }
 
 ///|
-fn Parser::parse_data_table(self : Parser) -> DataTable {
+fn Parser::parse_data_table(self : Parser) -> DataTable raise ParseError {
   let rows : Array[TableRow] = []
+  let mut expected_cols = -1
   while not(self.at_eof()) {
     match self.peek() {
       TableRow(loc, cells) => {
@@ -423,6 +424,15 @@ fn Parser::parse_data_table(self : Parser) -> DataTable {
             location: { line: loc.line, column: Some(i + 1) },
             value: cell,
           })
+        }
+        if expected_cols < 0 {
+          expected_cols = cells.length()
+        } else if cells.length() != expected_cols {
+          let hint = self.source_line_hint(loc)
+          raise InconsistentTableCells(
+            message="inconsistent cell count at line \{loc.line}: expected \{expected_cols} cells, but found \{cells.length()}\{hint}",
+            location=loc,
+          )
         }
         rows.push({ location: loc, id: self.next_id(), cells: table_cells })
         self.advance() |> ignore
