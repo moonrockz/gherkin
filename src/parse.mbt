@@ -230,7 +230,7 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
         let example = self.parse_examples()
         examples.push(example)
       }
-      TagLine(_, _) => {
+      TagLine(_, _) =>
         // Peek past consecutive tags to see what follows
         match self.peek_past_tags() {
           ExamplesLine(_, _, _) => {
@@ -239,7 +239,6 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
           }
           _ => break // Tags belong to next scenario; let parent consume
         }
-      }
       // Stop when we hit another structural element
       ScenarioLine(_, _, _, _)
       | BackgroundLine(_, _, _)

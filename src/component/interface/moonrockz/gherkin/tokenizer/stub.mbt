@@ -1,6 +1,8 @@
 ///|
 /// Tokenize Gherkin source into a list of typed tokens.
-pub fn tokenize(source : @types.Source) -> Result[Array[@types.Token], Array[@types.ParseError]] {
+pub fn tokenize(
+  source : @types.Source,
+) -> Result[Array[@types.Token], Array[@types.ParseError]] {
   let src = @lib.Source::from_string(source.data, uri?=source.uri)
   let tokens = @lib.tokenize(src)
   Ok(tokens.map(convert_token))
@@ -8,10 +10,12 @@ pub fn tokenize(source : @types.Source) -> Result[Array[@types.Token], Array[@ty
 
 // ── Forward conversion: @lib.Token → @types.Token ──
 
+///|
 fn convert_location(loc : @lib.Location) -> @types.Location {
   { line: loc.line, column: loc.column }
 }
 
+///|
 fn convert_keyword_type(kt : @lib.KeywordType) -> @types.KeywordType {
   match kt {
     @lib.Context => @types.CONTEXT
@@ -22,6 +26,7 @@ fn convert_keyword_type(kt : @lib.KeywordType) -> @types.KeywordType {
   }
 }
 
+///|
 fn convert_scenario_kind(k : @lib.ScenarioKind) -> @types.ScenarioKind {
   match k {
     @lib.Scenario => @types.SCENARIO
@@ -29,6 +34,7 @@ fn convert_scenario_kind(k : @lib.ScenarioKind) -> @types.ScenarioKind {
   }
 }
 
+///|
 fn convert_token(tok : @lib.Token) -> @types.Token {
   match tok {
     @lib.Token::FeatureLine(loc, keyword, name) =>
@@ -38,11 +44,7 @@ fn convert_token(tok : @lib.Token) -> @types.Token {
         name,
       })
     @lib.Token::RuleLine(loc, keyword, name) =>
-      @types.Token::RuleLine({
-        location: convert_location(loc),
-        keyword,
-        name,
-      })
+      @types.Token::RuleLine({ location: convert_location(loc), keyword, name })
     @lib.Token::BackgroundLine(loc, keyword, name) =>
       @types.Token::BackgroundLine({
         location: convert_location(loc),
@@ -76,33 +78,16 @@ fn convert_token(tok : @lib.Token) -> @types.Token {
         media_type,
       })
     @lib.Token::TableRow(loc, cells) =>
-      @types.Token::TokenTableRow({
-        location: convert_location(loc),
-        cells,
-      })
+      @types.Token::TokenTableRow({ location: convert_location(loc), cells })
     @lib.Token::TagLine(loc, tags) =>
-      @types.Token::TagLine({
-        location: convert_location(loc),
-        tags,
-      })
+      @types.Token::TagLine({ location: convert_location(loc), tags })
     @lib.Token::Comment(loc, text) =>
-      @types.Token::CommentLine({
-        location: convert_location(loc),
-        text,
-      })
+      @types.Token::CommentLine({ location: convert_location(loc), text })
     @lib.Token::Language(loc, language) =>
-      @types.Token::Language({
-        location: convert_location(loc),
-        language,
-      })
-    @lib.Token::Empty(loc) =>
-      @types.Token::Empty(convert_location(loc))
+      @types.Token::Language({ location: convert_location(loc), language })
+    @lib.Token::Empty(loc) => @types.Token::Empty(convert_location(loc))
     @lib.Token::Other(loc, text) =>
-      @types.Token::Other({
-        location: convert_location(loc),
-        text,
-      })
-    @lib.Token::Eof(loc) =>
-      @types.Token::Eof(convert_location(loc))
+      @types.Token::Other({ location: convert_location(loc), text })
+    @lib.Token::Eof(loc) => @types.Token::Eof(convert_location(loc))
   }
 }

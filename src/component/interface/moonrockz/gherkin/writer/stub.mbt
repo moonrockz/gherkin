@@ -7,7 +7,9 @@ pub fn write(document : @types.GherkinDocument) -> Result[String, String] {
 
 ///|
 /// Convert a list of events back to formatted Gherkin text.
-pub fn write_events(events : Array[@types.GherkinEvent]) -> Result[String, String] {
+pub fn write_events(
+  events : Array[@types.GherkinEvent],
+) -> Result[String, String] {
   let writer = @lib.GherkinWriter::new()
   for event in events {
     dispatch_event(writer, event)
@@ -17,6 +19,7 @@ pub fn write_events(events : Array[@types.GherkinEvent]) -> Result[String, Strin
 
 // ── Event dispatch: @types.GherkinEvent → GherkinWriter calls ──
 
+///|
 fn dispatch_event(w : @lib.GherkinWriter, event : @types.GherkinEvent) -> Unit {
   match event {
     @types.GherkinEvent::DocumentStart => ()
@@ -24,8 +27,7 @@ fn dispatch_event(w : @lib.GherkinWriter, event : @types.GherkinEvent) -> Unit {
     @types.GherkinEvent::FeatureStart(e) =>
       w.on_feature(convert_wit_feature_event(e))
     @types.GherkinEvent::FeatureEnd => w.on_end_feature()
-    @types.GherkinEvent::RuleStart(e) =>
-      w.on_rule(convert_wit_rule_event(e))
+    @types.GherkinEvent::RuleStart(e) => w.on_rule(convert_wit_rule_event(e))
     @types.GherkinEvent::RuleEnd => w.on_end_rule()
     @types.GherkinEvent::BackgroundStart(e) =>
       w.on_background(convert_wit_background_event(e))
@@ -33,16 +35,14 @@ fn dispatch_event(w : @lib.GherkinWriter, event : @types.GherkinEvent) -> Unit {
     @types.GherkinEvent::ScenarioStart(e) =>
       w.on_scenario(convert_wit_scenario_event(e))
     @types.GherkinEvent::ScenarioEnd => w.on_end_scenario()
-    @types.GherkinEvent::Step(e) =>
-      w.on_step(convert_wit_step_event(e))
+    @types.GherkinEvent::Step(e) => w.on_step(convert_wit_step_event(e))
     @types.GherkinEvent::DocString(e) =>
       w.on_doc_string(convert_wit_doc_string_event(e))
     @types.GherkinEvent::DataTable(e) =>
       w.on_data_table(convert_wit_data_table_event(e))
     @types.GherkinEvent::Examples(e) =>
       w.on_examples(convert_wit_examples_event(e))
-    @types.GherkinEvent::Tag(e) =>
-      w.on_tag(convert_wit_tag_event(e))
+    @types.GherkinEvent::Tag(e) => w.on_tag(convert_wit_tag_event(e))
     @types.GherkinEvent::Comment(e) =>
       w.on_comment(convert_wit_comment_event(e))
   }
@@ -50,22 +50,27 @@ fn dispatch_event(w : @lib.GherkinWriter, event : @types.GherkinEvent) -> Unit {
 
 // ── Reverse conversion: @types (WIT-generated) → @lib types ──
 
+///|
 fn convert_wit_location(loc : @types.Location) -> @lib.Location {
   { line: loc.line, column: loc.column }
 }
 
+///|
 fn convert_wit_tag(t : @types.Tag) -> @lib.Tag {
   { location: convert_wit_location(t.location), name: t.name, id: t.id }
 }
 
+///|
 fn convert_wit_comment(c : @types.Comment) -> @lib.Comment {
   { location: convert_wit_location(c.location), text: c.text }
 }
 
+///|
 fn convert_wit_table_cell(c : @types.TableCell) -> @lib.TableCell {
   { location: convert_wit_location(c.location), value: c.value }
 }
 
+///|
 fn convert_wit_table_row(r : @types.TableRow) -> @lib.TableRow {
   {
     location: convert_wit_location(r.location),
@@ -74,6 +79,7 @@ fn convert_wit_table_row(r : @types.TableRow) -> @lib.TableRow {
   }
 }
 
+///|
 fn convert_wit_doc_string(ds : @types.DocString) -> @lib.DocString {
   {
     location: convert_wit_location(ds.location),
@@ -83,6 +89,7 @@ fn convert_wit_doc_string(ds : @types.DocString) -> @lib.DocString {
   }
 }
 
+///|
 fn convert_wit_data_table(dt : @types.DataTable) -> @lib.DataTable {
   {
     location: convert_wit_location(dt.location),
@@ -90,6 +97,7 @@ fn convert_wit_data_table(dt : @types.DataTable) -> @lib.DataTable {
   }
 }
 
+///|
 fn convert_wit_step_argument(arg : @types.StepArgument) -> @lib.StepArgument {
   match arg {
     @types.StepArgument::DocString(ds) =>
@@ -99,6 +107,7 @@ fn convert_wit_step_argument(arg : @types.StepArgument) -> @lib.StepArgument {
   }
 }
 
+///|
 fn convert_wit_keyword_type(kt : @types.KeywordType) -> @lib.KeywordType {
   match kt {
     @types.CONTEXT => @lib.Context
@@ -109,6 +118,7 @@ fn convert_wit_keyword_type(kt : @types.KeywordType) -> @lib.KeywordType {
   }
 }
 
+///|
 fn convert_wit_scenario_kind(k : @types.ScenarioKind) -> @lib.ScenarioKind {
   match k {
     @types.SCENARIO => @lib.Scenario
@@ -116,6 +126,7 @@ fn convert_wit_scenario_kind(k : @types.ScenarioKind) -> @lib.ScenarioKind {
   }
 }
 
+///|
 fn convert_wit_step(s : @types.Step) -> @lib.Step {
   {
     location: convert_wit_location(s.location),
@@ -127,6 +138,7 @@ fn convert_wit_step(s : @types.Step) -> @lib.Step {
   }
 }
 
+///|
 fn convert_wit_examples(e : @types.Examples) -> @lib.Examples {
   {
     location: convert_wit_location(e.location),
@@ -140,6 +152,7 @@ fn convert_wit_examples(e : @types.Examples) -> @lib.Examples {
   }
 }
 
+///|
 fn convert_wit_background(bg : @types.Background) -> @lib.Background {
   {
     location: convert_wit_location(bg.location),
@@ -151,6 +164,7 @@ fn convert_wit_background(bg : @types.Background) -> @lib.Background {
   }
 }
 
+///|
 fn convert_wit_scenario(s : @types.Scenario) -> @lib.Scenario {
   {
     location: convert_wit_location(s.location),
@@ -165,6 +179,7 @@ fn convert_wit_scenario(s : @types.Scenario) -> @lib.Scenario {
   }
 }
 
+///|
 fn convert_wit_rule_child(child : @types.RuleChild) -> @lib.RuleChild {
   match child {
     @types.RuleChild::Background(bg) =>
@@ -174,6 +189,7 @@ fn convert_wit_rule_child(child : @types.RuleChild) -> @lib.RuleChild {
   }
 }
 
+///|
 fn convert_wit_rule(r : @types.Rule) -> @lib.Rule {
   {
     location: convert_wit_location(r.location),
@@ -186,17 +202,18 @@ fn convert_wit_rule(r : @types.Rule) -> @lib.Rule {
   }
 }
 
+///|
 fn convert_wit_feature_child(child : @types.FeatureChild) -> @lib.FeatureChild {
   match child {
     @types.FeatureChild::Background(bg) =>
       @lib.FeatureChild::Background(convert_wit_background(bg))
     @types.FeatureChild::Scenario(s) =>
       @lib.FeatureChild::Scenario(convert_wit_scenario(s))
-    @types.FeatureChild::Rule(r) =>
-      @lib.FeatureChild::Rule(convert_wit_rule(r))
+    @types.FeatureChild::Rule(r) => @lib.FeatureChild::Rule(convert_wit_rule(r))
   }
 }
 
+///|
 fn convert_wit_feature(f : @types.Feature) -> @lib.Feature {
   {
     location: convert_wit_location(f.location),
@@ -209,6 +226,7 @@ fn convert_wit_feature(f : @types.Feature) -> @lib.Feature {
   }
 }
 
+///|
 fn convert_wit_document(doc : @types.GherkinDocument) -> @lib.GherkinDocument {
   {
     source: @lib.Source::from_string(doc.source.data, uri?=doc.source.uri),
@@ -219,6 +237,7 @@ fn convert_wit_document(doc : @types.GherkinDocument) -> @lib.GherkinDocument {
 
 // ── Event conversion: @types event → @lib event ──
 
+///|
 fn convert_wit_feature_event(e : @types.FeatureEvent) -> @lib.FeatureEvent {
   {
     location: convert_wit_location(e.location),
@@ -230,6 +249,7 @@ fn convert_wit_feature_event(e : @types.FeatureEvent) -> @lib.FeatureEvent {
   }
 }
 
+///|
 fn convert_wit_rule_event(e : @types.RuleEvent) -> @lib.RuleEvent {
   {
     location: convert_wit_location(e.location),
@@ -240,7 +260,10 @@ fn convert_wit_rule_event(e : @types.RuleEvent) -> @lib.RuleEvent {
   }
 }
 
-fn convert_wit_background_event(e : @types.BackgroundEvent) -> @lib.BackgroundEvent {
+///|
+fn convert_wit_background_event(
+  e : @types.BackgroundEvent,
+) -> @lib.BackgroundEvent {
   {
     location: convert_wit_location(e.location),
     keyword: e.keyword,
@@ -249,6 +272,7 @@ fn convert_wit_background_event(e : @types.BackgroundEvent) -> @lib.BackgroundEv
   }
 }
 
+///|
 fn convert_wit_scenario_event(e : @types.ScenarioEvent) -> @lib.ScenarioEvent {
   {
     location: convert_wit_location(e.location),
@@ -260,6 +284,7 @@ fn convert_wit_scenario_event(e : @types.ScenarioEvent) -> @lib.ScenarioEvent {
   }
 }
 
+///|
 fn convert_wit_step_event(e : @types.StepEvent) -> @lib.StepEvent {
   {
     location: convert_wit_location(e.location),
@@ -269,7 +294,10 @@ fn convert_wit_step_event(e : @types.StepEvent) -> @lib.StepEvent {
   }
 }
 
-fn convert_wit_doc_string_event(e : @types.DocStringEvent) -> @lib.DocStringEvent {
+///|
+fn convert_wit_doc_string_event(
+  e : @types.DocStringEvent,
+) -> @lib.DocStringEvent {
   {
     location: convert_wit_location(e.location),
     media_type: e.media_type,
@@ -278,13 +306,17 @@ fn convert_wit_doc_string_event(e : @types.DocStringEvent) -> @lib.DocStringEven
   }
 }
 
-fn convert_wit_data_table_event(e : @types.DataTableEvent) -> @lib.DataTableEvent {
+///|
+fn convert_wit_data_table_event(
+  e : @types.DataTableEvent,
+) -> @lib.DataTableEvent {
   {
     location: convert_wit_location(e.location),
     rows: e.rows.map(convert_wit_table_row),
   }
 }
 
+///|
 fn convert_wit_examples_event(e : @types.ExamplesEvent) -> @lib.ExamplesEvent {
   {
     location: convert_wit_location(e.location),
@@ -297,10 +329,12 @@ fn convert_wit_examples_event(e : @types.ExamplesEvent) -> @lib.ExamplesEvent {
   }
 }
 
+///|
 fn convert_wit_tag_event(e : @types.TagEvent) -> @lib.TagEvent {
   { location: convert_wit_location(e.location), name: e.name }
 }
 
+///|
 fn convert_wit_comment_event(e : @types.CommentEvent) -> @lib.CommentEvent {
   { location: convert_wit_location(e.location), text: e.text }
 }

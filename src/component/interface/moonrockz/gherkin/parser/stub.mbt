@@ -1,6 +1,8 @@
 ///|
 /// Parse Gherkin source into a typed document AST.
-pub fn parse(source : @types.Source) -> Result[@types.GherkinDocument, Array[@types.ParseError]] {
+pub fn parse(
+  source : @types.Source,
+) -> Result[@types.GherkinDocument, Array[@types.ParseError]] {
   let src = @lib.Source::from_string(source.data, uri?=source.uri)
   try {
     let doc = @lib.parse(src)
@@ -22,10 +24,7 @@ pub fn parse(source : @types.Source) -> Result[@types.GherkinDocument, Array[@ty
             errs.push(convert_parse_error(message, location))
           @lib.InconsistentTableCells(message~, location~) =>
             errs.push(convert_parse_error(message, location))
-          _ =>
-            errs.push(
-              { message: "unknown error", line: 0, column: None },
-            )
+          _ => errs.push({ message: "unknown error", line: 0, column: None })
         }
       }
       Err(errs)
@@ -35,6 +34,7 @@ pub fn parse(source : @types.Source) -> Result[@types.GherkinDocument, Array[@ty
 
 // ── Forward conversion: @lib types → @types (WIT-generated) ──
 
+///|
 fn convert_parse_error(
   message : String,
   loc : @lib.Location,
@@ -42,22 +42,27 @@ fn convert_parse_error(
   { message, line: loc.line, column: loc.column }
 }
 
+///|
 fn convert_location(loc : @lib.Location) -> @types.Location {
   { line: loc.line, column: loc.column }
 }
 
+///|
 fn convert_tag(t : @lib.Tag) -> @types.Tag {
   { location: convert_location(t.location), name: t.name, id: t.id }
 }
 
+///|
 fn convert_comment(c : @lib.Comment) -> @types.Comment {
   { location: convert_location(c.location), text: c.text }
 }
 
+///|
 fn convert_table_cell(c : @lib.TableCell) -> @types.TableCell {
   { location: convert_location(c.location), value: c.value }
 }
 
+///|
 fn convert_table_row(r : @lib.TableRow) -> @types.TableRow {
   {
     location: convert_location(r.location),
@@ -66,6 +71,7 @@ fn convert_table_row(r : @lib.TableRow) -> @types.TableRow {
   }
 }
 
+///|
 fn convert_doc_string(ds : @lib.DocString) -> @types.DocString {
   {
     location: convert_location(ds.location),
@@ -75,6 +81,7 @@ fn convert_doc_string(ds : @lib.DocString) -> @types.DocString {
   }
 }
 
+///|
 fn convert_data_table(dt : @lib.DataTable) -> @types.DataTable {
   {
     location: convert_location(dt.location),
@@ -82,9 +89,8 @@ fn convert_data_table(dt : @lib.DataTable) -> @types.DataTable {
   }
 }
 
-fn convert_step_argument(
-  arg : @lib.StepArgument,
-) -> @types.StepArgument {
+///|
+fn convert_step_argument(arg : @lib.StepArgument) -> @types.StepArgument {
   match arg {
     @lib.StepArgument::DocString(ds) =>
       @types.StepArgument::DocString(convert_doc_string(ds))
@@ -93,6 +99,7 @@ fn convert_step_argument(
   }
 }
 
+///|
 fn convert_keyword_type(kt : @lib.KeywordType) -> @types.KeywordType {
   match kt {
     @lib.Context => @types.CONTEXT
@@ -103,15 +110,15 @@ fn convert_keyword_type(kt : @lib.KeywordType) -> @types.KeywordType {
   }
 }
 
-fn convert_scenario_kind(
-  k : @lib.ScenarioKind,
-) -> @types.ScenarioKind {
+///|
+fn convert_scenario_kind(k : @lib.ScenarioKind) -> @types.ScenarioKind {
   match k {
     @lib.Scenario => @types.SCENARIO
     @lib.ScenarioOutline => @types.SCENARIO_OUTLINE
   }
 }
 
+///|
 fn convert_step(s : @lib.Step) -> @types.Step {
   {
     location: convert_location(s.location),
@@ -123,6 +130,7 @@ fn convert_step(s : @lib.Step) -> @types.Step {
   }
 }
 
+///|
 fn convert_examples(e : @lib.Examples) -> @types.Examples {
   {
     location: convert_location(e.location),
@@ -136,6 +144,7 @@ fn convert_examples(e : @lib.Examples) -> @types.Examples {
   }
 }
 
+///|
 fn convert_background(bg : @lib.Background) -> @types.Background {
   {
     location: convert_location(bg.location),
@@ -147,6 +156,7 @@ fn convert_background(bg : @lib.Background) -> @types.Background {
   }
 }
 
+///|
 fn convert_scenario(s : @lib.Scenario) -> @types.Scenario {
   {
     location: convert_location(s.location),
@@ -161,9 +171,8 @@ fn convert_scenario(s : @lib.Scenario) -> @types.Scenario {
   }
 }
 
-fn convert_rule_child(
-  child : @lib.RuleChild,
-) -> @types.RuleChild {
+///|
+fn convert_rule_child(child : @lib.RuleChild) -> @types.RuleChild {
   match child {
     @lib.RuleChild::Background(bg) =>
       @types.RuleChild::Background(convert_background(bg))
@@ -172,6 +181,7 @@ fn convert_rule_child(
   }
 }
 
+///|
 fn convert_rule(r : @lib.Rule) -> @types.Rule {
   {
     location: convert_location(r.location),
@@ -184,19 +194,18 @@ fn convert_rule(r : @lib.Rule) -> @types.Rule {
   }
 }
 
-fn convert_feature_child(
-  child : @lib.FeatureChild,
-) -> @types.FeatureChild {
+///|
+fn convert_feature_child(child : @lib.FeatureChild) -> @types.FeatureChild {
   match child {
     @lib.FeatureChild::Background(bg) =>
       @types.FeatureChild::Background(convert_background(bg))
     @lib.FeatureChild::Scenario(s) =>
       @types.FeatureChild::Scenario(convert_scenario(s))
-    @lib.FeatureChild::Rule(r) =>
-      @types.FeatureChild::Rule(convert_rule(r))
+    @lib.FeatureChild::Rule(r) => @types.FeatureChild::Rule(convert_rule(r))
   }
 }
 
+///|
 fn convert_feature(f : @lib.Feature) -> @types.Feature {
   {
     location: convert_location(f.location),
@@ -209,6 +218,7 @@ fn convert_feature(f : @lib.Feature) -> @types.Feature {
   }
 }
 
+///|
 fn convert_document(
   doc : @lib.GherkinDocument,
   source : @types.Source,

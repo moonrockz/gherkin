@@ -904,7 +904,9 @@ test "Source::from_bytes: empty bytes" {
 
 ///|
 test "Source::from_bytes: round-trips with parse" {
-  let bytes = @utf8.encode("Feature: From Bytes\n  Scenario: It works\n    Given a step")
+  let bytes = @utf8.encode(
+    "Feature: From Bytes\n  Scenario: It works\n    Given a step",
+  )
   let src = Source::from_bytes(bytes)
   let doc = parse(src)
   guard doc.feature is Some(f) else { abort("expected feature") }
