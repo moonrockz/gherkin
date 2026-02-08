@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-02-08
+
+### Added
+
+- **wasm:** Add strongly-typed WIT interfaces with source record
+- **examples:** Add Go example with idiomatic gherkin package over core WASM
+
+### Documentation
+
+- **examples:** Update examples for typed WIT interfaces
+
+### Fixed
+
+- **parser:** Resolve tag-before-second-scenario bug
+- **parser:** Use UnexpectedEof variant, implement Source::from_bytes, remove unused derive
+
 ## [0.2.0] - 2026-02-07
 
 ### Added
@@ -37,6 +53,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Documentation
 
 - Add MoonBit package documentation with runnable examples
+
+### Fixed
+
+- **release:** Configure git identity for tag creation in CI
 
 ## [0.1.0] - 2026-02-07
 
