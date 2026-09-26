@@ -52,22 +52,22 @@ fn dispatch_event(w : @lib.GherkinWriter, event : @types.GherkinEvent) -> Unit {
 
 ///|
 fn convert_wit_location(loc : @types.Location) -> @lib.Location {
-  { line: loc.line, column: loc.column }
+  { line: loc.line, column: loc.column, }
 }
 
 ///|
 fn convert_wit_tag(t : @types.Tag) -> @lib.Tag {
-  { location: convert_wit_location(t.location), name: t.name, id: t.id }
+  { location: convert_wit_location(t.location), name: t.name, id: t.id, }
 }
 
 ///|
 fn convert_wit_comment(c : @types.Comment) -> @lib.Comment {
-  { location: convert_wit_location(c.location), text: c.text }
+  { location: convert_wit_location(c.location), text: c.text, }
 }
 
 ///|
 fn convert_wit_table_cell(c : @types.TableCell) -> @lib.TableCell {
-  { location: convert_wit_location(c.location), value: c.value }
+  { location: convert_wit_location(c.location), value: c.value, }
 }
 
 ///|
@@ -331,10 +331,10 @@ fn convert_wit_examples_event(e : @types.ExamplesEvent) -> @lib.ExamplesEvent {
 
 ///|
 fn convert_wit_tag_event(e : @types.TagEvent) -> @lib.TagEvent {
-  { location: convert_wit_location(e.location), name: e.name }
+  { location: convert_wit_location(e.location), name: e.name, }
 }
 
 ///|
 fn convert_wit_comment_event(e : @types.CommentEvent) -> @lib.CommentEvent {
-  { location: convert_wit_location(e.location), text: e.text }
+  { location: convert_wit_location(e.location), text: e.text, }
 }

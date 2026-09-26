@@ -16,7 +16,7 @@ pub enum Token {
   Empty(Location)
   Other(Location, String)
   Eof(Location)
-} derive(Show, Eq, ToJson)
+} derive(Debug, Eq, ToJson)
 
 ///|
 /// Internal state tracked between lines during tokenization.
@@ -24,7 +24,7 @@ pub enum Token {
 pub enum LexerState {
   Normal
   InDocString(String)
-} derive(Show, Eq, ToJson)
+} derive(Debug, Eq, ToJson)
 
 ///|
 /// Classify a single source line into a Token, returning the updated LexerState.
@@ -46,35 +46,50 @@ pub fn classify_line(
 }
 
 ///|
+/// Regex matching a doc string closing line (triple quotes, blanks around it).
+const RE_DOCSTRING_END_QUOTES : Regex = re"^([[:blank:]]*)\"\"\"[[:blank:]]*$"
+
+///|
+/// Regex matching a doc string closing line (backticks, blanks around it).
+const RE_DOCSTRING_END_BACKTICK : Regex = re"^([[:blank:]]*)```[[:blank:]]*$"
+
+///|
+/// Regex matching a doc string opening line with an optional media type.
+const RE_DOCSTRING_START_QUOTES : Regex = re"^([[:blank:]]*)\"\"\"([^[:blank:]]*)[[:blank:]]*$"
+
+///|
+/// Regex matching a backtick doc string opening line with an optional media type.
+const RE_DOCSTRING_START_BACKTICK : Regex = re"^([[:blank:]]*)```([^[:blank:]]*)[[:blank:]]*$"
+
+///|
+/// Regex matching a `# language: <lang>` directive line.
+const RE_LANGUAGE_DIRECTIVE : Regex = re"^#[[:blank:]]*language[[:blank:]]*:[[:blank:]]*([^[:blank:]]+)[[:blank:]]*$"
+
+///|
 fn classify_in_docstring(
   line : String,
   line_num : Int,
   delim : String,
 ) -> (Token, LexerState) {
-  let view = line[:]
-  if delim == "\"\"\"" {
-    lexmatch view {
-      (("[[:blank:]]*" as leading) "\"\"\"" "[[:blank:]]*") => {
-        let col = leading.length() + 1
-        let loc : Location = { line: line_num, column: Some(col) }
-        (Token::DocStringSeparator(loc, "\"\"\"", None), Normal)
-      }
-      _ => {
-        let loc : Location = { line: line_num, column: None }
-        (Token::Other(loc, line), InDocString(delim))
-      }
-    }
+  let view : StringView = line[:]
+  let closing = if delim == "\"\"\"" {
+    RE_DOCSTRING_END_QUOTES.execute(view)
   } else {
-    lexmatch view {
-      (("[[:blank:]]*" as leading) "```" "[[:blank:]]*") => {
-        let col = leading.length() + 1
-        let loc : Location = { line: line_num, column: Some(col) }
-        (Token::DocStringSeparator(loc, "```", None), Normal)
+    RE_DOCSTRING_END_BACKTICK.execute(view)
+  }
+  match closing {
+    Some(m) => {
+      let leading_len = match m.group(1) {
+        Some(leading) => leading.length()
+        None => 0
       }
-      _ => {
-        let loc : Location = { line: line_num, column: None }
-        (Token::Other(loc, line), InDocString(delim))
-      }
+      let col = leading_len + 1
+      let loc : Location = { line: line_num, column: Some(col), }
+      (Token::DocStringSeparator(loc, delim, None), Normal)
+    }
+    None => {
+      let loc : Location = { line: line_num, column: None, }
+      (Token::Other(loc, line), InDocString(delim))
     }
   }
 }
@@ -85,105 +100,81 @@ fn classify_normal(
   line_num : Int,
   keywords : I18nKeywords?,
 ) -> (Token, LexerState) {
-  let view = line[:]
-  lexmatch view {
-    // Empty or whitespace-only line
-    "[[:blank:]]*" => {
-      let loc : Location = { line: line_num, column: None }
-      (Token::Empty(loc), Normal)
+  let view : StringView = line[:]
+  let trimmed = view.trim_start(chars=" \t")
+  // Empty or whitespace-only line
+  if trimmed.is_empty() {
+    let loc : Location = { line: line_num, column: None, }
+    return (Token::Empty(loc), Normal)
+  }
+  let col = view.length() - trimmed.length() + 1
+  let loc : Location = { line: line_num, column: Some(col), }
+  // Language directive: # language: <lang>, otherwise a plain comment
+  if trimmed.has_prefix("#") {
+    if RE_LANGUAGE_DIRECTIVE.execute(trimmed) is Some(m) &&
+      m.group(1) is Some(lang) {
+      return (Token::Language(loc, lang.to_owned()), Normal)
     }
-    // Language directive: # language: <lang>
-    (
-      ("[[:blank:]]*" as leading)
-      "#"
-      "[[:blank:]]*"
-      "language"
-      "[[:blank:]]*"
-      ":"
-      "[[:blank:]]*"
-      ("[^[:blank:]]+" as lang)
-      "[[:blank:]]*"
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::Language(loc, lang.to_string()), Normal)
-    }
-    // Comment line: starts with optional whitespace then #
-    (("[[:blank:]]*" as leading) ("#.*" as text)) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      (Token::Comment(loc, text.to_string()), Normal)
-    }
-    // Tag line: starts with optional whitespace then @
-    (("[[:blank:]]*" as leading) ("@.*" as tag_text)) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      let tags = parse_tags(tag_text.to_string())
-      (Token::TagLine(loc, tags), Normal)
-    }
-    // Table row: starts with optional whitespace then |
-    (("[[:blank:]]*" as leading) ("[|].*" as row_text)) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      let cells = parse_table_cells(row_text.to_string())
-      (Token::TableRow(loc, cells), Normal)
-    }
-    // Doc string: triple-quote with optional media type
-    (
-      ("[[:blank:]]*" as leading)
-      "\"\"\""
-      ("[^[:blank:]]*" as media)
-      "[[:blank:]]*"
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      let media_type : String? = if media.length() > 0 {
-        Some(media.to_string())
-      } else {
-        None
-      }
-      (
-        Token::DocStringSeparator(loc, "\"\"\"", media_type),
-        InDocString("\"\"\""),
-      )
-    }
-    // Doc string: backtick with optional media type
-    (
-      ("[[:blank:]]*" as leading)
-      "```"
-      ("[^[:blank:]]*" as media)
-      "[[:blank:]]*"
-    ) => {
-      let col = leading.length() + 1
-      let loc : Location = { line: line_num, column: Some(col) }
-      let media_type : String? = if media.length() > 0 {
-        Some(media.to_string())
-      } else {
-        None
-      }
-      (Token::DocStringSeparator(loc, "```", media_type), InDocString("```"))
-    }
-    // Fallback: try keyword matching, then description/other text
-    _ =>
-      match keywords {
-        Some(kw) => {
-          let trimmed = trim_leading_whitespace(line)
-          let leading_len = line.length() - trimmed.length()
-          let col = leading_len + 1
-          let loc : Location = { line: line_num, column: Some(col) }
-          match try_keyword_line(trimmed, kw) {
-            Some(tok) => (set_token_location(tok, loc), Normal)
-            None => {
-              let oloc : Location = { line: line_num, column: None }
-              (Token::Other(oloc, line), Normal)
-            }
-          }
+    return (Token::Comment(loc, trimmed.to_owned()), Normal)
+  }
+  // Tag line: starts with optional whitespace then @
+  if trimmed.has_prefix("@") {
+    let tags = parse_tags(trimmed.to_owned())
+    return (Token::TagLine(loc, tags), Normal)
+  }
+  // Table row: starts with optional whitespace then |
+  if trimmed.has_prefix("|") {
+    let cells = parse_table_cells(trimmed.to_owned())
+    return (Token::TableRow(loc, cells), Normal)
+  }
+  // Doc string: triple-quote with optional media type
+  if RE_DOCSTRING_START_QUOTES.execute(view) is Some(m) {
+    let media_type : String? = match m.group(2) {
+      Some(media) =>
+        if media.is_empty() {
+          None
+        } else {
+          Some(media.to_owned())
         }
+      None => None
+    }
+    return (
+      Token::DocStringSeparator(loc, "\"\"\"", media_type),
+      InDocString("\"\"\""),
+    )
+  }
+  // Doc string: backtick with optional media type
+  if RE_DOCSTRING_START_BACKTICK.execute(view) is Some(m) {
+    let media_type : String? = match m.group(2) {
+      Some(media) =>
+        if media.is_empty() {
+          None
+        } else {
+          Some(media.to_owned())
+        }
+      None => None
+    }
+    return (
+      Token::DocStringSeparator(loc, "```", media_type),
+      InDocString("```"),
+    )
+  }
+  // Fallback: try keyword matching, then description/other text
+  match keywords {
+    Some(kw) => {
+      let kw_text = trim_leading_whitespace(line)
+      match try_keyword_line(kw_text, kw) {
+        Some(tok) => (set_token_location(tok, loc), Normal)
         None => {
-          let loc : Location = { line: line_num, column: None }
-          (Token::Other(loc, line), Normal)
+          let oloc : Location = { line: line_num, column: None, }
+          (Token::Other(oloc, line), Normal)
         }
       }
+    }
+    None => {
+      let oloc : Location = { line: line_num, column: None, }
+      (Token::Other(oloc, line), Normal)
+    }
   }
 }
 
@@ -192,8 +183,8 @@ fn parse_tags(text : String) -> Array[String] {
   let tags : Array[String] = []
   for view = text[:] {
     lexmatch view {
-      ("[[:blank:]]*" ("@[^[:blank:]]+" as tag), rest) => {
-        tags.push(tag.to_string())
+      (re"^[[:blank:]]*@[^[:blank:]]+" as matched, after=rest) => {
+        tags.push(matched.trim_start(chars=" \t").to_owned())
         continue rest
       }
       _ => break tags
@@ -242,7 +233,7 @@ fn trim_cell(s : String) -> String {
   if start > end {
     ""
   } else {
-    String::from_array(chars[start:end + 1].to_array())
+    String::from_array(chars[start:end + 1].to_owned())
   }
 }
 
@@ -265,7 +256,7 @@ pub fn tokenize(source : Source) -> Array[Token] {
       None => ()
     }
   }
-  let eof_loc : Location = { line: source.line_count() + 1, column: None }
+  let eof_loc : Location = { line: source.line_count() + 1, column: None, }
   tokens.push(Token::Eof(eof_loc))
   tokens
 }
@@ -277,11 +268,11 @@ pub struct Lexer {
   priv mut state : LexerState
   priv mut done : Bool
   priv mut language : String
-} derive(Show)
+} derive(Debug)
 
 ///|
 pub fn Lexer::new(source : Source) -> Lexer {
-  { source, line_num: 1, state: Normal, done: false, language: "en" }
+  { source, line_num: 1, state: Normal, done: false, language: "en", }
 }
 
 ///|
@@ -307,7 +298,7 @@ pub fn Lexer::next(self : Lexer) -> Token? {
       None => self.line_num = self.line_num + 1
     }
   }
-  if not(self.done) {
+  if !self.done {
     self.done = true
     let eof_loc : Location = {
       line: self.source.line_count() + 1,
@@ -379,7 +370,7 @@ fn get_keywords(lang : String) -> I18nKeywords? {
 
 ///|
 fn try_keyword_line(trimmed : String, kw : I18nKeywords) -> Token? {
-  let dummy : Location = { line: 0, column: None }
+  let dummy : Location = { line: 0, column: None, }
   // Check structural keywords (keyword + ":" + name)
   for k in kw.feature {
     match try_match_keyword_colon(trimmed, k) {
@@ -484,7 +475,7 @@ fn try_match_keyword_colon(text : String, keyword : String) -> String? {
   while pos < chars.length() && (chars[pos] == ' ' || chars[pos] == '\t') {
     pos = pos + 1
   }
-  Some(String::from_array(chars[pos:].to_array()))
+  Some(String::from_array(chars[pos:].to_owned()))
 }
 
 ///|
@@ -500,7 +491,7 @@ fn try_match_step(text : String, keyword : String) -> String? {
       return None
     }
   }
-  Some(String::from_array(chars[kw_chars.length():].to_array()))
+  Some(String::from_array(chars[kw_chars.length():].to_owned()))
 }
 
 ///|
@@ -513,7 +504,7 @@ fn trim_leading_whitespace(text : String) -> String {
   if start == 0 {
     text
   } else {
-    String::from_array(chars[start:].to_array())
+    String::from_array(chars[start:].to_owned())
   }
 }
 
@@ -529,3 +520,24 @@ fn set_token_location(tok : Token, loc : Location) -> Token {
     other => other
   }
 }
+
+///|
+pub extend Token with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Token with Eq::{not_equal, equal}
+
+///|
+pub extend Token with ToJson::{to_json}
+
+///|
+pub extend LexerState with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend LexerState with Eq::{not_equal, equal}
+
+///|
+pub extend LexerState with ToJson::{to_json}
+
+///|
+pub extend Lexer with @moonbitlang/core/debug.Debug::{to_repr}

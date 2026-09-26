@@ -24,7 +24,7 @@ pub fn parse(
             errs.push(convert_parse_error(message, location))
           @lib.InconsistentTableCells(message~, location~) =>
             errs.push(convert_parse_error(message, location))
-          _ => errs.push({ message: "unknown error", line: 0, column: None })
+          _ => errs.push({ message: "unknown error", line: 0, column: None, })
         }
       }
       Err(errs)
@@ -39,27 +39,27 @@ fn convert_parse_error(
   message : String,
   loc : @lib.Location,
 ) -> @types.ParseError {
-  { message, line: loc.line, column: loc.column }
+  { message, line: loc.line, column: loc.column, }
 }
 
 ///|
 fn convert_location(loc : @lib.Location) -> @types.Location {
-  { line: loc.line, column: loc.column }
+  { line: loc.line, column: loc.column, }
 }
 
 ///|
 fn convert_tag(t : @lib.Tag) -> @types.Tag {
-  { location: convert_location(t.location), name: t.name, id: t.id }
+  { location: convert_location(t.location), name: t.name, id: t.id, }
 }
 
 ///|
 fn convert_comment(c : @lib.Comment) -> @types.Comment {
-  { location: convert_location(c.location), text: c.text }
+  { location: convert_location(c.location), text: c.text, }
 }
 
 ///|
 fn convert_table_cell(c : @lib.TableCell) -> @types.TableCell {
-  { location: convert_location(c.location), value: c.value }
+  { location: convert_location(c.location), value: c.value, }
 }
 
 ///|

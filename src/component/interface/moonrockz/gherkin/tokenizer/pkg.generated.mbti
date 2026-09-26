@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonrockz/gherkin/component/interface/moonrockz/gherkin/tokenizer"
+
+import {
+  "moonrockz/gherkin/interface/moonrockz/gherkin/types",
+}
+
+// Values
+pub fn tokenize(@types.Source) -> Result[Array[@types.Token], Array[@types.ParseError]]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

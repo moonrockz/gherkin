@@ -1,8 +1,13 @@
 // Generated using `moon info`, DON'T EDIT IT
 package "moonrockz/gherkin"
 
+import {
+  "moonbitlang/core/debug",
+  "moonbitlang/core/json",
+}
+
 // Values
-pub fn classify_line(String, Int, LexerState) -> (Token, LexerState)
+pub fn classify_line(String, Int, LexerState, language? : String) -> (Token, LexerState)
 
 pub fn[A, N] continuing((A, N) -> A) -> (A, N) -> FoldAction[A]
 
@@ -11,6 +16,8 @@ pub fn parse(Source) -> GherkinDocument raise ParseError
 pub fn parse_with_handler(Source, &GherkinHandler) -> Unit raise ParseError
 
 pub fn tokenize(Source) -> Array[Token]
+
+pub fn write(GherkinDocument, config? : WriteConfig) -> String
 
 // Errors
 pub suberror ParseError {
@@ -21,77 +28,93 @@ pub suberror ParseError {
 }
 
 // Types and methods
-pub struct Background {
+pub(all) struct Background {
   location : Location
   keyword : String
   name : String
   description : String
   id : String
   steps : Array[Step]
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Background::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for Background
-pub impl Show for Background
+pub fn Background::equal(Self, Self) -> Bool
+pub fn Background::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Background::not_equal(Self, Self) -> Bool
+pub fn Background::to_json(Self) -> Json
+pub fn Background::to_repr(Self) -> @debug.Repr
 
-pub struct BackgroundEvent {
+pub(all) struct BackgroundEvent {
   location : Location
   keyword : String
   name : String
   description : String
-}
-pub impl Eq for BackgroundEvent
-pub impl Show for BackgroundEvent
+} derive(Eq, @debug.Debug)
+pub fn BackgroundEvent::equal(Self, Self) -> Bool
+pub fn BackgroundEvent::not_equal(Self, Self) -> Bool
+pub fn BackgroundEvent::to_repr(Self) -> @debug.Repr
 
-pub struct Comment {
+pub(all) struct Comment {
   location : Location
   text : String
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Comment::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for Comment
-pub impl Show for Comment
+pub fn Comment::equal(Self, Self) -> Bool
+pub fn Comment::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Comment::not_equal(Self, Self) -> Bool
+pub fn Comment::to_json(Self) -> Json
+pub fn Comment::to_repr(Self) -> @debug.Repr
 
-pub struct CommentEvent {
+pub(all) struct CommentEvent {
   location : Location
   text : String
-}
-pub impl Eq for CommentEvent
-pub impl Show for CommentEvent
+} derive(Eq, @debug.Debug)
+pub fn CommentEvent::equal(Self, Self) -> Bool
+pub fn CommentEvent::not_equal(Self, Self) -> Bool
+pub fn CommentEvent::to_repr(Self) -> @debug.Repr
 
-pub struct DataTable {
+pub(all) struct DataTable {
   location : Location
   rows : Array[TableRow]
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn DataTable::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for DataTable
-pub impl Show for DataTable
+pub fn DataTable::equal(Self, Self) -> Bool
+pub fn DataTable::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn DataTable::not_equal(Self, Self) -> Bool
+pub fn DataTable::to_json(Self) -> Json
+pub fn DataTable::to_repr(Self) -> @debug.Repr
 
-pub struct DataTableEvent {
+pub(all) struct DataTableEvent {
   location : Location
   rows : Array[TableRow]
-}
-pub impl Eq for DataTableEvent
-pub impl Show for DataTableEvent
+} derive(Eq, @debug.Debug)
+pub fn DataTableEvent::equal(Self, Self) -> Bool
+pub fn DataTableEvent::not_equal(Self, Self) -> Bool
+pub fn DataTableEvent::to_repr(Self) -> @debug.Repr
 
-pub struct DocString {
+pub(all) struct DocString {
   location : Location
   media_type : String?
   content : String
   delimiter : String
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn DocString::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for DocString
-pub impl Show for DocString
+pub fn DocString::equal(Self, Self) -> Bool
+pub fn DocString::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn DocString::not_equal(Self, Self) -> Bool
+pub fn DocString::to_json(Self) -> Json
+pub fn DocString::to_repr(Self) -> @debug.Repr
 
-pub struct DocStringEvent {
+pub(all) struct DocStringEvent {
   location : Location
   media_type : String?
   content : String
   delimiter : String
-}
-pub impl Eq for DocStringEvent
-pub impl Show for DocStringEvent
+} derive(Eq, @debug.Debug)
+pub fn DocStringEvent::equal(Self, Self) -> Bool
+pub fn DocStringEvent::not_equal(Self, Self) -> Bool
+pub fn DocStringEvent::to_repr(Self) -> @debug.Repr
 
-pub struct Examples {
+pub(all) struct Examples {
   location : Location
   tags : Array[Tag]
   keyword : String
@@ -100,12 +123,15 @@ pub struct Examples {
   id : String
   table_header : TableRow?
   table_body : Array[TableRow]
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Examples::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for Examples
-pub impl Show for Examples
+pub fn Examples::equal(Self, Self) -> Bool
+pub fn Examples::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Examples::not_equal(Self, Self) -> Bool
+pub fn Examples::to_json(Self) -> Json
+pub fn Examples::to_repr(Self) -> @debug.Repr
 
-pub struct ExamplesEvent {
+pub(all) struct ExamplesEvent {
   location : Location
   tags : Array[Tag]
   keyword : String
@@ -113,11 +139,12 @@ pub struct ExamplesEvent {
   description : String
   table_header : TableRow?
   table_body : Array[TableRow]
-}
-pub impl Eq for ExamplesEvent
-pub impl Show for ExamplesEvent
+} derive(Eq, @debug.Debug)
+pub fn ExamplesEvent::equal(Self, Self) -> Bool
+pub fn ExamplesEvent::not_equal(Self, Self) -> Bool
+pub fn ExamplesEvent::to_repr(Self) -> @debug.Repr
 
-pub struct Feature {
+pub(all) struct Feature {
   location : Location
   tags : Array[Tag]
   language : String
@@ -125,52 +152,63 @@ pub struct Feature {
   name : String
   description : String
   children : Array[FeatureChild]
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Feature::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for Feature
-pub impl Show for Feature
+pub fn Feature::equal(Self, Self) -> Bool
+pub fn Feature::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Feature::not_equal(Self, Self) -> Bool
+pub fn Feature::to_json(Self) -> Json
+pub fn Feature::to_repr(Self) -> @debug.Repr
 
-pub enum FeatureChild {
+pub(all) enum FeatureChild {
   Background(Background)
   Scenario(Scenario)
   Rule(Rule)
-}
-pub impl Eq for FeatureChild
-pub impl Show for FeatureChild
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn FeatureChild::equal(Self, Self) -> Bool
+pub fn FeatureChild::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn FeatureChild::not_equal(Self, Self) -> Bool
+pub fn FeatureChild::to_json(Self) -> Json
+pub fn FeatureChild::to_repr(Self) -> @debug.Repr
 
-pub struct FeatureEvent {
+pub(all) struct FeatureEvent {
   location : Location
   tags : Array[Tag]
   language : String
   keyword : String
   name : String
   description : String
-}
-pub impl Eq for FeatureEvent
-pub impl Show for FeatureEvent
+} derive(Eq, @debug.Debug)
+pub fn FeatureEvent::equal(Self, Self) -> Bool
+pub fn FeatureEvent::not_equal(Self, Self) -> Bool
+pub fn FeatureEvent::to_repr(Self) -> @debug.Repr
 
 pub enum FoldAction[A] {
   Continue(A)
   SkipChildren(A)
   Stop(A)
-}
+} derive(Eq, @debug.Debug)
+pub fn[A : Eq] FoldAction::equal(Self[A], Self[A]) -> Bool
 pub fn[A] FoldAction::is_stop(Self[A]) -> Bool
+pub fn[A : Eq] FoldAction::not_equal(Self[A], Self[A]) -> Bool
+pub fn[A : @debug.Debug] FoldAction::to_repr(Self[A]) -> @debug.Repr
 pub fn[A] FoldAction::value(Self[A]) -> A
-pub impl[A : Eq] Eq for FoldAction[A]
-pub impl[A : Show] Show for FoldAction[A]
 
-pub struct GherkinDocument {
+pub(all) struct GherkinDocument {
   source : Source
   feature : Feature?
   comments : Array[Comment]
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn GherkinDocument::accept(Self, &GherkinVisitor) -> Unit
 pub fn GherkinDocument::empty() -> Self
+pub fn GherkinDocument::equal(Self, Self) -> Bool
 pub fn[A] GherkinDocument::fold(Self, A, GherkinFold[A]) -> A
-pub impl Eq for GherkinDocument
-pub impl Show for GherkinDocument
+pub fn GherkinDocument::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn GherkinDocument::not_equal(Self, Self) -> Bool
+pub fn GherkinDocument::to_json(Self) -> Json
+pub fn GherkinDocument::to_repr(Self) -> @debug.Repr
 
-pub enum GherkinEvent {
+pub(all) enum GherkinEvent {
   DocumentStart
   DocumentEnd
   FeatureStart(FeatureEvent)
@@ -187,9 +225,10 @@ pub enum GherkinEvent {
   Examples(ExamplesEvent)
   Tag(TagEvent)
   Comment(CommentEvent)
-}
-pub impl Eq for GherkinEvent
-pub impl Show for GherkinEvent
+} derive(Eq, @debug.Debug)
+pub fn GherkinEvent::equal(Self, Self) -> Bool
+pub fn GherkinEvent::not_equal(Self, Self) -> Bool
+pub fn GherkinEvent::to_repr(Self) -> @debug.Repr
 
 pub(all) struct GherkinFold[A] {
   visit_document : (A, GherkinDocument) -> FoldAction[A]
@@ -207,39 +246,94 @@ pub(all) struct GherkinFold[A] {
 }
 pub fn[A] GherkinFold::default() -> Self[A]
 
-pub enum KeywordType {
+pub struct GherkinReader {
+  // private fields
+}
+pub fn GherkinReader::from_document(GherkinDocument) -> Self
+pub fn GherkinReader::iter(Self) -> Iter[GherkinEvent]
+pub fn GherkinReader::new(Source) -> Self raise ParseError
+pub fn GherkinReader::next(Self) -> GherkinEvent?
+pub fn GherkinReader::peek(Self) -> GherkinEvent?
+pub fn GherkinReader::pipe(Self, &GherkinHandler) -> Unit
+
+pub struct GherkinWriter {
+  // private fields
+}
+pub fn GherkinWriter::background(Self, String, name? : String, description? : String) -> Unit
+pub fn GherkinWriter::comment(Self, String) -> Unit
+pub fn GherkinWriter::data_table(Self, Array[Array[String]]) -> Unit
+pub fn GherkinWriter::doc_string(Self, String, delimiter? : String, media_type? : String?) -> Unit
+pub fn GherkinWriter::end_background(Self) -> Unit
+pub fn GherkinWriter::end_feature(Self) -> Unit
+pub fn GherkinWriter::end_rule(Self) -> Unit
+pub fn GherkinWriter::end_scenario(Self) -> Unit
+pub fn GherkinWriter::examples(Self, String, name? : String, description? : String, header? : Array[String], body? : Array[Array[String]]) -> Unit
+pub fn GherkinWriter::feature(Self, String, String, language? : String, description? : String) -> Unit
+pub fn GherkinWriter::new(config? : WriteConfig) -> Self
+pub fn GherkinWriter::on_background(Self, BackgroundEvent) -> Unit
+pub fn GherkinWriter::on_comment(Self, CommentEvent) -> Unit
+pub fn GherkinWriter::on_data_table(Self, DataTableEvent) -> Unit
+pub fn GherkinWriter::on_doc_string(Self, DocStringEvent) -> Unit
+pub fn GherkinWriter::on_document(Self) -> Unit
+pub fn GherkinWriter::on_end_background(Self) -> Unit
+pub fn GherkinWriter::on_end_document(Self) -> Unit
+pub fn GherkinWriter::on_end_feature(Self) -> Unit
+pub fn GherkinWriter::on_end_rule(Self) -> Unit
+pub fn GherkinWriter::on_end_scenario(Self) -> Unit
+pub fn GherkinWriter::on_examples(Self, ExamplesEvent) -> Unit
+pub fn GherkinWriter::on_feature(Self, FeatureEvent) -> Unit
+pub fn GherkinWriter::on_rule(Self, RuleEvent) -> Unit
+pub fn GherkinWriter::on_scenario(Self, ScenarioEvent) -> Unit
+pub fn GherkinWriter::on_step(Self, StepEvent) -> Unit
+pub fn GherkinWriter::on_tag(Self, TagEvent) -> Unit
+pub fn GherkinWriter::rule(Self, String, String, description? : String) -> Unit
+pub fn GherkinWriter::scenario(Self, String, String, description? : String) -> Unit
+pub fn GherkinWriter::step(Self, String, String) -> Unit
+pub fn GherkinWriter::tags(Self, Array[String]) -> Unit
+pub fn GherkinWriter::to_string(Self) -> String
+pub impl GherkinHandler for GherkinWriter
+
+pub(all) enum KeywordType {
   Context
   Action
   Outcome
   Conjunction
   Unknown
-}
-pub impl Eq for KeywordType
-pub impl Show for KeywordType
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn KeywordType::equal(Self, Self) -> Bool
+pub fn KeywordType::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn KeywordType::not_equal(Self, Self) -> Bool
+pub fn KeywordType::to_json(Self) -> Json
+pub fn KeywordType::to_repr(Self) -> @debug.Repr
 
 pub struct Lexer {
   // private fields
-}
+} derive(@debug.Debug)
 pub fn Lexer::iter(Self) -> Iter[Token]
 pub fn Lexer::new(Source) -> Self
 pub fn Lexer::next(Self) -> Token?
-pub impl Show for Lexer
+pub fn Lexer::to_repr(Self) -> @debug.Repr
 
 pub enum LexerState {
   Normal
   InDocString(String)
-}
-pub impl Eq for LexerState
-pub impl Show for LexerState
+} derive(Eq, ToJson, @debug.Debug)
+pub fn LexerState::equal(Self, Self) -> Bool
+pub fn LexerState::not_equal(Self, Self) -> Bool
+pub fn LexerState::to_json(Self) -> Json
+pub fn LexerState::to_repr(Self) -> @debug.Repr
 
 pub(all) struct Location {
   line : Int
   column : Int?
-}
-pub impl Eq for Location
-pub impl Show for Location
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn Location::equal(Self, Self) -> Bool
+pub fn Location::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Location::not_equal(Self, Self) -> Bool
+pub fn Location::to_json(Self) -> Json
+pub fn Location::to_repr(Self) -> @debug.Repr
 
-pub struct Rule {
+pub(all) struct Rule {
   location : Location
   tags : Array[Tag]
   keyword : String
@@ -247,129 +341,174 @@ pub struct Rule {
   description : String
   id : String
   children : Array[RuleChild]
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Rule::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for Rule
-pub impl Show for Rule
+pub fn Rule::equal(Self, Self) -> Bool
+pub fn Rule::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Rule::not_equal(Self, Self) -> Bool
+pub fn Rule::to_json(Self) -> Json
+pub fn Rule::to_repr(Self) -> @debug.Repr
 
-pub enum RuleChild {
+pub(all) enum RuleChild {
   Background(Background)
   Scenario(Scenario)
-}
-pub impl Eq for RuleChild
-pub impl Show for RuleChild
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn RuleChild::equal(Self, Self) -> Bool
+pub fn RuleChild::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn RuleChild::not_equal(Self, Self) -> Bool
+pub fn RuleChild::to_json(Self) -> Json
+pub fn RuleChild::to_repr(Self) -> @debug.Repr
 
-pub struct RuleEvent {
+pub(all) struct RuleEvent {
   location : Location
   tags : Array[Tag]
   keyword : String
   name : String
   description : String
-}
-pub impl Eq for RuleEvent
-pub impl Show for RuleEvent
+} derive(Eq, @debug.Debug)
+pub fn RuleEvent::equal(Self, Self) -> Bool
+pub fn RuleEvent::not_equal(Self, Self) -> Bool
+pub fn RuleEvent::to_repr(Self) -> @debug.Repr
 
-pub struct Scenario {
+pub(all) struct Scenario {
   location : Location
   tags : Array[Tag]
+  kind : ScenarioKind
   keyword : String
   name : String
   description : String
   id : String
   steps : Array[Step]
   examples : Array[Examples]
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Scenario::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for Scenario
-pub impl Show for Scenario
+pub fn Scenario::equal(Self, Self) -> Bool
+pub fn Scenario::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Scenario::not_equal(Self, Self) -> Bool
+pub fn Scenario::to_json(Self) -> Json
+pub fn Scenario::to_repr(Self) -> @debug.Repr
 
-pub struct ScenarioEvent {
+pub(all) struct ScenarioEvent {
   location : Location
   tags : Array[Tag]
+  kind : ScenarioKind
   keyword : String
   name : String
   description : String
-}
-pub impl Eq for ScenarioEvent
-pub impl Show for ScenarioEvent
+} derive(Eq, @debug.Debug)
+pub fn ScenarioEvent::equal(Self, Self) -> Bool
+pub fn ScenarioEvent::not_equal(Self, Self) -> Bool
+pub fn ScenarioEvent::to_repr(Self) -> @debug.Repr
+
+pub(all) enum ScenarioKind {
+  Scenario
+  ScenarioOutline
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn ScenarioKind::equal(Self, Self) -> Bool
+pub fn ScenarioKind::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn ScenarioKind::not_equal(Self, Self) -> Bool
+pub fn ScenarioKind::to_json(Self) -> Json
+pub fn ScenarioKind::to_repr(Self) -> @debug.Repr
 
 pub struct Source {
   // private fields
-}
+} derive(Eq, @debug.Debug)
 pub fn Source::content(Self) -> String
+pub fn Source::equal(Self, Self) -> Bool
 pub fn Source::from_bytes(Bytes, uri? : String) -> Self
+pub fn Source::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
 pub fn Source::from_string(String, uri? : String) -> Self
 pub fn Source::line(Self, Int) -> String?
 pub fn Source::line_count(Self) -> Int
+pub fn Source::not_equal(Self, Self) -> Bool
+pub fn Source::to_json(Self) -> Json
+pub fn Source::to_repr(Self) -> @debug.Repr
 pub fn Source::uri(Self) -> String?
-pub impl Eq for Source
-pub impl Show for Source
+pub impl ToJson for Source
+pub impl @json.FromJson for Source
 
-pub struct Step {
+pub(all) struct Step {
   location : Location
   keyword : String
   keyword_type : KeywordType
   text : String
   id : String
   argument : StepArgument?
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Step::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for Step
-pub impl Show for Step
+pub fn Step::equal(Self, Self) -> Bool
+pub fn Step::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Step::not_equal(Self, Self) -> Bool
+pub fn Step::to_json(Self) -> Json
+pub fn Step::to_repr(Self) -> @debug.Repr
 
-pub enum StepArgument {
+pub(all) enum StepArgument {
   DocString(DocString)
   DataTable(DataTable)
-}
-pub impl Eq for StepArgument
-pub impl Show for StepArgument
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn StepArgument::equal(Self, Self) -> Bool
+pub fn StepArgument::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn StepArgument::not_equal(Self, Self) -> Bool
+pub fn StepArgument::to_json(Self) -> Json
+pub fn StepArgument::to_repr(Self) -> @debug.Repr
 
-pub struct StepEvent {
+pub(all) struct StepEvent {
   location : Location
   keyword : String
   keyword_type : KeywordType
   text : String
-}
-pub impl Eq for StepEvent
-pub impl Show for StepEvent
+} derive(Eq, @debug.Debug)
+pub fn StepEvent::equal(Self, Self) -> Bool
+pub fn StepEvent::not_equal(Self, Self) -> Bool
+pub fn StepEvent::to_repr(Self) -> @debug.Repr
 
-pub struct TableCell {
+pub(all) struct TableCell {
   location : Location
   value : String
-}
-pub impl Eq for TableCell
-pub impl Show for TableCell
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
+pub fn TableCell::equal(Self, Self) -> Bool
+pub fn TableCell::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn TableCell::not_equal(Self, Self) -> Bool
+pub fn TableCell::to_json(Self) -> Json
+pub fn TableCell::to_repr(Self) -> @debug.Repr
 
-pub struct TableRow {
+pub(all) struct TableRow {
   location : Location
   id : String
   cells : Array[TableCell]
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn TableRow::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for TableRow
-pub impl Show for TableRow
+pub fn TableRow::equal(Self, Self) -> Bool
+pub fn TableRow::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn TableRow::not_equal(Self, Self) -> Bool
+pub fn TableRow::to_json(Self) -> Json
+pub fn TableRow::to_repr(Self) -> @debug.Repr
 
-pub struct Tag {
+pub(all) struct Tag {
   location : Location
   name : String
   id : String
-}
+} derive(Eq, ToJson, @debug.Debug, @json.FromJson)
 pub fn Tag::accept(Self, &GherkinVisitor) -> Unit
-pub impl Eq for Tag
-pub impl Show for Tag
+pub fn Tag::equal(Self, Self) -> Bool
+pub fn Tag::from_json(Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Tag::not_equal(Self, Self) -> Bool
+pub fn Tag::to_json(Self) -> Json
+pub fn Tag::to_repr(Self) -> @debug.Repr
 
-pub struct TagEvent {
+pub(all) struct TagEvent {
   location : Location
   name : String
-}
-pub impl Eq for TagEvent
-pub impl Show for TagEvent
+} derive(Eq, @debug.Debug)
+pub fn TagEvent::equal(Self, Self) -> Bool
+pub fn TagEvent::not_equal(Self, Self) -> Bool
+pub fn TagEvent::to_repr(Self) -> @debug.Repr
 
 pub enum Token {
   FeatureLine(Location, String, String)
   RuleLine(Location, String, String)
   BackgroundLine(Location, String, String)
-  ScenarioLine(Location, String, String)
+  ScenarioLine(Location, String, String, ScenarioKind)
   ExamplesLine(Location, String, String)
   StepLine(Location, String, KeywordType, String)
   DocStringSeparator(Location, String, String?)
@@ -380,44 +519,56 @@ pub enum Token {
   Empty(Location)
   Other(Location, String)
   Eof(Location)
-}
-pub impl Eq for Token
-pub impl Show for Token
+} derive(Eq, ToJson, @debug.Debug)
+pub fn Token::equal(Self, Self) -> Bool
+pub fn Token::not_equal(Self, Self) -> Bool
+pub fn Token::to_json(Self) -> Json
+pub fn Token::to_repr(Self) -> @debug.Repr
+
+pub(all) struct WriteConfig {
+  indent : String
+  table_cell_padding : Int
+  trailing_newline : Bool
+  include_comments : Bool
+} derive(Eq, @debug.Debug)
+pub fn WriteConfig::default() -> Self
+pub fn WriteConfig::equal(Self, Self) -> Bool
+pub fn WriteConfig::not_equal(Self, Self) -> Bool
+pub fn WriteConfig::to_repr(Self) -> @debug.Repr
 
 // Type aliases
 
 // Traits
 pub(open) trait GherkinHandler {
-  on_document(Self) -> Unit = _
-  on_end_document(Self) -> Unit = _
-  on_feature(Self, FeatureEvent) -> Unit = _
-  on_end_feature(Self) -> Unit = _
-  on_rule(Self, RuleEvent) -> Unit = _
-  on_end_rule(Self) -> Unit = _
-  on_background(Self, BackgroundEvent) -> Unit = _
-  on_end_background(Self) -> Unit = _
-  on_scenario(Self, ScenarioEvent) -> Unit = _
-  on_end_scenario(Self) -> Unit = _
-  on_step(Self, StepEvent) -> Unit = _
-  on_examples(Self, ExamplesEvent) -> Unit = _
-  on_tag(Self, TagEvent) -> Unit = _
-  on_comment(Self, CommentEvent) -> Unit = _
-  on_doc_string(Self, DocStringEvent) -> Unit = _
-  on_data_table(Self, DataTableEvent) -> Unit = _
+  fn on_document(Self) -> Unit = _
+  fn on_end_document(Self) -> Unit = _
+  fn on_feature(Self, FeatureEvent) -> Unit = _
+  fn on_end_feature(Self) -> Unit = _
+  fn on_rule(Self, RuleEvent) -> Unit = _
+  fn on_end_rule(Self) -> Unit = _
+  fn on_background(Self, BackgroundEvent) -> Unit = _
+  fn on_end_background(Self) -> Unit = _
+  fn on_scenario(Self, ScenarioEvent) -> Unit = _
+  fn on_end_scenario(Self) -> Unit = _
+  fn on_step(Self, StepEvent) -> Unit = _
+  fn on_examples(Self, ExamplesEvent) -> Unit = _
+  fn on_tag(Self, TagEvent) -> Unit = _
+  fn on_comment(Self, CommentEvent) -> Unit = _
+  fn on_doc_string(Self, DocStringEvent) -> Unit = _
+  fn on_data_table(Self, DataTableEvent) -> Unit = _
 }
 
 pub(open) trait GherkinVisitor {
-  visit_document(Self, GherkinDocument) -> Unit = _
-  visit_feature(Self, Feature) -> Unit = _
-  visit_rule(Self, Rule) -> Unit = _
-  visit_background(Self, Background) -> Unit = _
-  visit_scenario(Self, Scenario) -> Unit = _
-  visit_step(Self, Step) -> Unit = _
-  visit_doc_string(Self, DocString) -> Unit = _
-  visit_data_table(Self, DataTable) -> Unit = _
-  visit_examples(Self, Examples) -> Unit = _
-  visit_tag(Self, Tag) -> Unit = _
-  visit_comment(Self, Comment) -> Unit = _
-  visit_table_row(Self, TableRow) -> Unit = _
+  fn visit_document(Self, GherkinDocument) -> Unit = _
+  fn visit_feature(Self, Feature) -> Unit = _
+  fn visit_rule(Self, Rule) -> Unit = _
+  fn visit_background(Self, Background) -> Unit = _
+  fn visit_scenario(Self, Scenario) -> Unit = _
+  fn visit_step(Self, Step) -> Unit = _
+  fn visit_doc_string(Self, DocString) -> Unit = _
+  fn visit_data_table(Self, DataTable) -> Unit = _
+  fn visit_examples(Self, Examples) -> Unit = _
+  fn visit_tag(Self, Tag) -> Unit = _
+  fn visit_comment(Self, Comment) -> Unit = _
+  fn visit_table_row(Self, TableRow) -> Unit = _
 }
-

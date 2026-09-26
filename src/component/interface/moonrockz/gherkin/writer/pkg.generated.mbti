@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonrockz/gherkin/component/interface/moonrockz/gherkin/writer"
+
+import {
+  "moonrockz/gherkin/interface/moonrockz/gherkin/types",
+}
+
+// Values
+pub fn write(@types.GherkinDocument) -> Result[String, String]
+
+pub fn write_events(Array[@types.GherkinEvent]) -> Result[String, String]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

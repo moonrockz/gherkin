@@ -1,28 +1,28 @@
 ///|
 test "GherkinDocument with no feature" {
   let doc = GherkinDocument::empty()
-  inspect(doc.feature, content="None")
+  @debug.debug_inspect(doc.feature, content="None")
 }
 
 ///|
 test "Location creation" {
-  let loc : Location = { line: 1, column: Some(5) }
-  inspect(loc.line, content="1")
+  let loc : Location = { line: 1, column: Some(5), }
+  @debug.debug_inspect(loc.line, content="1")
 }
 
 ///|
 test "KeywordType variants" {
-  inspect(Context, content="Context")
-  inspect(Action, content="Action")
-  inspect(Outcome, content="Outcome")
-  inspect(Conjunction, content="Conjunction")
-  inspect(Unknown, content="Unknown")
+  @debug.debug_inspect(Context, content="Context")
+  @debug.debug_inspect(Action, content="Action")
+  @debug.debug_inspect(Outcome, content="Outcome")
+  @debug.debug_inspect(Conjunction, content="Conjunction")
+  @debug.debug_inspect(Unknown, content="Unknown")
 }
 
 ///|
 test "FeatureChild pattern matching" {
   let s : Scenario = {
-    location: { line: 3, column: None },
+    location: { line: 3, column: None, },
     tags: [],
     kind: Scenario,
     keyword: "Scenario",
@@ -33,40 +33,51 @@ test "FeatureChild pattern matching" {
     examples: [],
   }
   match FeatureChild::Scenario(s) {
-    Scenario(s) => inspect(s.name, content="test")
+    Scenario(s) =>
+      @debug.debug_inspect(
+        s.name,
+        content=(
+          #|"test"
+        ),
+      )
     _ => abort("unexpected")
   }
 }
 
 ///|
 test "FoldAction::value extracts inner value" {
-  inspect(Continue(42).value(), content="42")
-  inspect(SkipChildren("hello").value(), content="hello")
-  inspect(Stop(true).value(), content="true")
+  @debug.debug_inspect(Continue(42).value(), content="42")
+  @debug.debug_inspect(
+    SkipChildren("hello").value(),
+    content=(
+      #|"hello"
+    ),
+  )
+  @debug.debug_inspect(Stop(true).value(), content="true")
 }
 
 ///|
 test "FoldAction::is_stop" {
-  inspect(Continue(0).is_stop(), content="false")
-  inspect(SkipChildren(0).is_stop(), content="false")
-  inspect(Stop(0).is_stop(), content="true")
+  @debug.debug_inspect(Continue(0).is_stop(), content="false")
+  @debug.debug_inspect(SkipChildren(0).is_stop(), content="false")
+  @debug.debug_inspect(Stop(0).is_stop(), content="true")
 }
 
 ///|
 test "GherkinFold::default passes state through" {
   let folder : GherkinFold[Int] = GherkinFold::default()
-  let loc : Location = { line: 1, column: None }
+  let loc : Location = { line: 1, column: None, }
   let doc = GherkinDocument::empty()
-  let tag : Tag = { location: loc, name: "@smoke", id: "1" }
-  inspect((folder.visit_document)(99, doc), content="Continue(99)")
-  inspect((folder.visit_tag)(42, tag), content="Continue(42)")
+  let tag : Tag = { location: loc, name: "@smoke", id: "1", }
+  @debug.debug_inspect((folder.visit_document)(99, doc), content="Continue(99)")
+  @debug.debug_inspect((folder.visit_tag)(42, tag), content="Continue(42)")
 }
 
 ///|
 test "continuing helper wraps in Continue" {
   let f = continuing(fn(n : Int, _s : Scenario) { n + 1 })
   let s : Scenario = {
-    location: { line: 1, column: None },
+    location: { line: 1, column: None, },
     tags: [],
     kind: Scenario,
     keyword: "Scenario",
@@ -76,64 +87,69 @@ test "continuing helper wraps in Continue" {
     steps: [],
     examples: [],
   }
-  inspect(f(0, s), content="Continue(1)")
-  inspect(f(5, s), content="Continue(6)")
+  @debug.debug_inspect(f(0, s), content="Continue(1)")
+  @debug.debug_inspect(f(5, s), content="Continue(6)")
 }
 
 ///|
 test "Source::from_string splits lines" {
   let src = Source::from_string("line1\nline2\nline3")
-  inspect(src.line_count(), content="3")
-  inspect(src.line(1), content="Some(\"line1\")")
-  inspect(src.line(2), content="Some(\"line2\")")
-  inspect(src.line(3), content="Some(\"line3\")")
+  @debug.debug_inspect(src.line_count(), content="3")
+  @debug.debug_inspect(src.line(1), content="Some(\"line1\")")
+  @debug.debug_inspect(src.line(2), content="Some(\"line2\")")
+  @debug.debug_inspect(src.line(3), content="Some(\"line3\")")
 }
 
 ///|
 test "Source::from_string handles CRLF" {
   let src = Source::from_string("a\r\nb\r\nc")
-  inspect(src.line_count(), content="3")
-  inspect(src.line(1), content="Some(\"a\")")
-  inspect(src.line(2), content="Some(\"b\")")
-  inspect(src.line(3), content="Some(\"c\")")
+  @debug.debug_inspect(src.line_count(), content="3")
+  @debug.debug_inspect(src.line(1), content="Some(\"a\")")
+  @debug.debug_inspect(src.line(2), content="Some(\"b\")")
+  @debug.debug_inspect(src.line(3), content="Some(\"c\")")
 }
 
 ///|
 test "Source::from_string empty string" {
   let src = Source::from_string("")
-  inspect(src.line_count(), content="1")
-  inspect(src.line(1), content="Some(\"\")")
+  @debug.debug_inspect(src.line_count(), content="1")
+  @debug.debug_inspect(src.line(1), content="Some(\"\")")
 }
 
 ///|
 test "Source::from_string trailing newline" {
   let src = Source::from_string("hello\n")
-  inspect(src.line_count(), content="2")
-  inspect(src.line(1), content="Some(\"hello\")")
-  inspect(src.line(2), content="Some(\"\")")
+  @debug.debug_inspect(src.line_count(), content="2")
+  @debug.debug_inspect(src.line(1), content="Some(\"hello\")")
+  @debug.debug_inspect(src.line(2), content="Some(\"\")")
 }
 
 ///|
 test "Source::uri" {
   let src = Source::from_string("content", uri="test.feature")
-  inspect(src.uri(), content="Some(\"test.feature\")")
+  @debug.debug_inspect(src.uri(), content="Some(\"test.feature\")")
   let no_uri = Source::from_string("content")
-  inspect(no_uri.uri(), content="None")
+  @debug.debug_inspect(no_uri.uri(), content="None")
 }
 
 ///|
 test "Source::content round-trips" {
   let original = "Feature: Login\n  Scenario: Success"
   let src = Source::from_string(original)
-  inspect(src.content(), content="Feature: Login\n  Scenario: Success")
+  @debug.debug_inspect(
+    src.content(),
+    content=(
+      #|"Feature: Login\n  Scenario: Success"
+    ),
+  )
 }
 
 ///|
 test "Source::line out of range" {
   let src = Source::from_string("one\ntwo")
-  inspect(src.line(0), content="None")
-  inspect(src.line(3), content="None")
-  inspect(src.line(-1), content="None")
+  @debug.debug_inspect(src.line(0), content="None")
+  @debug.debug_inspect(src.line(3), content="None")
+  @debug.debug_inspect(src.line(-1), content="None")
 }
 
 // ── parse: minimal feature ──
@@ -143,7 +159,12 @@ test "parse: simplest case" {
   let src = Source::from_string("Feature: X\n  Scenario: Y\n    Given z")
   let doc = parse(src)
   guard doc.feature is Some(f) else { abort("expected feature") }
-  inspect(f.name, content="X")
+  @debug.debug_inspect(
+    f.name,
+    content=(
+      #|"X"
+    ),
+  )
 }
 
 ///|
@@ -153,25 +174,80 @@ test "parse: minimal feature file" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.keyword, content="Feature")
-  inspect(feature.name, content="Minimal")
-  inspect(feature.language, content="en")
-  inspect(feature.children.length(), content="1")
+  @debug.debug_inspect(
+    feature.keyword,
+    content=(
+      #|"Feature"
+    ),
+  )
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Minimal"
+    ),
+  )
+  @debug.debug_inspect(
+    feature.language,
+    content=(
+      #|"en"
+    ),
+  )
+  @debug.debug_inspect(feature.children.length(), content="1")
   guard feature.children[0] is FeatureChild::Scenario(scenario) else {
     abort("expected scenario")
   }
-  inspect(scenario.keyword, content="Scenario")
-  inspect(scenario.name, content="First scenario")
-  inspect(scenario.steps.length(), content="3")
-  inspect(scenario.steps[0].keyword, content="Given ")
-  inspect(scenario.steps[0].keyword_type, content="Context")
-  inspect(scenario.steps[0].text, content="a precondition")
-  inspect(scenario.steps[1].keyword, content="When ")
-  inspect(scenario.steps[1].keyword_type, content="Action")
-  inspect(scenario.steps[1].text, content="an action is performed")
-  inspect(scenario.steps[2].keyword, content="Then ")
-  inspect(scenario.steps[2].keyword_type, content="Outcome")
-  inspect(scenario.steps[2].text, content="an outcome is observed")
+  @debug.debug_inspect(
+    scenario.keyword,
+    content=(
+      #|"Scenario"
+    ),
+  )
+  @debug.debug_inspect(
+    scenario.name,
+    content=(
+      #|"First scenario"
+    ),
+  )
+  @debug.debug_inspect(scenario.steps.length(), content="3")
+  @debug.debug_inspect(
+    scenario.steps[0].keyword,
+    content=(
+      #|"Given "
+    ),
+  )
+  @debug.debug_inspect(scenario.steps[0].keyword_type, content="Context")
+  @debug.debug_inspect(
+    scenario.steps[0].text,
+    content=(
+      #|"a precondition"
+    ),
+  )
+  @debug.debug_inspect(
+    scenario.steps[1].keyword,
+    content=(
+      #|"When "
+    ),
+  )
+  @debug.debug_inspect(scenario.steps[1].keyword_type, content="Action")
+  @debug.debug_inspect(
+    scenario.steps[1].text,
+    content=(
+      #|"an action is performed"
+    ),
+  )
+  @debug.debug_inspect(
+    scenario.steps[2].keyword,
+    content=(
+      #|"Then "
+    ),
+  )
+  @debug.debug_inspect(scenario.steps[2].keyword_type, content="Outcome")
+  @debug.debug_inspect(
+    scenario.steps[2].text,
+    content=(
+      #|"an outcome is observed"
+    ),
+  )
 }
 
 ///|
@@ -181,15 +257,35 @@ test "parse: inline feature text" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.name, content="Login")
-  inspect(feature.children.length(), content="1")
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Login"
+    ),
+  )
+  @debug.debug_inspect(feature.children.length(), content="1")
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.name, content="Basic")
-  inspect(s.steps.length(), content="1")
-  inspect(s.steps[0].keyword, content="Given ")
-  inspect(s.steps[0].text, content="a user")
+  @debug.debug_inspect(
+    s.name,
+    content=(
+      #|"Basic"
+    ),
+  )
+  @debug.debug_inspect(s.steps.length(), content="1")
+  @debug.debug_inspect(
+    s.steps[0].keyword,
+    content=(
+      #|"Given "
+    ),
+  )
+  @debug.debug_inspect(
+    s.steps[0].text,
+    content=(
+      #|"a user"
+    ),
+  )
 }
 
 ///|
@@ -199,7 +295,12 @@ test "parse: feature with description" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.description, content="A feature with a single scenario.")
+  @debug.debug_inspect(
+    feature.description,
+    content=(
+      #|"A feature with a single scenario."
+    ),
+  )
 }
 
 ///|
@@ -209,12 +310,27 @@ test "parse: location tracking" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.location, content="{line: 1, column: Some(1)}")
+  @debug.debug_inspect(
+    feature.location,
+    content=(
+      #|{ line: 1, column: Some(1) }
+    ),
+  )
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.location, content="{line: 2, column: Some(3)}")
-  inspect(s.steps[0].location, content="{line: 3, column: Some(5)}")
+  @debug.debug_inspect(
+    s.location,
+    content=(
+      #|{ line: 2, column: Some(3) }
+    ),
+  )
+  @debug.debug_inspect(
+    s.steps[0].location,
+    content=(
+      #|{ line: 3, column: Some(5) }
+    ),
+  )
 }
 
 ///|
@@ -224,17 +340,27 @@ test "parse: multiple scenarios" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.children.length(), content="2")
+  @debug.debug_inspect(feature.children.length(), content="2")
   guard feature.children[0] is FeatureChild::Scenario(s1) else {
     abort("expected scenario 1")
   }
   guard feature.children[1] is FeatureChild::Scenario(s2) else {
     abort("expected scenario 2")
   }
-  inspect(s1.name, content="First")
-  inspect(s2.name, content="Second")
-  inspect(s1.steps.length(), content="1")
-  inspect(s2.steps.length(), content="1")
+  @debug.debug_inspect(
+    s1.name,
+    content=(
+      #|"First"
+    ),
+  )
+  @debug.debug_inspect(
+    s2.name,
+    content=(
+      #|"Second"
+    ),
+  )
+  @debug.debug_inspect(s1.steps.length(), content="1")
+  @debug.debug_inspect(s2.steps.length(), content="1")
 }
 
 ///|
@@ -245,10 +371,13 @@ test "parse: error message for missing Feature keyword" {
     UnexpectedToken(message~, ..) => msg = message
     _ => abort("unexpected error type")
   }
-  inspect(msg.contains("expected 'Feature:' keyword"), content="true")
-  inspect(msg.contains("line 1"), content="true")
-  inspect(msg.contains("'Scenario:' keyword"), content="true")
-  inspect(msg.contains("Scenario: Oops"), content="true")
+  @debug.debug_inspect(
+    msg.contains("expected 'Feature:' keyword"),
+    content="true",
+  )
+  @debug.debug_inspect(msg.contains("line 1"), content="true")
+  @debug.debug_inspect(msg.contains("'Scenario:' keyword"), content="true")
+  @debug.debug_inspect(msg.contains("Scenario: Oops"), content="true")
 }
 
 ///|
@@ -261,13 +390,13 @@ test "parse: step keyword types" {
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.steps.length(), content="6")
-  inspect(s.steps[0].keyword_type, content="Context")
-  inspect(s.steps[1].keyword_type, content="Action")
-  inspect(s.steps[2].keyword_type, content="Outcome")
-  inspect(s.steps[3].keyword_type, content="Conjunction")
-  inspect(s.steps[4].keyword_type, content="Conjunction")
-  inspect(s.steps[5].keyword_type, content="Unknown")
+  @debug.debug_inspect(s.steps.length(), content="6")
+  @debug.debug_inspect(s.steps[0].keyword_type, content="Context")
+  @debug.debug_inspect(s.steps[1].keyword_type, content="Action")
+  @debug.debug_inspect(s.steps[2].keyword_type, content="Outcome")
+  @debug.debug_inspect(s.steps[3].keyword_type, content="Conjunction")
+  @debug.debug_inspect(s.steps[4].keyword_type, content="Conjunction")
+  @debug.debug_inspect(s.steps[5].keyword_type, content="Unknown")
 }
 
 // ── parse: comments ──
@@ -280,15 +409,30 @@ test "parse: comments collected in document" {
   let doc = parse(src)
   // Comments should be collected in document.comments
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.name, content="Comments")
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Comments"
+    ),
+  )
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.name, content="Commented scenario")
-  inspect(s.steps.length(), content="3")
+  @debug.debug_inspect(
+    s.name,
+    content=(
+      #|"Commented scenario"
+    ),
+  )
+  @debug.debug_inspect(s.steps.length(), content="3")
   // Comments should be in the document
-  inspect(doc.comments.length() > 0, content="true")
-  inspect(doc.comments[0].text, content="# This is a file-level comment")
+  @debug.debug_inspect(doc.comments.length() > 0, content="true")
+  @debug.debug_inspect(
+    doc.comments[0].text,
+    content=(
+      #|"# This is a file-level comment"
+    ),
+  )
 }
 
 // ── parse: tags ──
@@ -300,17 +444,37 @@ test "parse: feature and scenario tags" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.name, content="Tagged feature")
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Tagged feature"
+    ),
+  )
   // Feature tags
-  inspect(feature.tags.length(), content="2")
-  inspect(feature.tags[0].name, content="@smoke")
-  inspect(feature.tags[1].name, content="@regression")
+  @debug.debug_inspect(feature.tags.length(), content="2")
+  @debug.debug_inspect(
+    feature.tags[0].name,
+    content=(
+      #|"@smoke"
+    ),
+  )
+  @debug.debug_inspect(
+    feature.tags[1].name,
+    content=(
+      #|"@regression"
+    ),
+  )
   // Scenario tags
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.tags.length(), content="1")
-  inspect(s.tags[0].name, content="@wip")
+  @debug.debug_inspect(s.tags.length(), content="1")
+  @debug.debug_inspect(
+    s.tags[0].name,
+    content=(
+      #|"@wip"
+    ),
+  )
 }
 
 // ── parse: background ──
@@ -322,16 +486,36 @@ test "parse: feature with background" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.name, content="Background example")
-  inspect(feature.children.length(), content="3")
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Background example"
+    ),
+  )
+  @debug.debug_inspect(feature.children.length(), content="3")
   // First child should be Background
   guard feature.children[0] is FeatureChild::Background(bg) else {
     abort("expected background")
   }
-  inspect(bg.keyword, content="Background")
-  inspect(bg.steps.length(), content="2")
-  inspect(bg.steps[0].text, content="a common precondition")
-  inspect(bg.steps[1].text, content="another common setup step")
+  @debug.debug_inspect(
+    bg.keyword,
+    content=(
+      #|"Background"
+    ),
+  )
+  @debug.debug_inspect(bg.steps.length(), content="2")
+  @debug.debug_inspect(
+    bg.steps[0].text,
+    content=(
+      #|"a common precondition"
+    ),
+  )
+  @debug.debug_inspect(
+    bg.steps[1].text,
+    content=(
+      #|"another common setup step"
+    ),
+  )
   // Second and third children should be Scenarios
   guard feature.children[1] is FeatureChild::Scenario(s1) else {
     abort("expected scenario 1")
@@ -339,8 +523,18 @@ test "parse: feature with background" {
   guard feature.children[2] is FeatureChild::Scenario(s2) else {
     abort("expected scenario 2")
   }
-  inspect(s1.name, content="First scenario")
-  inspect(s2.name, content="Second scenario")
+  @debug.debug_inspect(
+    s1.name,
+    content=(
+      #|"First scenario"
+    ),
+  )
+  @debug.debug_inspect(
+    s2.name,
+    content=(
+      #|"Second scenario"
+    ),
+  )
 }
 
 // ── parse: doc strings ──
@@ -355,15 +549,31 @@ test "parse: step with doc string" {
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.steps.length(), content="3")
-  inspect(s.steps[0].text, content="the following text:")
+  @debug.debug_inspect(s.steps.length(), content="3")
+  @debug.debug_inspect(
+    s.steps[0].text,
+    content=(
+      #|"the following text:"
+    ),
+  )
   // First step should have a doc string argument
   guard s.steps[0].argument is Some(StepArgument::DocString(ds)) else {
     abort("expected doc string argument")
   }
-  inspect(ds.delimiter, content="\"\"\"")
-  inspect(ds.content.contains("This is a doc string."), content="true")
-  inspect(ds.content.contains("It can span multiple lines."), content="true")
+  @debug.debug_inspect(
+    ds.delimiter,
+    content=(
+      #|"\"\"\""
+    ),
+  )
+  @debug.debug_inspect(
+    ds.content.contains("This is a doc string."),
+    content="true",
+  )
+  @debug.debug_inspect(
+    ds.content.contains("It can span multiple lines."),
+    content="true",
+  )
 }
 
 // ── parse: data tables ──
@@ -378,17 +588,37 @@ test "parse: step with data table" {
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.steps.length(), content="3")
-  inspect(s.steps[0].text, content="the following users exist:")
+  @debug.debug_inspect(s.steps.length(), content="3")
+  @debug.debug_inspect(
+    s.steps[0].text,
+    content=(
+      #|"the following users exist:"
+    ),
+  )
   // First step should have a data table argument
   guard s.steps[0].argument is Some(StepArgument::DataTable(dt)) else {
     abort("expected data table argument")
   }
-  inspect(dt.rows.length(), content="3")
-  inspect(dt.rows[0].cells.length(), content="3")
-  inspect(dt.rows[0].cells[0].value, content="name")
-  inspect(dt.rows[1].cells[0].value, content="Alice")
-  inspect(dt.rows[2].cells[0].value, content="Bob")
+  @debug.debug_inspect(dt.rows.length(), content="3")
+  @debug.debug_inspect(dt.rows[0].cells.length(), content="3")
+  @debug.debug_inspect(
+    dt.rows[0].cells[0].value,
+    content=(
+      #|"name"
+    ),
+  )
+  @debug.debug_inspect(
+    dt.rows[1].cells[0].value,
+    content=(
+      #|"Alice"
+    ),
+  )
+  @debug.debug_inspect(
+    dt.rows[2].cells[0].value,
+    content=(
+      #|"Bob"
+    ),
+  )
 }
 
 // ── parse: scenario outline + examples ──
@@ -400,34 +630,92 @@ test "parse: scenario outline with examples" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.name, content="Scenario Outline example")
-  inspect(feature.children.length(), content="1")
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Scenario Outline example"
+    ),
+  )
+  @debug.debug_inspect(feature.children.length(), content="1")
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.keyword, content="Scenario Outline")
-  inspect(s.name, content="Eating cucumbers")
-  inspect(s.steps.length(), content="3")
+  @debug.debug_inspect(
+    s.keyword,
+    content=(
+      #|"Scenario Outline"
+    ),
+  )
+  @debug.debug_inspect(
+    s.name,
+    content=(
+      #|"Eating cucumbers"
+    ),
+  )
+  @debug.debug_inspect(s.steps.length(), content="3")
   // Placeholder syntax should be preserved in step text
-  inspect(s.steps[0].text, content="there are <start> cucumbers")
+  @debug.debug_inspect(
+    s.steps[0].text,
+    content=(
+      #|"there are <start> cucumbers"
+    ),
+  )
   // Examples should be parsed
-  inspect(s.examples.length(), content="1")
-  guard s.examples[0] is { keyword, name, table_header, table_body, .. } else {
-    abort("expected examples")
-  }
-  inspect(keyword, content="Examples")
-  inspect(name, content="")
+  @debug.debug_inspect(s.examples.length(), content="1")
+  guard s.examples[0] is { keyword, name, table_header, table_body, .. }
+  @debug.debug_inspect(
+    keyword,
+    content=(
+      #|"Examples"
+    ),
+  )
+  @debug.debug_inspect(
+    name,
+    content=(
+      #|""
+    ),
+  )
   // Table header
   guard table_header is Some(header) else { abort("expected table header") }
-  inspect(header.cells.length(), content="3")
-  inspect(header.cells[0].value, content="start")
-  inspect(header.cells[1].value, content="eat")
-  inspect(header.cells[2].value, content="left")
+  @debug.debug_inspect(header.cells.length(), content="3")
+  @debug.debug_inspect(
+    header.cells[0].value,
+    content=(
+      #|"start"
+    ),
+  )
+  @debug.debug_inspect(
+    header.cells[1].value,
+    content=(
+      #|"eat"
+    ),
+  )
+  @debug.debug_inspect(
+    header.cells[2].value,
+    content=(
+      #|"left"
+    ),
+  )
   // Table body
-  inspect(table_body.length(), content="2")
-  inspect(table_body[0].cells[0].value, content="12")
-  inspect(table_body[1].cells[0].value, content="20")
-  inspect(table_body[1].cells[2].value, content="15")
+  @debug.debug_inspect(table_body.length(), content="2")
+  @debug.debug_inspect(
+    table_body[0].cells[0].value,
+    content=(
+      #|"12"
+    ),
+  )
+  @debug.debug_inspect(
+    table_body[1].cells[0].value,
+    content=(
+      #|"20"
+    ),
+  )
+  @debug.debug_inspect(
+    table_body[1].cells[2].value,
+    content=(
+      #|"15"
+    ),
+  )
 }
 
 // ── parse: rules ──
@@ -439,30 +727,65 @@ test "parse: rule sections" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.name, content="Gherkin 6 Rules")
-  inspect(feature.children.length(), content="2")
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Gherkin 6 Rules"
+    ),
+  )
+  @debug.debug_inspect(feature.children.length(), content="2")
   guard feature.children[0] is FeatureChild::Rule(r1) else {
     abort("expected rule 1")
   }
   guard feature.children[1] is FeatureChild::Rule(r2) else {
     abort("expected rule 2")
   }
-  inspect(r1.keyword, content="Rule")
-  inspect(r1.name, content="Business rule one")
-  inspect(r1.children.length(), content="1")
+  @debug.debug_inspect(
+    r1.keyword,
+    content=(
+      #|"Rule"
+    ),
+  )
+  @debug.debug_inspect(
+    r1.name,
+    content=(
+      #|"Business rule one"
+    ),
+  )
+  @debug.debug_inspect(r1.children.length(), content="1")
   guard r1.children[0] is RuleChild::Scenario(s1) else {
     abort("expected scenario in rule 1")
   }
-  inspect(s1.name, content="First rule scenario")
-  inspect(s1.steps.length(), content="3")
-  inspect(r2.keyword, content="Rule")
-  inspect(r2.name, content="Business rule two")
-  inspect(r2.children.length(), content="1")
+  @debug.debug_inspect(
+    s1.name,
+    content=(
+      #|"First rule scenario"
+    ),
+  )
+  @debug.debug_inspect(s1.steps.length(), content="3")
+  @debug.debug_inspect(
+    r2.keyword,
+    content=(
+      #|"Rule"
+    ),
+  )
+  @debug.debug_inspect(
+    r2.name,
+    content=(
+      #|"Business rule two"
+    ),
+  )
+  @debug.debug_inspect(r2.children.length(), content="1")
   guard r2.children[0] is RuleChild::Scenario(s2) else {
     abort("expected scenario in rule 2")
   }
-  inspect(s2.name, content="Second rule scenario")
-  inspect(s2.steps.length(), content="3")
+  @debug.debug_inspect(
+    s2.name,
+    content=(
+      #|"Second rule scenario"
+    ),
+  )
+  @debug.debug_inspect(s2.steps.length(), content="3")
 }
 
 // ── visitor: accept traversal ──
@@ -474,47 +797,47 @@ struct RecordingVisitor {
 }
 
 ///|
-impl GherkinVisitor for RecordingVisitor with visit_document(_self, _doc) {
+impl GherkinVisitor for RecordingVisitor with fn visit_document(_self, _doc) {
   _self.events.push("document")
 }
 
 ///|
-impl GherkinVisitor for RecordingVisitor with visit_feature(_self, f) {
+impl GherkinVisitor for RecordingVisitor with fn visit_feature(_self, f) {
   _self.events.push("feature:" + f.name)
 }
 
 ///|
-impl GherkinVisitor for RecordingVisitor with visit_scenario(_self, s) {
+impl GherkinVisitor for RecordingVisitor with fn visit_scenario(_self, s) {
   _self.events.push("scenario:" + s.name)
 }
 
 ///|
-impl GherkinVisitor for RecordingVisitor with visit_step(_self, s) {
+impl GherkinVisitor for RecordingVisitor with fn visit_step(_self, s) {
   _self.events.push("step:" + s.text)
 }
 
 ///|
-impl GherkinVisitor for RecordingVisitor with visit_tag(_self, t) {
+impl GherkinVisitor for RecordingVisitor with fn visit_tag(_self, t) {
   _self.events.push("tag:" + t.name)
 }
 
 ///|
-impl GherkinVisitor for RecordingVisitor with visit_comment(_self, c) {
+impl GherkinVisitor for RecordingVisitor with fn visit_comment(_self, c) {
   _self.events.push("comment:" + c.text)
 }
 
 ///|
-impl GherkinVisitor for RecordingVisitor with visit_background(_self, bg) {
+impl GherkinVisitor for RecordingVisitor with fn visit_background(_self, bg) {
   _self.events.push("background:" + bg.name)
 }
 
 ///|
-impl GherkinVisitor for RecordingVisitor with visit_rule(_self, r) {
+impl GherkinVisitor for RecordingVisitor with fn visit_rule(_self, r) {
   _self.events.push("rule:" + r.name)
 }
 
 ///|
-impl GherkinVisitor for RecordingVisitor with visit_examples(_self, e) {
+impl GherkinVisitor for RecordingVisitor with fn visit_examples(_self, e) {
   _self.events.push("examples:" + e.keyword)
 }
 
@@ -524,19 +847,69 @@ test "accept: visitor dispatches events in document order" {
     "# file comment\n@smoke\nFeature: Login\n  Background:\n    Given setup\n  Scenario: Basic\n    Given a user\n    When login\n    Then success\n",
   )
   let doc = parse(src)
-  let v : RecordingVisitor = { events: [] }
+  let v : RecordingVisitor = { events: [], }
   doc.accept(v)
-  inspect(v.events[0], content="document")
-  inspect(v.events[1], content="comment:# file comment")
-  inspect(v.events[2], content="feature:Login")
-  inspect(v.events[3], content="tag:@smoke")
-  inspect(v.events[4], content="background:")
-  inspect(v.events[5], content="step:setup")
-  inspect(v.events[6], content="scenario:Basic")
-  inspect(v.events[7], content="step:a user")
-  inspect(v.events[8], content="step:login")
-  inspect(v.events[9], content="step:success")
-  inspect(v.events.length(), content="10")
+  @debug.debug_inspect(
+    v.events[0],
+    content=(
+      #|"document"
+    ),
+  )
+  @debug.debug_inspect(
+    v.events[1],
+    content=(
+      #|"comment:# file comment"
+    ),
+  )
+  @debug.debug_inspect(
+    v.events[2],
+    content=(
+      #|"feature:Login"
+    ),
+  )
+  @debug.debug_inspect(
+    v.events[3],
+    content=(
+      #|"tag:@smoke"
+    ),
+  )
+  @debug.debug_inspect(
+    v.events[4],
+    content=(
+      #|"background:"
+    ),
+  )
+  @debug.debug_inspect(
+    v.events[5],
+    content=(
+      #|"step:setup"
+    ),
+  )
+  @debug.debug_inspect(
+    v.events[6],
+    content=(
+      #|"scenario:Basic"
+    ),
+  )
+  @debug.debug_inspect(
+    v.events[7],
+    content=(
+      #|"step:a user"
+    ),
+  )
+  @debug.debug_inspect(
+    v.events[8],
+    content=(
+      #|"step:login"
+    ),
+  )
+  @debug.debug_inspect(
+    v.events[9],
+    content=(
+      #|"step:success"
+    ),
+  )
+  @debug.debug_inspect(v.events.length(), content="10")
 }
 
 // ── fold: accumulation ──
@@ -551,7 +924,7 @@ test "fold: count scenarios" {
     ..GherkinFold::default(),
     visit_scenario: continuing(fn(n, _s) { n + 1 }),
   })
-  inspect(count, content="3")
+  @debug.debug_inspect(count, content="3")
 }
 
 ///|
@@ -567,10 +940,25 @@ test "fold: collect step texts" {
       Continue(acc)
     },
   })
-  inspect(texts.length(), content="3")
-  inspect(texts[0], content="a")
-  inspect(texts[1], content="b")
-  inspect(texts[2], content="c")
+  @debug.debug_inspect(texts.length(), content="3")
+  @debug.debug_inspect(
+    texts[0],
+    content=(
+      #|"a"
+    ),
+  )
+  @debug.debug_inspect(
+    texts[1],
+    content=(
+      #|"b"
+    ),
+  )
+  @debug.debug_inspect(
+    texts[2],
+    content=(
+      #|"c"
+    ),
+  )
 }
 
 ///|
@@ -595,10 +983,25 @@ test "fold: SkipChildren skips scenario steps" {
     },
   })
   // S1's steps should be skipped, S2's step should be included
-  inspect(result.length(), content="3")
-  inspect(result[0], content="scenario:S1")
-  inspect(result[1], content="scenario:S2")
-  inspect(result[2], content="step:c")
+  @debug.debug_inspect(result.length(), content="3")
+  @debug.debug_inspect(
+    result[0],
+    content=(
+      #|"scenario:S1"
+    ),
+  )
+  @debug.debug_inspect(
+    result[1],
+    content=(
+      #|"scenario:S2"
+    ),
+  )
+  @debug.debug_inspect(
+    result[2],
+    content=(
+      #|"step:c"
+    ),
+  )
 }
 
 ///|
@@ -612,7 +1015,7 @@ test "fold: Stop halts traversal" {
     visit_scenario: fn(n, _s) { if n >= 1 { Stop(n) } else { Continue(n + 1) } },
   })
   // Should stop after first scenario
-  inspect(count, content="1")
+  @debug.debug_inspect(count, content="1")
 }
 
 // ── parse_with_handler: SAX-style events ──
@@ -624,57 +1027,57 @@ struct RecordingHandler {
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_document(self) {
+impl GherkinHandler for RecordingHandler with fn on_document(self) {
   self.events.push("document:start")
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_end_document(self) {
+impl GherkinHandler for RecordingHandler with fn on_end_document(self) {
   self.events.push("document:end")
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_feature(self, e) {
+impl GherkinHandler for RecordingHandler with fn on_feature(self, e) {
   self.events.push("feature:" + e.name)
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_end_feature(self) {
+impl GherkinHandler for RecordingHandler with fn on_end_feature(self) {
   self.events.push("feature:end")
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_scenario(self, e) {
+impl GherkinHandler for RecordingHandler with fn on_scenario(self, e) {
   self.events.push("scenario:" + e.name)
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_end_scenario(self) {
+impl GherkinHandler for RecordingHandler with fn on_end_scenario(self) {
   self.events.push("scenario:end")
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_step(self, e) {
+impl GherkinHandler for RecordingHandler with fn on_step(self, e) {
   self.events.push("step:" + e.text)
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_background(self, e) {
+impl GherkinHandler for RecordingHandler with fn on_background(self, e) {
   self.events.push("background:" + e.name)
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_end_background(self) {
+impl GherkinHandler for RecordingHandler with fn on_end_background(self) {
   self.events.push("background:end")
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_comment(self, e) {
+impl GherkinHandler for RecordingHandler with fn on_comment(self, e) {
   self.events.push("comment:" + e.text)
 }
 
 ///|
-impl GherkinHandler for RecordingHandler with on_tag(self, e) {
+impl GherkinHandler for RecordingHandler with fn on_tag(self, e) {
   self.events.push("tag:" + e.name)
 }
 
@@ -683,22 +1086,87 @@ test "parse_with_handler: dispatches balanced events" {
   let src = Source::from_string(
     "# comment\n@smoke\nFeature: Login\n  Background:\n    Given setup\n  Scenario: Basic\n    Given a user\n    When login\n",
   )
-  let h : RecordingHandler = { events: [] }
+  let h : RecordingHandler = { events: [], }
   parse_with_handler(src, h)
-  inspect(h.events[0], content="document:start")
-  inspect(h.events[1], content="comment:# comment")
-  inspect(h.events[2], content="feature:Login")
-  inspect(h.events[3], content="tag:@smoke")
-  inspect(h.events[4], content="background:")
-  inspect(h.events[5], content="step:setup")
-  inspect(h.events[6], content="background:end")
-  inspect(h.events[7], content="scenario:Basic")
-  inspect(h.events[8], content="step:a user")
-  inspect(h.events[9], content="step:login")
-  inspect(h.events[10], content="scenario:end")
-  inspect(h.events[11], content="feature:end")
-  inspect(h.events[12], content="document:end")
-  inspect(h.events.length(), content="13")
+  @debug.debug_inspect(
+    h.events[0],
+    content=(
+      #|"document:start"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[1],
+    content=(
+      #|"comment:# comment"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[2],
+    content=(
+      #|"feature:Login"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[3],
+    content=(
+      #|"tag:@smoke"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[4],
+    content=(
+      #|"background:"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[5],
+    content=(
+      #|"step:setup"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[6],
+    content=(
+      #|"background:end"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[7],
+    content=(
+      #|"scenario:Basic"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[8],
+    content=(
+      #|"step:a user"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[9],
+    content=(
+      #|"step:login"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[10],
+    content=(
+      #|"scenario:end"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[11],
+    content=(
+      #|"feature:end"
+    ),
+  )
+  @debug.debug_inspect(
+    h.events[12],
+    content=(
+      #|"document:end"
+    ),
+  )
+  @debug.debug_inspect(h.events.length(), content="13")
 }
 
 // ── error handling ──
@@ -709,8 +1177,13 @@ test "parse: empty feature is valid" {
   // Should parse without error -- empty feature is valid
   let doc = parse(src)
   guard doc.feature is Some(f) else { abort("expected feature") }
-  inspect(f.name, content="Incomplete")
-  inspect(f.children.length(), content="0")
+  @debug.debug_inspect(
+    f.name,
+    content=(
+      #|"Incomplete"
+    ),
+  )
+  @debug.debug_inspect(f.children.length(), content="0")
 }
 
 ///|
@@ -721,11 +1194,11 @@ test "parse: UnexpectedEof when tags have no following scenario" {
   try parse(src) |> ignore catch {
     UnexpectedEof(message~, ..) => {
       got_eof = true
-      inspect(message.contains("Scenario"), content="true")
+      @debug.debug_inspect(message.contains("Scenario"), content="true")
     }
     _ => abort("expected UnexpectedEof error")
   }
-  inspect(got_eof, content="true")
+  @debug.debug_inspect(got_eof, content="true")
 }
 
 ///|
@@ -736,7 +1209,10 @@ test "parse: completely invalid input" {
     UnexpectedToken(message~, ..) => msg = message
     _ => abort("unexpected error type")
   }
-  inspect(msg.contains("expected 'Feature:' keyword"), content="true")
+  @debug.debug_inspect(
+    msg.contains("expected 'Feature:' keyword"),
+    content="true",
+  )
 }
 
 ///|
@@ -749,7 +1225,7 @@ test "parse: InconsistentTableCells detected" {
     InconsistentTableCells(message~, ..) => msg = message
     _ => abort("unexpected error type")
   }
-  inspect(msg.contains("inconsistent"), content="true")
+  @debug.debug_inspect(msg.contains("inconsistent"), content="true")
 }
 
 // ── i18n: language directive ──
@@ -761,19 +1237,44 @@ test "parse: French i18n with language directive" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.language, content="fr")
-  inspect(feature.keyword, content="Fonctionnalité")
-  inspect(feature.name, content="Internationalisation")
-  inspect(feature.children.length(), content="1")
+  @debug.debug_inspect(
+    feature.language,
+    content=(
+      #|"fr"
+    ),
+  )
+  @debug.debug_inspect(
+    feature.keyword,
+    content=(
+      #|"Fonctionnalité"
+    ),
+  )
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Internationalisation"
+    ),
+  )
+  @debug.debug_inspect(feature.children.length(), content="1")
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.keyword, content="Scénario")
-  inspect(s.steps.length(), content="3")
-  inspect(s.steps[0].keyword_type, content="Context")
-  inspect(s.steps[0].text, content="une précondition")
-  inspect(s.steps[1].keyword_type, content="Action")
-  inspect(s.steps[2].keyword_type, content="Outcome")
+  @debug.debug_inspect(
+    s.keyword,
+    content=(
+      #|"Scénario"
+    ),
+  )
+  @debug.debug_inspect(s.steps.length(), content="3")
+  @debug.debug_inspect(s.steps[0].keyword_type, content="Context")
+  @debug.debug_inspect(
+    s.steps[0].text,
+    content=(
+      #|"une précondition"
+    ),
+  )
+  @debug.debug_inspect(s.steps[1].keyword_type, content="Action")
+  @debug.debug_inspect(s.steps[2].keyword_type, content="Outcome")
 }
 
 // ── JSON serialization ──
@@ -801,18 +1302,33 @@ test "tag before second scenario is not consumed as examples" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.children.length(), content="2")
+  @debug.debug_inspect(feature.children.length(), content="2")
   guard feature.children[0] is FeatureChild::Scenario(s1) else {
     abort("expected scenario 1")
   }
-  inspect(s1.name, content="First")
-  inspect(s1.tags.length(), content="0")
+  @debug.debug_inspect(
+    s1.name,
+    content=(
+      #|"First"
+    ),
+  )
+  @debug.debug_inspect(s1.tags.length(), content="0")
   guard feature.children[1] is FeatureChild::Scenario(s2) else {
     abort("expected scenario 2")
   }
-  inspect(s2.name, content="Second")
-  inspect(s2.tags.length(), content="1")
-  inspect(s2.tags[0].name, content="@wip")
+  @debug.debug_inspect(
+    s2.name,
+    content=(
+      #|"Second"
+    ),
+  )
+  @debug.debug_inspect(s2.tags.length(), content="1")
+  @debug.debug_inspect(
+    s2.tags[0].name,
+    content=(
+      #|"@wip"
+    ),
+  )
 }
 
 ///|
@@ -822,13 +1338,18 @@ test "tagged examples still work after tag bug fix" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.children.length(), content="1")
+  @debug.debug_inspect(feature.children.length(), content="1")
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.examples.length(), content="1")
-  inspect(s.examples[0].tags.length(), content="1")
-  inspect(s.examples[0].tags[0].name, content="@important")
+  @debug.debug_inspect(s.examples.length(), content="1")
+  @debug.debug_inspect(s.examples[0].tags.length(), content="1")
+  @debug.debug_inspect(
+    s.examples[0].tags[0].name,
+    content=(
+      #|"@important"
+    ),
+  )
 }
 
 ///|
@@ -841,11 +1362,31 @@ test "multiple tagged examples sections" {
   guard feature.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.examples.length(), content="2")
-  inspect(s.examples[0].tags[0].name, content="@smoke")
-  inspect(s.examples[0].name, content="Smoke")
-  inspect(s.examples[1].tags[0].name, content="@nightly")
-  inspect(s.examples[1].name, content="Nightly")
+  @debug.debug_inspect(s.examples.length(), content="2")
+  @debug.debug_inspect(
+    s.examples[0].tags[0].name,
+    content=(
+      #|"@smoke"
+    ),
+  )
+  @debug.debug_inspect(
+    s.examples[0].name,
+    content=(
+      #|"Smoke"
+    ),
+  )
+  @debug.debug_inspect(
+    s.examples[1].tags[0].name,
+    content=(
+      #|"@nightly"
+    ),
+  )
+  @debug.debug_inspect(
+    s.examples[1].name,
+    content=(
+      #|"Nightly"
+    ),
+  )
 }
 
 ///|
@@ -855,18 +1396,33 @@ test "tags between scenarios in Scenario Outline" {
   )
   let doc = parse(src)
   guard doc.feature is Some(feature) else { abort("expected feature") }
-  inspect(feature.children.length(), content="2")
+  @debug.debug_inspect(feature.children.length(), content="2")
   guard feature.children[0] is FeatureChild::Scenario(s1) else {
     abort("expected scenario outline")
   }
-  inspect(s1.name, content="First")
-  inspect(s1.examples.length(), content="1")
+  @debug.debug_inspect(
+    s1.name,
+    content=(
+      #|"First"
+    ),
+  )
+  @debug.debug_inspect(s1.examples.length(), content="1")
   guard feature.children[1] is FeatureChild::Scenario(s2) else {
     abort("expected second scenario")
   }
-  inspect(s2.name, content="Second")
-  inspect(s2.tags.length(), content="1")
-  inspect(s2.tags[0].name, content="@next")
+  @debug.debug_inspect(
+    s2.name,
+    content=(
+      #|"Second"
+    ),
+  )
+  @debug.debug_inspect(s2.tags.length(), content="1")
+  @debug.debug_inspect(
+    s2.tags[0].name,
+    content=(
+      #|"@next"
+    ),
+  )
 }
 
 // ── Source::from_bytes ──
@@ -875,31 +1431,36 @@ test "tags between scenarios in Scenario Outline" {
 test "Source::from_bytes: ASCII content" {
   let bytes = @utf8.encode("Feature: Hello\n  Scenario: World")
   let src = Source::from_bytes(bytes)
-  inspect(src.line_count(), content="2")
-  inspect(src.line(1), content="Some(\"Feature: Hello\")")
-  inspect(src.line(2), content="Some(\"  Scenario: World\")")
+  @debug.debug_inspect(src.line_count(), content="2")
+  @debug.debug_inspect(src.line(1), content="Some(\"Feature: Hello\")")
+  @debug.debug_inspect(src.line(2), content="Some(\"  Scenario: World\")")
 }
 
 ///|
 test "Source::from_bytes: UTF-8 multibyte content" {
   let bytes = @utf8.encode("Fonctionnalité: Café\n  Scénario: résumé")
   let src = Source::from_bytes(bytes)
-  inspect(src.line(1), content="Some(\"Fonctionnalité: Café\")")
-  inspect(src.line(2), content="Some(\"  Scénario: résumé\")")
+  @debug.debug_inspect(src.line(1), content="Some(\"Fonctionnalité: Café\")")
+  @debug.debug_inspect(src.line(2), content="Some(\"  Scénario: résumé\")")
 }
 
 ///|
 test "Source::from_bytes: with URI" {
   let bytes = @utf8.encode("Feature: F")
   let src = Source::from_bytes(bytes, uri="test.feature")
-  inspect(src.uri(), content="Some(\"test.feature\")")
+  @debug.debug_inspect(src.uri(), content="Some(\"test.feature\")")
 }
 
 ///|
 test "Source::from_bytes: empty bytes" {
   let src = Source::from_bytes(b"")
-  inspect(src.line_count(), content="1")
-  inspect(src.content(), content="")
+  @debug.debug_inspect(src.line_count(), content="1")
+  @debug.debug_inspect(
+    src.content(),
+    content=(
+      #|""
+    ),
+  )
 }
 
 ///|
@@ -910,10 +1471,40 @@ test "Source::from_bytes: round-trips with parse" {
   let src = Source::from_bytes(bytes)
   let doc = parse(src)
   guard doc.feature is Some(f) else { abort("expected feature") }
-  inspect(f.name, content="From Bytes")
+  @debug.debug_inspect(
+    f.name,
+    content=(
+      #|"From Bytes"
+    ),
+  )
   guard f.children[0] is FeatureChild::Scenario(s) else {
     abort("expected scenario")
   }
-  inspect(s.name, content="It works")
-  inspect(s.steps.length(), content="1")
+  @debug.debug_inspect(
+    s.name,
+    content=(
+      #|"It works"
+    ),
+  )
+  @debug.debug_inspect(s.steps.length(), content="1")
+}
+
+///|
+test "Source JSON round-trips with a string uri" {
+  let src = Source::from_string("Feature: Hi", uri="a.feature")
+  let json = src.to_json()
+  assert_true(json.stringify().contains("\"uri\":\"a.feature\""))
+  let back : Source = @json.from_json(json)
+  @debug.debug_inspect(
+    back.uri(),
+    content=(
+      #|Some("a.feature")
+    ),
+  )
+  @debug.debug_inspect(
+    back.content(),
+    content=(
+      #|"Feature: Hi"
+    ),
+  )
 }

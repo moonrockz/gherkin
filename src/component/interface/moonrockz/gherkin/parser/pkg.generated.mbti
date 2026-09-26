@@ -1,0 +1,17 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "moonrockz/gherkin/component/interface/moonrockz/gherkin/parser"
+
+import {
+  "moonrockz/gherkin/interface/moonrockz/gherkin/types",
+}
+
+// Values
+pub fn parse(@types.Source) -> Result[@types.GherkinDocument, Array[@types.ParseError]]
+
+// Errors
+
+// Types and methods
+
+// Type aliases
+
+// Traits

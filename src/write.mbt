@@ -12,7 +12,7 @@ pub(all) struct WriteConfig {
   table_cell_padding : Int
   trailing_newline : Bool
   include_comments : Bool
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// Create a `WriteConfig` with standard Gherkin formatting defaults.
@@ -51,7 +51,7 @@ pub struct GherkinWriter {
 pub fn GherkinWriter::new(
   config? : WriteConfig = WriteConfig::default(),
 ) -> GherkinWriter {
-  { buf: [], config, depth: 0, needs_blank: false }
+  { buf: [], config, depth: 0, needs_blank: false, }
 }
 
 ///|
@@ -498,7 +498,7 @@ fn write_examples(w : GherkinWriter, e : Examples) -> Unit {
 // ---------------------------------------------------------------------------
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_feature(self, e) {
+pub impl GherkinHandler for GherkinWriter with fn on_feature(self, e) {
   if e.tags.length() > 0 {
     self.tags(e.tags.map(fn(t) { t.name }))
   }
@@ -511,12 +511,12 @@ pub impl GherkinHandler for GherkinWriter with on_feature(self, e) {
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_end_feature(self) {
+pub impl GherkinHandler for GherkinWriter with fn on_end_feature(self) {
   self.end_feature()
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_scenario(self, e) {
+pub impl GherkinHandler for GherkinWriter with fn on_scenario(self, e) {
   if e.tags.length() > 0 {
     self.tags(e.tags.map(fn(t) { t.name }))
   }
@@ -524,22 +524,22 @@ pub impl GherkinHandler for GherkinWriter with on_scenario(self, e) {
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_end_scenario(self) {
+pub impl GherkinHandler for GherkinWriter with fn on_end_scenario(self) {
   self.end_scenario()
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_background(self, e) {
+pub impl GherkinHandler for GherkinWriter with fn on_background(self, e) {
   self.background(e.keyword, description=e.description)
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_end_background(self) {
+pub impl GherkinHandler for GherkinWriter with fn on_end_background(self) {
   self.end_background()
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_rule(self, e) {
+pub impl GherkinHandler for GherkinWriter with fn on_rule(self, e) {
   if e.tags.length() > 0 {
     self.tags(e.tags.map(fn(t) { t.name }))
   }
@@ -547,22 +547,22 @@ pub impl GherkinHandler for GherkinWriter with on_rule(self, e) {
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_end_rule(self) {
+pub impl GherkinHandler for GherkinWriter with fn on_end_rule(self) {
   self.end_rule()
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_step(self, e) {
+pub impl GherkinHandler for GherkinWriter with fn on_step(self, e) {
   self.step(e.keyword, e.text)
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_doc_string(self, e) {
+pub impl GherkinHandler for GherkinWriter with fn on_doc_string(self, e) {
   self.doc_string(e.content, delimiter=e.delimiter, media_type=e.media_type)
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_data_table(self, e) {
+pub impl GherkinHandler for GherkinWriter with fn on_data_table(self, e) {
   let rows : Array[Array[String]] = []
   for row in e.rows {
     rows.push(row.cells.map(fn(c) { c.value }))
@@ -571,7 +571,7 @@ pub impl GherkinHandler for GherkinWriter with on_data_table(self, e) {
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_examples(self, e) {
+pub impl GherkinHandler for GherkinWriter with fn on_examples(self, e) {
   let header : Array[String] = match e.table_header {
     Some(row) => row.cells.map(fn(c) { c.value })
     None => []
@@ -590,8 +590,34 @@ pub impl GherkinHandler for GherkinWriter with on_examples(self, e) {
 }
 
 ///|
-pub impl GherkinHandler for GherkinWriter with on_comment(self, e) {
+pub impl GherkinHandler for GherkinWriter with fn on_comment(self, e) {
   if self.config.include_comments {
     self.comment(e.text)
   }
+}
+
+///|
+pub extend WriteConfig with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend WriteConfig with Eq::{not_equal, equal}
+
+///|
+pub extend GherkinWriter with GherkinHandler::{
+  on_step,
+  on_end_document,
+  on_tag,
+  on_doc_string,
+  on_examples,
+  on_end_feature,
+  on_end_rule,
+  on_document,
+  on_data_table,
+  on_background,
+  on_comment,
+  on_feature,
+  on_scenario,
+  on_rule,
+  on_end_background,
+  on_end_scenario,
 }

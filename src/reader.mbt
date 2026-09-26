@@ -27,14 +27,14 @@ pub fn GherkinReader::from_document(doc : GherkinDocument) -> GherkinReader {
   let events : Array[GherkinEvent] = []
   events.push(DocumentStart)
   for c in doc.comments {
-    events.push(Comment({ location: c.location, text: c.text }))
+    events.push(Comment({ location: c.location, text: c.text, }))
   }
   match doc.feature {
     Some(f) => emit_feature(events, f)
     None => ()
   }
   events.push(DocumentEnd)
-  { events, pos: 0 }
+  { events, pos: 0, }
 }
 
 ///|
@@ -115,7 +115,7 @@ fn emit_feature(events : Array[GherkinEvent], f : Feature) -> Unit {
     }),
   )
   for t in f.tags {
-    events.push(Tag({ location: t.location, name: t.name }))
+    events.push(Tag({ location: t.location, name: t.name, }))
   }
   for child in f.children {
     match child {
@@ -139,7 +139,7 @@ fn emit_rule(events : Array[GherkinEvent], r : Rule) -> Unit {
     }),
   )
   for t in r.tags {
-    events.push(Tag({ location: t.location, name: t.name }))
+    events.push(Tag({ location: t.location, name: t.name, }))
   }
   for child in r.children {
     match child {
@@ -179,7 +179,7 @@ fn emit_scenario(events : Array[GherkinEvent], s : Scenario) -> Unit {
     }),
   )
   for t in s.tags {
-    events.push(Tag({ location: t.location, name: t.name }))
+    events.push(Tag({ location: t.location, name: t.name, }))
   }
   for step in s.steps {
     emit_step(events, step)
@@ -221,7 +221,7 @@ fn emit_step(events : Array[GherkinEvent], s : Step) -> Unit {
         }),
       )
     Some(StepArgument::DataTable(dt)) =>
-      events.push(DataTable({ location: dt.location, rows: dt.rows }))
+      events.push(DataTable({ location: dt.location, rows: dt.rows, }))
     None => ()
   }
 }

@@ -4,11 +4,14 @@
 /// - `Continue(a)` — proceed into children with updated state
 /// - `SkipChildren(a)` — skip children, continue with siblings
 /// - `Stop(a)` — halt traversal immediately, return final state
+// `SkipChildren` and `Stop` are produced by user callbacks; only `Continue` is
+// built inside this package.
+#warnings("-unused_constructor")
 pub enum FoldAction[A] {
   Continue(A)
   SkipChildren(A)
   Stop(A)
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// Extract the accumulated value from a `FoldAction`.
@@ -275,3 +278,9 @@ fn[A] fold_examples(init : A, e : Examples, folder : GherkinFold[A]) -> A {
   }
   acc
 }
+
+///|
+pub extend FoldAction with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend FoldAction with Eq::{not_equal, equal}

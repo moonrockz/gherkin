@@ -1,0 +1,8 @@
+import {
+  "moonrockz/gherkin" @lib,
+  "moonbitlang/x/fs",
+  "moonbitlang/x/sys",
+  "moonbitlang/core/env",
+}
+
+pkgtype(kind: "executable")

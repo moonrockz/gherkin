@@ -7,7 +7,7 @@
 pub struct Source {
   priv lines : Array[String]
   priv uri : String?
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// Create a `Source` from a string, splitting into lines.
@@ -27,7 +27,7 @@ pub fn Source::from_string(content : String, uri? : String) -> Source {
     }
   }
   lines.push(String::from_array(current))
-  { lines, uri }
+  { lines, uri, }
 }
 
 ///|
@@ -74,13 +74,22 @@ pub fn Source::line_count(self : Source) -> Int {
 
 ///|
 /// Serialize a Source to JSON with `uri` and `data` fields.
-pub impl ToJson for Source with to_json(self) {
-  { "uri": self.uri.to_json(), "data": self.content().to_json() }
+///
+/// `uri` is written as a JSON string or `null` (matching what `from_json`
+/// accepts), not as the array shape that `Option::to_json` produces.
+pub impl ToJson for Source with fn to_json(self) {
+  {
+    "uri": match self.uri {
+      Some(uri) => Json(uri)
+      None => Json::null()
+    },
+    "data": self.content().to_json(),
+  }
 }
 
 ///|
 /// Deserialize a Source from JSON with `uri` and `data` fields.
-pub impl @json.FromJson for Source with from_json(json, path) {
+pub impl @json.FromJson for Source with fn from_json(json, path) {
   guard json is Object(obj) else {
     raise @json.JsonDecodeError((path, "expected object for Source"))
   }
@@ -101,3 +110,15 @@ pub impl @json.FromJson for Source with from_json(json, path) {
   }
   Source::from_string(data, uri?)
 }
+
+///|
+pub extend Source with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend Source with Eq::{not_equal, equal}
+
+///|
+pub extend Source with ToJson::{to_json}
+
+///|
+pub extend Source with @moonbitlang/core/json.FromJson::{from_json}

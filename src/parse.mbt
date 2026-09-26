@@ -16,7 +16,7 @@ priv struct Parser {
 
 ///|
 fn Parser::new(tokens : Array[Token], source : Source) -> Parser {
-  { tokens, source, pos: 0, id_counter: 0 }
+  { tokens, source, pos: 0, id_counter: 0, }
 }
 
 ///|
@@ -30,7 +30,7 @@ fn Parser::peek(self : Parser) -> Token {
   if self.pos < self.tokens.length() {
     self.tokens[self.pos]
   } else {
-    Token::Eof({ line: 0, column: None })
+    Token::Eof({ line: 0, column: None, })
   }
 }
 
@@ -54,7 +54,7 @@ fn Parser::peek_past_tags(self : Parser) -> Token {
       other => return other
     }
   }
-  Token::Eof({ line: 0, column: None })
+  Token::Eof({ line: 0, column: None, })
 }
 
 ///|
@@ -62,11 +62,11 @@ fn Parser::parse_document(self : Parser) -> GherkinDocument raise ParseError {
   let comments : Array[Comment] = []
   // Skip leading empty lines, comments, and language directives
   let mut language = "en"
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       Empty(_) => self.advance() |> ignore
       Comment(loc, text) => {
-        comments.push({ location: loc, text })
+        comments.push({ location: loc, text, })
         self.advance() |> ignore
       }
       Language(_, lang) => {
@@ -78,11 +78,11 @@ fn Parser::parse_document(self : Parser) -> GherkinDocument raise ParseError {
   }
   // Collect feature-level tags
   let feature_tags : Array[Tag] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       TagLine(loc, tag_names) => {
         for t in tag_names {
-          feature_tags.push({ location: loc, name: t, id: self.next_id() })
+          feature_tags.push({ location: loc, name: t, id: self.next_id(), })
         }
         self.advance() |> ignore
       }
@@ -102,7 +102,7 @@ fn Parser::parse_document(self : Parser) -> GherkinDocument raise ParseError {
       )
     }
   }
-  { source: self.source, feature, comments }
+  { source: self.source, feature, comments, }
 }
 
 ///|
@@ -132,7 +132,7 @@ fn Parser::parse_feature(
   // Collect description lines and children
   let description_lines : Array[String] = []
   let children : Array[FeatureChild] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       Empty(_) => {
         // Empty lines in description area are kept as blank lines
@@ -142,7 +142,7 @@ fn Parser::parse_feature(
         self.advance() |> ignore
       }
       Comment(cloc, text) => {
-        comments.push({ location: cloc, text })
+        comments.push({ location: cloc, text, })
         self.advance() |> ignore
       }
       Other(_, text) => {
@@ -173,18 +173,18 @@ fn Parser::parse_feature(
     }
   }
   let description = build_description(description_lines)
-  { location: loc, tags, language, keyword, name, description, children }
+  { location: loc, tags, language, keyword, name, description, children, }
 }
 
 ///|
 fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
   // Collect tags if present
   let tags : Array[Tag] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       TagLine(loc, tag_names) => {
         for t in tag_names {
-          tags.push({ location: loc, name: t, id: self.next_id() })
+          tags.push({ location: loc, name: t, id: self.next_id(), })
         }
         self.advance() |> ignore
       }
@@ -212,7 +212,7 @@ fn Parser::parse_scenario(self : Parser) -> Scenario raise ParseError {
   let description_lines : Array[String] = []
   let steps : Array[Step] = []
   let examples : Array[Examples] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       Empty(_) => self.advance() |> ignore
       Other(_, text) => {
@@ -302,11 +302,11 @@ fn Parser::parse_step(self : Parser) -> Step raise ParseError {
 fn Parser::parse_examples(self : Parser) -> Examples raise ParseError {
   // Collect tags if present before ExamplesLine
   let tags : Array[Tag] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       TagLine(loc, tag_names) => {
         for t in tag_names {
-          tags.push({ location: loc, name: t, id: self.next_id() })
+          tags.push({ location: loc, name: t, id: self.next_id(), })
         }
         self.advance() |> ignore
       }
@@ -332,7 +332,7 @@ fn Parser::parse_examples(self : Parser) -> Examples raise ParseError {
   }
   // Collect description lines
   let description_lines : Array[String] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       Empty(_) => self.advance() |> ignore
       Other(_, text) => {
@@ -348,23 +348,23 @@ fn Parser::parse_examples(self : Parser) -> Examples raise ParseError {
       let table_cells : Array[TableCell] = []
       for i, cell in cells {
         table_cells.push({
-          location: { line: rloc.line, column: Some(i + 1) },
+          location: { line: rloc.line, column: Some(i + 1), },
           value: cell,
         })
       }
       self.advance() |> ignore
-      Some({ location: rloc, id: self.next_id(), cells: table_cells })
+      Some({ location: rloc, id: self.next_id(), cells: table_cells, })
     }
     _ => None
   }
   let table_body : Array[TableRow] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       TableRow(rloc, cells) => {
         let table_cells : Array[TableCell] = []
         for i, cell in cells {
           table_cells.push({
-            location: { line: rloc.line, column: Some(i + 1) },
+            location: { line: rloc.line, column: Some(i + 1), },
             value: cell,
           })
         }
@@ -410,7 +410,7 @@ fn Parser::parse_doc_string(self : Parser) -> DocString raise ParseError {
     }
   }
   let content_lines : Array[String] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       DocStringSeparator(_, _, _) => {
         self.advance() |> ignore
@@ -431,7 +431,7 @@ fn Parser::parse_doc_string(self : Parser) -> DocString raise ParseError {
   }
   // Dedent content: find minimum indentation and strip it
   let content = dedent_doc_string(content_lines, loc)
-  { location: loc, media_type, content, delimiter }
+  { location: loc, media_type, content, delimiter, }
 }
 
 ///|
@@ -454,7 +454,7 @@ fn dedent_doc_string(lines : Array[String], opener_loc : Location) -> String {
             (chars[start] == ' ' || chars[start] == '\t') {
         start = start + 1
       }
-      result.push(String::from_array(chars[start:].to_array()))
+      result.push(String::from_array(chars[start:].to_owned()))
     }
   }
   result.join("\n")
@@ -464,13 +464,13 @@ fn dedent_doc_string(lines : Array[String], opener_loc : Location) -> String {
 fn Parser::parse_data_table(self : Parser) -> DataTable raise ParseError {
   let rows : Array[TableRow] = []
   let mut expected_cols = -1
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       TableRow(loc, cells) => {
         let table_cells : Array[TableCell] = []
         for i, cell in cells {
           table_cells.push({
-            location: { line: loc.line, column: Some(i + 1) },
+            location: { line: loc.line, column: Some(i + 1), },
             value: cell,
           })
         }
@@ -483,7 +483,7 @@ fn Parser::parse_data_table(self : Parser) -> DataTable raise ParseError {
             location=loc,
           )
         }
-        rows.push({ location: loc, id: self.next_id(), cells: table_cells })
+        rows.push({ location: loc, id: self.next_id(), cells: table_cells, })
         self.advance() |> ignore
       }
       _ => break
@@ -492,9 +492,9 @@ fn Parser::parse_data_table(self : Parser) -> DataTable raise ParseError {
   let table_loc = if rows.length() > 0 {
     rows[0].location
   } else {
-    { line: 0, column: None }
+    { line: 0, column: None, }
   }
-  { location: table_loc, rows }
+  { location: table_loc, rows, }
 }
 
 ///|
@@ -517,7 +517,7 @@ fn Parser::parse_background(self : Parser) -> Background raise ParseError {
   }
   let description_lines : Array[String] = []
   let steps : Array[Step] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       Empty(_) => self.advance() |> ignore
       Other(_, text) => {
@@ -535,7 +535,7 @@ fn Parser::parse_background(self : Parser) -> Background raise ParseError {
     }
   }
   let description = build_description(description_lines)
-  { location: loc, keyword, name, description, id: self.next_id(), steps }
+  { location: loc, keyword, name, description, id: self.next_id(), steps, }
 }
 
 ///|
@@ -561,7 +561,7 @@ fn Parser::parse_rule(
   }
   let description_lines : Array[String] = []
   let children : Array[RuleChild] = []
-  while not(self.at_eof()) {
+  while !self.at_eof() {
     match self.peek() {
       Empty(_) => self.advance() |> ignore
       Other(_, text) => {
@@ -669,7 +669,7 @@ fn trim_description(text : String) -> String {
   if start >= chars.length() {
     ""
   } else {
-    String::from_array(chars[start:].to_array())
+    String::from_array(chars[start:].to_owned())
   }
 }
 
