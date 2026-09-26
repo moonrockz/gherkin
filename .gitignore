@@ -13,3 +13,6 @@ __pycache__/
 
 # Test output
 pretty.output
+
+# Beads local lock file
+/.beads.gate.lock
