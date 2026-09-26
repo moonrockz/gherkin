@@ -2,4 +2,6 @@
 #MISE description="Build native CLI binary"
 set -euo pipefail
 
-moon build --target native
+# `--release` is explicit: `moon build` defaults to the debug profile, while
+# the release workflow consumes `_build/native/release/...`.
+moon build --target native --release
