@@ -27,7 +27,7 @@ The pipeline runs via `.github/workflows/release.yml`. Triggers:
 |------|---------|
 | `release:pre-check` | Validate release readiness (tests, version, changelog) |
 | `release:version` | Compute next version from conventional commits |
-| `release:bump` | Update moon.mod.json version to match |
+| `release:bump` | Update moon.mod version to match |
 | `release:changelog` | Generate CHANGELOG.md from git history |
 | `release:notes` | Generate release notes for latest version |
 | `release:credentials` | Set up mooncakes credentials from MOONCAKES_USER_TOKEN |
@@ -55,7 +55,7 @@ mise run release:changelog
 
 # 4. Commit version bump
 VERSION=$(mise run release:version)
-git add moon.mod.json CHANGELOG.md
+git add moon.mod CHANGELOG.md
 git commit -m "chore(release): v${VERSION}"
 
 # 5. Tag and push (triggers release workflow from Phase 3)

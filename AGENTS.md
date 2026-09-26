@@ -51,11 +51,11 @@ moonrockz/gherkin
 ## Project Structure
 
 - MoonBit packages are organized per directory, for each directory, there is a
-  `moon.pkg.json` file listing its dependencies. Each package has its files and
+  `moon.pkg` file listing its dependencies. Each package has its files and
   blackbox test files (common, ending in `_test.mbt`) and whitebox test files
   (ending in `_wbtest.mbt`).
 
-- In the toplevel directory, this is a `moon.mod.json` file listing about the
+- In the toplevel directory, this is a `moon.mod` file listing about the
   module and some meta information.
 
 ## Design Philosophy
@@ -254,7 +254,7 @@ Never edit `CHANGELOG.md` manually -- it is regenerated from git history.
 - `mise run release:changelog` -- regenerate CHANGELOG.md
 - `mise run release:notes` -- generate release notes for latest version
 - `mise run release:version` -- compute next version from commits
-- `mise run release:bump` -- update `moon.mod.json` version to match
+- `mise run release:bump` -- update `moon.mod` version to match
 
 ## Mise Tasks
 
@@ -278,7 +278,7 @@ Run `mise tasks` to list all tasks. Key tasks:
 | `release:version`       | Compute next version from conventional commits    |
 | `release:changelog`     | Generate CHANGELOG.md                             |
 | `release:notes`         | Generate release notes for latest version         |
-| `release:bump`          | Update moon.mod.json version                      |
+| `release:bump`          | Update moon.mod version                           |
 | `release:pre-check`    | Validate release readiness                        |
 | `release:credentials`  | Set up mooncakes.io credentials (CI only)         |
 | `release:publish`      | Publish package to mooncakes.io                   |
@@ -346,7 +346,7 @@ mise run release:changelog
 
 # 3. Commit and tag
 VERSION=$(mise run release:version)
-git add moon.mod.json CHANGELOG.md
+git add moon.mod CHANGELOG.md
 git commit -m "chore(release): v${VERSION}"
 git tag -a "v${VERSION}" -m "Release v${VERSION}"
 git push origin main --tags

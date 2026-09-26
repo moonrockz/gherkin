@@ -106,7 +106,7 @@ mise run release:changelog
 
 # 4. Commit the version bump
 VERSION=$(mise run release:version)
-git add moon.mod.json CHANGELOG.md
+git add moon.mod CHANGELOG.md
 git commit -m "chore(release): v${VERSION}"
 
 # 5. Create tag
