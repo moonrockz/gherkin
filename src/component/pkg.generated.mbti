@@ -4,22 +4,6 @@ package "moonrockz/gherkin/component"
 // Values
 pub fn mbt_ffi_cabi_realloc(Int, Int, Int, Int) -> Int
 
-pub fn wasmExportParse(Int, Int, Int, Int, Int) -> Int
-
-pub fn wasmExportParsePostReturn(Int) -> Unit
-
-pub fn wasmExportTokenize(Int, Int, Int, Int, Int) -> Int
-
-pub fn wasmExportTokenizePostReturn(Int) -> Unit
-
-pub fn wasmExportWrite(Int) -> Int
-
-pub fn wasmExportWriteEvents(Int, Int) -> Int
-
-pub fn wasmExportWriteEventsPostReturn(Int) -> Unit
-
-pub fn wasmExportWritePostReturn(Int) -> Unit
-
 // Errors
 
 // Types and methods

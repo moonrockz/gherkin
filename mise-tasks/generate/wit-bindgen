@@ -10,3 +10,10 @@ wit-bindgen moonbit wit/ \
   --ignore-stub \
   --derive-show \
   --derive-eq
+
+# wit-bindgen still writes deprecated moon.pkg.json files. This project keeps
+# its package configuration in moon.pkg; leaving both triggers MoonBit warnings.
+rm -f \
+  src/component/moon.pkg.json \
+  src/interface/moonrockz/gherkin/types/moon.pkg.json \
+  src/world/gherkin/moon.pkg.json

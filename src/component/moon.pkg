@@ -2,7 +2,6 @@ import {
   "moonrockz/gherkin/component/interface/moonrockz/gherkin/parser",
   "moonrockz/gherkin/component/interface/moonrockz/gherkin/tokenizer",
   "moonrockz/gherkin/component/interface/moonrockz/gherkin/writer",
-  "moonrockz/gherkin/interface/moonrockz/gherkin/types",
 }
 
 warnings = "-44"
