@@ -1,12 +1,11 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "moonrockz/gherkin/cmd/main"
+package "moonrockz/gherkin/world/gherkin"
 
 // Values
 
 // Errors
 
 // Types and methods
-type Input
 
 // Type aliases
 

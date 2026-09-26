@@ -1,0 +1,6 @@
+import {
+  "moonrockz/gherkin" @lib,
+  "moonrockz/gherkin/interface/moonrockz/gherkin/types",
+}
+
+warnings = "-44"

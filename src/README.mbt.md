@@ -9,13 +9,13 @@ All parsing starts with a `Source`, an opaque wrapper around the input text.
 ```moonbit check
 ///|
 test "create a source from a string" {
-  let src = Source::from_string(
+  let src = @gherkin.Source::from_string(
     "Feature: Hello\n  Scenario: World",
     uri="test.feature",
   )
-  inspect(src.uri(), content="Some(\"test.feature\")")
-  inspect(src.line_count(), content="2")
-  inspect(src.line(1), content="Some(\"Feature: Hello\")")
+  @debug.debug_inspect(src.uri(), content="Some(\"test.feature\")")
+  @debug.debug_inspect(src.line_count(), content="2")
+  @debug.debug_inspect(src.line(1), content="Some(\"Feature: Hello\")")
 }
 ```
 
@@ -32,16 +32,31 @@ test "parse a feature with scenarios and steps" {
     #|    Given two numbers
     #|    When I add them
     #|    Then I get the sum
-  let doc = parse(Source::from_string(input))
+  let doc = @gherkin.parse(@gherkin.Source::from_string(input))
   let feature = doc.feature.unwrap()
-  inspect(feature.name, content="Calculator")
-  inspect(feature.language, content="en")
-  guard feature.children[0] is Scenario(s)
-  inspect(s.name, content="Addition")
-  inspect(s.steps.length(), content="3")
-  inspect(s.steps[0].keyword_type, content="Context")
-  inspect(s.steps[1].keyword_type, content="Action")
-  inspect(s.steps[2].keyword_type, content="Outcome")
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Calculator"
+    ),
+  )
+  @debug.debug_inspect(
+    feature.language,
+    content=(
+      #|"en"
+    ),
+  )
+  guard! feature.children[0] is Scenario(s)
+  @debug.debug_inspect(
+    s.name,
+    content=(
+      #|"Addition"
+    ),
+  )
+  @debug.debug_inspect(s.steps.length(), content="3")
+  @debug.debug_inspect(s.steps[0].keyword_type, content="Context")
+  @debug.debug_inspect(s.steps[1].keyword_type, content="Action")
+  @debug.debug_inspect(s.steps[2].keyword_type, content="Outcome")
 }
 ```
 
@@ -59,13 +74,28 @@ test "parse a step with a data table" {
     #|      | name  | age |
     #|      | Alice | 30  |
     #|      | Bob   | 25  |
-  let doc = parse(Source::from_string(input))
-  guard doc.feature.unwrap().children[0] is Scenario(s)
-  guard s.steps[0].argument is Some(DataTable(table))
-  inspect(table.rows.length(), content="3")
-  inspect(table.rows[0].cells[0].value, content="name")
-  inspect(table.rows[1].cells[0].value, content="Alice")
-  inspect(table.rows[2].cells[1].value, content="25")
+  let doc = @gherkin.parse(@gherkin.Source::from_string(input))
+  guard! doc.feature.unwrap().children[0] is Scenario(s)
+  guard! s.steps[0].argument is Some(DataTable(table))
+  @debug.debug_inspect(table.rows.length(), content="3")
+  @debug.debug_inspect(
+    table.rows[0].cells[0].value,
+    content=(
+      #|"name"
+    ),
+  )
+  @debug.debug_inspect(
+    table.rows[1].cells[0].value,
+    content=(
+      #|"Alice"
+    ),
+  )
+  @debug.debug_inspect(
+    table.rows[2].cells[1].value,
+    content=(
+      #|"25"
+    ),
+  )
 }
 ```
 
@@ -83,10 +113,10 @@ test "parse a step with a doc string" {
     #|      ```json
     #|      {"key": "value"}
     #|      ```
-  let doc = parse(Source::from_string(input))
-  guard doc.feature.unwrap().children[0] is Scenario(s)
-  guard s.steps[0].argument is Some(DocString(ds))
-  inspect(ds.media_type, content="Some(\"json\")")
+  let doc = @gherkin.parse(@gherkin.Source::from_string(input))
+  guard! doc.feature.unwrap().children[0] is Scenario(s)
+  guard! s.steps[0].argument is Some(DocString(ds))
+  @debug.debug_inspect(ds.media_type, content="Some(\"json\")")
   assert_true(ds.content.contains("key"))
 }
 ```
@@ -104,12 +134,22 @@ test "parse tags on features and scenarios" {
     #|  @critical
     #|  Scenario: Important
     #|    Given a step
-  let doc = parse(Source::from_string(input))
+  let doc = @gherkin.parse(@gherkin.Source::from_string(input))
   let feature = doc.feature.unwrap()
-  inspect(feature.tags.length(), content="2")
-  inspect(feature.tags[0].name, content="@smoke")
-  guard feature.children[0] is Scenario(s)
-  inspect(s.tags[0].name, content="@critical")
+  @debug.debug_inspect(feature.tags.length(), content="2")
+  @debug.debug_inspect(
+    feature.tags[0].name,
+    content=(
+      #|"@smoke"
+    ),
+  )
+  guard! feature.children[0] is Scenario(s)
+  @debug.debug_inspect(
+    s.tags[0].name,
+    content=(
+      #|"@critical"
+    ),
+  )
 }
 ```
 
@@ -120,8 +160,10 @@ All AST types implement `ToJson`.
 ```moonbit check
 ///|
 test "serialize a document to JSON" {
-  let doc = parse(
-    Source::from_string("Feature: JSON\n  Scenario: Test\n    Given a step"),
+  let doc = @gherkin.parse(
+    @gherkin.Source::from_string(
+      "Feature: JSON\n  Scenario: Test\n    Given a step",
+    ),
   )
   let text = doc.to_json().stringify()
   assert_true(text.contains("JSON"))
@@ -141,7 +183,7 @@ struct ScenarioCounter {
 }
 
 ///|
-impl GherkinVisitor for ScenarioCounter with visit_scenario(self, _scenario) {
+impl GherkinVisitor for ScenarioCounter with fn visit_scenario(self, _scenario) {
   self.count += 1
 }
 
@@ -153,10 +195,10 @@ test "count scenarios with a visitor" {
     #|    Given a
     #|  Scenario: Second
     #|    Given b
-  let doc = parse(Source::from_string(input))
-  let counter : ScenarioCounter = { count: 0 }
+  let doc = @gherkin.parse(@gherkin.Source::from_string(input))
+  let counter : ScenarioCounter = { count: 0, }
   doc.accept(counter)
-  inspect(counter.count, content="2")
+  @debug.debug_inspect(counter.count, content="2")
 }
 ```
 
@@ -176,12 +218,12 @@ test "count steps with fold" {
     #|    When step 2
     #|  Scenario: Two
     #|    Then step 3
-  let doc = parse(Source::from_string(input))
+  let doc = @gherkin.parse(@gherkin.Source::from_string(input))
   let step_count = doc.fold(0, {
-    ..GherkinFold::default(),
-    visit_step: continuing(fn(n, _step) { n + 1 }),
+    ..@gherkin.GherkinFold::default(),
+    visit_step: @gherkin.continuing(fn(n, _step) { n + 1 }),
   })
-  inspect(step_count, content="3")
+  @debug.debug_inspect(step_count, content="3")
 }
 ```
 
@@ -217,17 +259,17 @@ struct EventLog {
 }
 
 ///|
-impl GherkinHandler for EventLog with on_feature(self, event) {
+impl GherkinHandler for EventLog with fn on_feature(self, event) {
   self.events.push("feature:\{event.name}")
 }
 
 ///|
-impl GherkinHandler for EventLog with on_scenario(self, event) {
+impl GherkinHandler for EventLog with fn on_scenario(self, event) {
   self.events.push("scenario:\{event.name}")
 }
 
 ///|
-impl GherkinHandler for EventLog with on_step(self, event) {
+impl GherkinHandler for EventLog with fn on_step(self, event) {
   self.events.push("step:\{event.text}")
 }
 
@@ -238,12 +280,32 @@ test "log events with a handler" {
     #|  Scenario: Example
     #|    Given a step
     #|    When an action
-  let logger : EventLog = { events: [] }
-  parse_with_handler(Source::from_string(input), logger)
-  inspect(logger.events[0], content="feature:Events")
-  inspect(logger.events[1], content="scenario:Example")
-  inspect(logger.events[2], content="step:a step")
-  inspect(logger.events[3], content="step:an action")
+  let logger : EventLog = { events: [], }
+  @gherkin.parse_with_handler(@gherkin.Source::from_string(input), logger)
+  @debug.debug_inspect(
+    logger.events[0],
+    content=(
+      #|"feature:Events"
+    ),
+  )
+  @debug.debug_inspect(
+    logger.events[1],
+    content=(
+      #|"scenario:Example"
+    ),
+  )
+  @debug.debug_inspect(
+    logger.events[2],
+    content=(
+      #|"step:a step"
+    ),
+  )
+  @debug.debug_inspect(
+    logger.events[3],
+    content=(
+      #|"step:an action"
+    ),
+  )
 }
 ```
 
@@ -257,20 +319,39 @@ The lower-level lexer API is useful for syntax highlighting or custom parsing.
 ```moonbit check
 ///|
 test "tokenize a source" {
-  let tokens = tokenize(Source::from_string("Feature: Test\n  Given a step"))
-  guard tokens[0] is FeatureLine(_, kw, name)
-  inspect(kw, content="Feature")
-  inspect(name, content="Test")
-  guard tokens[1] is StepLine(_, _, kt, text)
-  inspect(kt, content="Context")
-  inspect(text, content="a step")
+  let tokens = @gherkin.tokenize(
+    @gherkin.Source::from_string("Feature: Test\n  Given a step"),
+  )
+  guard! tokens[0] is FeatureLine(_, kw, name)
+  @debug.debug_inspect(
+    kw,
+    content=(
+      #|"Feature"
+    ),
+  )
+  @debug.debug_inspect(
+    name,
+    content=(
+      #|"Test"
+    ),
+  )
+  guard! tokens[1] is StepLine(_, _, kt, text)
+  @debug.debug_inspect(kt, content="Context")
+  @debug.debug_inspect(
+    text,
+    content=(
+      #|"a step"
+    ),
+  )
 }
 ```
 
 ```moonbit check
 ///|
 test "lazy iteration with Lexer" {
-  let lexer = Lexer::new(Source::from_string("Given a\nWhen b\nThen c"))
+  let lexer = @gherkin.Lexer::new(
+    @gherkin.Source::from_string("Given a\nWhen b\nThen c"),
+  )
   let mut count = 0
   for tok in lexer.iter() {
     match tok {
@@ -278,7 +359,7 @@ test "lazy iteration with Lexer" {
       _ => ()
     }
   }
-  inspect(count, content="3")
+  @debug.debug_inspect(count, content="3")
 }
 ```
 
@@ -296,7 +377,7 @@ test "handle parse errors" {
     #|      | a | b |
     #|      | 1 | 2 | 3 |
   let result = try {
-    let _ = parse(Source::from_string(input))
+    let _ = @gherkin.parse(@gherkin.Source::from_string(input))
     "ok"
   } catch {
     InconsistentTableCells(message~, ..) => message
@@ -318,9 +399,19 @@ test "parse French Gherkin" {
     #|Fonctionnalité: Connexion
     #|  Scénario: Succès
     #|    Soit un utilisateur
-  let doc = parse(Source::from_string(input))
+  let doc = @gherkin.parse(@gherkin.Source::from_string(input))
   let feature = doc.feature.unwrap()
-  inspect(feature.language, content="fr")
-  inspect(feature.keyword, content="Fonctionnalit\u00e9")
+  @debug.debug_inspect(
+    feature.language,
+    content=(
+      #|"fr"
+    ),
+  )
+  @debug.debug_inspect(
+    feature.keyword,
+    content=(
+      #|"Fonctionnalité"
+    ),
+  )
 }
 ```

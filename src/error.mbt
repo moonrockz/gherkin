@@ -1,5 +1,8 @@
 ///|
 /// Errors that can occur during Gherkin parsing.
+// `CompositeError` is part of the public error API for callers that aggregate
+// several parse failures.
+#warnings("-unused_constructor")
 pub suberror ParseError {
   /// Unexpected token encountered during parsing.
   UnexpectedToken(message~ : String, location~ : Location)

@@ -6,12 +6,13 @@ Verifies that a release completed successfully:
 - GitHub Release exists
 - Expected artifacts present
 - Mooncakes.io package accessible
-- moon.mod.json version matches
+- moon.mod version matches
 - CHANGELOG.md includes version header
 """
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 import urllib.request
@@ -80,14 +81,17 @@ def check_mooncakes_published() -> tuple[bool, str]:
 
 def check_version_matches(version: str) -> tuple[bool, str]:
     try:
-        with open("moon.mod.json") as f:
-            data = json.load(f)
-        mod_version = data.get("version", "")
+        with open("moon.mod") as f:
+            content = f.read()
+        match = re.search(r'^version\s*=\s*"([^"]*)"', content, re.MULTILINE)
+        if match is None:
+            return False, "moon.mod has no version field"
+        mod_version = match.group(1)
         if mod_version == version:
-            return True, f"moon.mod.json version matches ({version})"
-        return False, f"moon.mod.json version is '{mod_version}', expected '{version}'"
+            return True, f"moon.mod version matches ({version})"
+        return False, f"moon.mod version is '{mod_version}', expected '{version}'"
     except Exception as e:
-        return False, f"Could not read moon.mod.json: {e}"
+        return False, f"Could not read moon.mod: {e}"
 
 
 def check_changelog_includes_version(version: str) -> tuple[bool, str]:
@@ -114,7 +118,7 @@ def main():
         ("GitHub Release exists", lambda: check_github_release(args.version)),
         ("Release artifacts present", lambda: check_release_artifacts(args.version)),
         ("Mooncakes.io published", check_mooncakes_published),
-        ("Version in moon.mod.json", lambda: check_version_matches(args.version)),
+        ("Version in moon.mod", lambda: check_version_matches(args.version)),
         ("Version in CHANGELOG.md", lambda: check_changelog_includes_version(args.version)),
     ]
 

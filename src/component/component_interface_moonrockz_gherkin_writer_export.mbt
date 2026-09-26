@@ -1339,7 +1339,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
   }
   mbt_ffi_free(mbt_ffi_load32(p0 + 84))
   let result202 : Result[String, String] = @writer.write(@types.GherkinDocument::{
-    source: @types.Source::{ uri: lifted, data: result0 },
+    source: @types.Source::{ uri: lifted, data: result0, },
     feature: lifted197,
     comments: array200,
   })

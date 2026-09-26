@@ -7,101 +7,101 @@
 /// The parser drives the process, calling handler methods
 /// as it encounters structural elements.
 pub(open) trait GherkinHandler {
-  on_document(Self) -> Unit = _
-  on_end_document(Self) -> Unit = _
-  on_feature(Self, FeatureEvent) -> Unit = _
-  on_end_feature(Self) -> Unit = _
-  on_rule(Self, RuleEvent) -> Unit = _
-  on_end_rule(Self) -> Unit = _
-  on_background(Self, BackgroundEvent) -> Unit = _
-  on_end_background(Self) -> Unit = _
-  on_scenario(Self, ScenarioEvent) -> Unit = _
-  on_end_scenario(Self) -> Unit = _
-  on_step(Self, StepEvent) -> Unit = _
-  on_examples(Self, ExamplesEvent) -> Unit = _
-  on_tag(Self, TagEvent) -> Unit = _
-  on_comment(Self, CommentEvent) -> Unit = _
-  on_doc_string(Self, DocStringEvent) -> Unit = _
-  on_data_table(Self, DataTableEvent) -> Unit = _
+  fn on_document(Self) -> Unit = _
+  fn on_end_document(Self) -> Unit = _
+  fn on_feature(Self, FeatureEvent) -> Unit = _
+  fn on_end_feature(Self) -> Unit = _
+  fn on_rule(Self, RuleEvent) -> Unit = _
+  fn on_end_rule(Self) -> Unit = _
+  fn on_background(Self, BackgroundEvent) -> Unit = _
+  fn on_end_background(Self) -> Unit = _
+  fn on_scenario(Self, ScenarioEvent) -> Unit = _
+  fn on_end_scenario(Self) -> Unit = _
+  fn on_step(Self, StepEvent) -> Unit = _
+  fn on_examples(Self, ExamplesEvent) -> Unit = _
+  fn on_tag(Self, TagEvent) -> Unit = _
+  fn on_comment(Self, CommentEvent) -> Unit = _
+  fn on_doc_string(Self, DocStringEvent) -> Unit = _
+  fn on_data_table(Self, DataTableEvent) -> Unit = _
 }
 
 ///|
-impl GherkinHandler with on_document(_self) {
+impl GherkinHandler with fn on_document(_self) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_end_document(_self) {
+impl GherkinHandler with fn on_end_document(_self) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_feature(_self, _e) {
+impl GherkinHandler with fn on_feature(_self, _e) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_end_feature(_self) {
+impl GherkinHandler with fn on_end_feature(_self) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_rule(_self, _e) {
+impl GherkinHandler with fn on_rule(_self, _e) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_end_rule(_self) {
+impl GherkinHandler with fn on_end_rule(_self) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_background(_self, _e) {
+impl GherkinHandler with fn on_background(_self, _e) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_end_background(_self) {
+impl GherkinHandler with fn on_end_background(_self) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_scenario(_self, _e) {
+impl GherkinHandler with fn on_scenario(_self, _e) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_end_scenario(_self) {
+impl GherkinHandler with fn on_end_scenario(_self) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_step(_self, _e) {
+impl GherkinHandler with fn on_step(_self, _e) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_examples(_self, _e) {
+impl GherkinHandler with fn on_examples(_self, _e) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_tag(_self, _e) {
+impl GherkinHandler with fn on_tag(_self, _e) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_comment(_self, _e) {
+impl GherkinHandler with fn on_comment(_self, _e) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_doc_string(_self, _e) {
+impl GherkinHandler with fn on_doc_string(_self, _e) {
   ()
 }
 
 ///|
-impl GherkinHandler with on_data_table(_self, _e) {
+impl GherkinHandler with fn on_data_table(_self, _e) {
   ()
 }
 
@@ -114,7 +114,7 @@ pub fn parse_with_handler(
   let doc = parse(source)
   handler.on_document()
   for c in doc.comments {
-    handler.on_comment({ location: c.location, text: c.text })
+    handler.on_comment({ location: c.location, text: c.text, })
   }
   match doc.feature {
     Some(f) => dispatch_feature(f, handler)
@@ -134,7 +134,7 @@ fn dispatch_feature(f : Feature, handler : &GherkinHandler) -> Unit {
     description: f.description,
   })
   for t in f.tags {
-    handler.on_tag({ location: t.location, name: t.name })
+    handler.on_tag({ location: t.location, name: t.name, })
   }
   for child in f.children {
     match child {
@@ -156,7 +156,7 @@ fn dispatch_rule(r : Rule, handler : &GherkinHandler) -> Unit {
     description: r.description,
   })
   for t in r.tags {
-    handler.on_tag({ location: t.location, name: t.name })
+    handler.on_tag({ location: t.location, name: t.name, })
   }
   for child in r.children {
     match child {
@@ -192,7 +192,7 @@ fn dispatch_scenario(s : Scenario, handler : &GherkinHandler) -> Unit {
     description: s.description,
   })
   for t in s.tags {
-    handler.on_tag({ location: t.location, name: t.name })
+    handler.on_tag({ location: t.location, name: t.name, })
   }
   for step in s.steps {
     dispatch_step(step, handler)
@@ -228,7 +228,7 @@ fn dispatch_step(s : Step, handler : &GherkinHandler) -> Unit {
         delimiter: ds.delimiter,
       })
     Some(StepArgument::DataTable(dt)) =>
-      handler.on_data_table({ location: dt.location, rows: dt.rows })
+      handler.on_data_table({ location: dt.location, rows: dt.rows, })
     None => ()
   }
 }

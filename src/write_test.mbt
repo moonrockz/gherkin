@@ -4,17 +4,26 @@
 
 ///|
 test "write: empty document" {
-  let doc = GherkinDocument::empty()
-  inspect(write(doc), content="")
+  let doc = @gherkin.GherkinDocument::empty()
+  @debug.debug_inspect(
+    @gherkin.write(doc),
+    content=(
+      #|""
+    ),
+  )
 }
 
 ///|
 test "write: feature with no children" {
-  let doc = parse(Source::from_string("Feature: Empty feature"))
-  let expected =
-    #|Feature: Empty feature
-    #|
-  inspect(write(doc), content=expected)
+  let doc = @gherkin.parse(
+    @gherkin.Source::from_string("Feature: Empty feature"),
+  )
+  @debug.debug_inspect(
+    @gherkin.write(doc),
+    content=(
+      #|"Feature: Empty feature\n"
+    ),
+  )
 }
 
 ///|
@@ -25,15 +34,12 @@ test "write: feature with scenario and steps" {
     #|    Given a registered user
     #|    When they enter valid credentials
     #|    Then they see the dashboard
-  let expected =
-    #|Feature: Login
-    #|
-    #|  Scenario: Successful login
-    #|    Given a registered user
-    #|    When they enter valid credentials
-    #|    Then they see the dashboard
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: Login\n\n  Scenario: Successful login\n    Given a registered user\n    When they enter valid credentials\n    Then they see the dashboard\n"
+    ),
+  )
 }
 
 ///|
@@ -44,16 +50,12 @@ test "write: multiple scenarios separated by blank lines" {
     #|    Given a
     #|  Scenario: Second
     #|    Given b
-  let expected =
-    #|Feature: Multi
-    #|
-    #|  Scenario: First
-    #|    Given a
-    #|
-    #|  Scenario: Second
-    #|    Given b
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: Multi\n\n  Scenario: First\n    Given a\n\n  Scenario: Second\n    Given b\n"
+    ),
+  )
 }
 
 ///|
@@ -65,16 +67,12 @@ test "write: data table column alignment" {
     #|      | name  | email          |
     #|      | Alice | alice@test.com |
     #|      | Bob   | bob@test.com   |
-  let expected =
-    #|Feature: Tables
-    #|
-    #|  Scenario: Data
-    #|    Given users:
-    #|      | name  | email          |
-    #|      | Alice | alice@test.com |
-    #|      | Bob   | bob@test.com   |
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: Tables\n\n  Scenario: Data\n    Given users:\n      | name  | email          |\n      | Alice | alice@test.com |\n      | Bob   | bob@test.com   |\n"
+    ),
+  )
 }
 
 ///|
@@ -85,15 +83,12 @@ test "write: data table with empty cells" {
     #|    Given a table:
     #|      | a |   |
     #|      |   | b |
-  let expected =
-    #|Feature: Empty cells
-    #|
-    #|  Scenario: Gaps
-    #|    Given a table:
-    #|      | a |   |
-    #|      |   | b |
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: Empty cells\n\n  Scenario: Gaps\n    Given a table:\n      | a |   |\n      |   | b |\n"
+    ),
+  )
 }
 
 ///|
@@ -106,17 +101,12 @@ test "write: doc string with triple-quote delimiter" {
     #|      Hello
     #|      World
     #|      """
-  let expected =
-    #|Feature: DocStrings
-    #|
-    #|  Scenario: Body
-    #|    Given a body:
-    #|      """
-    #|      Hello
-    #|      World
-    #|      """
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: DocStrings\n\n  Scenario: Body\n    Given a body:\n      \"\"\"\n      Hello\n      World\n      \"\"\"\n"
+    ),
+  )
 }
 
 ///|
@@ -128,16 +118,12 @@ test "write: doc string with backtick delimiter and media type" {
     #|      ```json
     #|      {"key": "value"}
     #|      ```
-  let expected =
-    #|Feature: Payloads
-    #|
-    #|  Scenario: JSON body
-    #|    Given a request body:
-    #|      ```json
-    #|      {"key": "value"}
-    #|      ```
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: Payloads\n\n  Scenario: JSON body\n    Given a request body:\n      ```json\n      {\"key\": \"value\"}\n      ```\n"
+    ),
+  )
 }
 
 ///|
@@ -147,14 +133,12 @@ test "write: feature tags" {
     #|Feature: Tagged
     #|  Scenario: Test
     #|    Given a step
-  let expected =
-    #|@smoke @regression
-    #|Feature: Tagged
-    #|
-    #|  Scenario: Test
-    #|    Given a step
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"@smoke @regression\nFeature: Tagged\n\n  Scenario: Test\n    Given a step\n"
+    ),
+  )
 }
 
 ///|
@@ -164,14 +148,12 @@ test "write: scenario tags" {
     #|  @wip @critical
     #|  Scenario: Important
     #|    Given a step
-  let expected =
-    #|Feature: Tags
-    #|
-    #|  @wip @critical
-    #|  Scenario: Important
-    #|    Given a step
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: Tags\n\n  @wip @critical\n  Scenario: Important\n    Given a step\n"
+    ),
+  )
 }
 
 ///|
@@ -184,18 +166,12 @@ test "write: background before scenarios" {
     #|  Scenario: First
     #|    When an action
     #|    Then a result
-  let expected =
-    #|Feature: With background
-    #|
-    #|  Background:
-    #|    Given a common setup
-    #|    And another setup step
-    #|
-    #|  Scenario: First
-    #|    When an action
-    #|    Then a result
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: With background\n\n  Background:\n    Given a common setup\n    And another setup step\n\n  Scenario: First\n    When an action\n    Then a result\n"
+    ),
+  )
 }
 
 ///|
@@ -208,20 +184,12 @@ test "write: rules with nested scenarios" {
     #|  Rule: Second rule
     #|    Scenario: Rule scenario two
     #|      Given different context
-  let expected =
-    #|Feature: Business rules
-    #|
-    #|  Rule: First rule
-    #|
-    #|    Scenario: Rule scenario one
-    #|      Given context
-    #|
-    #|  Rule: Second rule
-    #|
-    #|    Scenario: Rule scenario two
-    #|      Given different context
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: Business rules\n\n  Rule: First rule\n\n    Scenario: Rule scenario one\n      Given context\n\n  Rule: Second rule\n\n    Scenario: Rule scenario two\n      Given different context\n"
+    ),
+  )
 }
 
 ///|
@@ -236,20 +204,12 @@ test "write: scenario outline with examples table" {
     #|      | start | eat | left |
     #|      | 12    | 5   | 7    |
     #|      | 20    | 5   | 15   |
-  let expected =
-    #|Feature: Outlines
-    #|
-    #|  Scenario Outline: Eating
-    #|    Given there are <start> cucumbers
-    #|    When I eat <eat> cucumbers
-    #|    Then I should have <left> cucumbers
-    #|
-    #|    Examples:
-    #|      | start | eat | left |
-    #|      | 12    | 5   | 7    |
-    #|      | 20    | 5   | 15   |
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: Outlines\n\n  Scenario Outline: Eating\n    Given there are <start> cucumbers\n    When I eat <eat> cucumbers\n    Then I should have <left> cucumbers\n\n    Examples:\n      | start | eat | left |\n      | 12    | 5   | 7    |\n      | 20    | 5   | 15   |\n"
+    ),
+  )
 }
 
 ///|
@@ -262,16 +222,12 @@ test "write: feature with description" {
     #|
     #|  Scenario: Success
     #|    Given a user
-  let expected =
-    #|Feature: Login
-    #|  As a user
-    #|  I want to login
-    #|  So that I can access my account
-    #|
-    #|  Scenario: Success
-    #|    Given a user
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"Feature: Login\n  As a user\n  I want to login\n  So that I can access my account\n\n  Scenario: Success\n    Given a user\n"
+    ),
+  )
 }
 
 ///|
@@ -281,14 +237,12 @@ test "write: comments before feature" {
     #|Feature: Commented
     #|  Scenario: Test
     #|    Given a step
-  let expected =
-    #|# This is a comment
-    #|Feature: Commented
-    #|
-    #|  Scenario: Test
-    #|    Given a step
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"# This is a comment\nFeature: Commented\n\n  Scenario: Test\n    Given a step\n"
+    ),
+  )
 }
 
 ///|
@@ -298,14 +252,12 @@ test "write: French i18n with language directive" {
     #|Fonctionnalité: Connexion
     #|  Scénario: Succès
     #|    Soit un utilisateur
-  let expected =
-    #|# language: fr
-    #|Fonctionnalité: Connexion
-    #|
-    #|  Scénario: Succès
-    #|    Soit un utilisateur
-    #|
-  inspect(write(parse(Source::from_string(input))), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input))),
+    content=(
+      #|"# language: fr\nFonctionnalité: Connexion\n\n  Scénario: Succès\n    Soit un utilisateur\n"
+    ),
+  )
 }
 
 // --------------------------------------------------------------------------
@@ -320,19 +272,39 @@ test "write: round-trip preserves feature and step data" {
     #|    Given a step
     #|    When an action
     #|    Then a result
-  let doc1 = parse(Source::from_string(input))
-  let output = write(doc1)
-  let doc2 = parse(Source::from_string(output))
+  let doc1 = @gherkin.parse(@gherkin.Source::from_string(input))
+  let output = @gherkin.write(doc1)
+  let doc2 = @gherkin.parse(@gherkin.Source::from_string(output))
   let f1 = doc1.feature.unwrap()
   let f2 = doc2.feature.unwrap()
-  inspect(f1.name, content="Round trip")
-  inspect(f2.name, content="Round trip")
-  guard f1.children[0] is Scenario(s1)
-  guard f2.children[0] is Scenario(s2)
-  inspect(s1.steps.length(), content="3")
-  inspect(s2.steps.length(), content="3")
-  inspect(s1.steps[0].text, content="a step")
-  inspect(s2.steps[0].text, content="a step")
+  @debug.debug_inspect(
+    f1.name,
+    content=(
+      #|"Round trip"
+    ),
+  )
+  @debug.debug_inspect(
+    f2.name,
+    content=(
+      #|"Round trip"
+    ),
+  )
+  guard! f1.children[0] is Scenario(s1)
+  guard! f2.children[0] is Scenario(s2)
+  @debug.debug_inspect(s1.steps.length(), content="3")
+  @debug.debug_inspect(s2.steps.length(), content="3")
+  @debug.debug_inspect(
+    s1.steps[0].text,
+    content=(
+      #|"a step"
+    ),
+  )
+  @debug.debug_inspect(
+    s2.steps[0].text,
+    content=(
+      #|"a step"
+    ),
+  )
 }
 
 ///|
@@ -343,15 +315,25 @@ test "write: round-trip preserves table data" {
     #|    Given users:
     #|      | name  | age |
     #|      | Alice | 30  |
-  let doc1 = parse(Source::from_string(input))
-  let output = write(doc1)
-  let doc2 = parse(Source::from_string(output))
-  guard doc1.feature.unwrap().children[0] is Scenario(s1)
-  guard doc2.feature.unwrap().children[0] is Scenario(s2)
-  guard s1.steps[0].argument is Some(DataTable(t1))
-  guard s2.steps[0].argument is Some(DataTable(t2))
-  inspect(t1.rows[1].cells[0].value, content="Alice")
-  inspect(t2.rows[1].cells[0].value, content="Alice")
+  let doc1 = @gherkin.parse(@gherkin.Source::from_string(input))
+  let output = @gherkin.write(doc1)
+  let doc2 = @gherkin.parse(@gherkin.Source::from_string(output))
+  guard! doc1.feature.unwrap().children[0] is Scenario(s1)
+  guard! doc2.feature.unwrap().children[0] is Scenario(s2)
+  guard! s1.steps[0].argument is Some(DataTable(t1))
+  guard! s2.steps[0].argument is Some(DataTable(t2))
+  @debug.debug_inspect(
+    t1.rows[1].cells[0].value,
+    content=(
+      #|"Alice"
+    ),
+  )
+  @debug.debug_inspect(
+    t2.rows[1].cells[0].value,
+    content=(
+      #|"Alice"
+    ),
+  )
 }
 
 // --------------------------------------------------------------------------
@@ -364,24 +346,31 @@ test "write: custom indent (4 spaces)" {
     #|Feature: Indented
     #|  Scenario: Test
     #|    Given a step
-  let config : WriteConfig = { ..WriteConfig::default(), indent: "    " }
-  let expected =
-    #|Feature: Indented
-    #|
-    #|    Scenario: Test
-    #|        Given a step
-    #|
-  inspect(write(parse(Source::from_string(input)), config~), content=expected)
+  let config : @gherkin.WriteConfig = {
+    ..@gherkin.WriteConfig::default(),
+    indent: "    ",
+  }
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input)), config~),
+    content=(
+      #|"Feature: Indented\n\n    Scenario: Test\n        Given a step\n"
+    ),
+  )
 }
 
 ///|
 test "write: no trailing newline" {
-  let config : WriteConfig = {
-    ..WriteConfig::default(),
+  let config : @gherkin.WriteConfig = {
+    ..@gherkin.WriteConfig::default(),
     trailing_newline: false,
   }
-  let doc = parse(Source::from_string("Feature: No trail"))
-  inspect(write(doc, config~), content="Feature: No trail")
+  let doc = @gherkin.parse(@gherkin.Source::from_string("Feature: No trail"))
+  @debug.debug_inspect(
+    @gherkin.write(doc, config~),
+    content=(
+      #|"Feature: No trail"
+    ),
+  )
 }
 
 ///|
@@ -392,16 +381,16 @@ test "write: zero table cell padding" {
     #|    Given a table:
     #|      | a | b |
     #|      | 1 | 2 |
-  let config : WriteConfig = { ..WriteConfig::default(), table_cell_padding: 0 }
-  let expected =
-    #|Feature: Tight
-    #|
-    #|  Scenario: Compact
-    #|    Given a table:
-    #|      |a|b|
-    #|      |1|2|
-    #|
-  inspect(write(parse(Source::from_string(input)), config~), content=expected)
+  let config : @gherkin.WriteConfig = {
+    ..@gherkin.WriteConfig::default(),
+    table_cell_padding: 0,
+  }
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input)), config~),
+    content=(
+      #|"Feature: Tight\n\n  Scenario: Compact\n    Given a table:\n      |a|b|\n      |1|2|\n"
+    ),
+  )
 }
 
 ///|
@@ -411,17 +400,16 @@ test "write: comments excluded via config" {
     #|Feature: NoComments
     #|  Scenario: Test
     #|    Given a step
-  let config : WriteConfig = {
-    ..WriteConfig::default(),
+  let config : @gherkin.WriteConfig = {
+    ..@gherkin.WriteConfig::default(),
     include_comments: false,
   }
-  let expected =
-    #|Feature: NoComments
-    #|
-    #|  Scenario: Test
-    #|    Given a step
-    #|
-  inspect(write(parse(Source::from_string(input)), config~), content=expected)
+  @debug.debug_inspect(
+    @gherkin.write(@gherkin.parse(@gherkin.Source::from_string(input)), config~),
+    content=(
+      #|"Feature: NoComments\n\n  Scenario: Test\n    Given a step\n"
+    ),
+  )
 }
 
 // ==========================================================================
@@ -430,7 +418,7 @@ test "write: comments excluded via config" {
 
 ///|
 test "GherkinWriter: build simple feature" {
-  let w = GherkinWriter::new()
+  let w = @gherkin.GherkinWriter::new()
   w.feature("Feature", "Login")
   w.scenario("Scenario", "Success")
   w.step("Given ", "a user")
@@ -438,20 +426,17 @@ test "GherkinWriter: build simple feature" {
   w.step("Then ", "they see the dashboard")
   w.end_scenario()
   w.end_feature()
-  let expected =
-    #|Feature: Login
-    #|
-    #|  Scenario: Success
-    #|    Given a user
-    #|    When they log in
-    #|    Then they see the dashboard
-    #|
-  inspect(w.to_string(), content=expected)
+  @debug.debug_inspect(
+    w.to_string(),
+    content=(
+      #|"Feature: Login\n\n  Scenario: Success\n    Given a user\n    When they log in\n    Then they see the dashboard\n"
+    ),
+  )
 }
 
 ///|
 test "GherkinWriter: build with tags" {
-  let w = GherkinWriter::new()
+  let w = @gherkin.GherkinWriter::new()
   w.tags(["@smoke", "@regression"])
   w.feature("Feature", "Tagged")
   w.tags(["@wip"])
@@ -459,20 +444,17 @@ test "GherkinWriter: build with tags" {
   w.step("Given ", "a step")
   w.end_scenario()
   w.end_feature()
-  let expected =
-    #|@smoke @regression
-    #|Feature: Tagged
-    #|
-    #|  @wip
-    #|  Scenario: Important
-    #|    Given a step
-    #|
-  inspect(w.to_string(), content=expected)
+  @debug.debug_inspect(
+    w.to_string(),
+    content=(
+      #|"@smoke @regression\nFeature: Tagged\n\n  @wip\n  Scenario: Important\n    Given a step\n"
+    ),
+  )
 }
 
 ///|
 test "GherkinWriter: build with data table" {
-  let w = GherkinWriter::new()
+  let w = @gherkin.GherkinWriter::new()
   w.feature("Feature", "Tables")
   w.scenario("Scenario", "Data")
   w.step("Given ", "users:")
@@ -483,43 +465,34 @@ test "GherkinWriter: build with data table" {
   ])
   w.end_scenario()
   w.end_feature()
-  let expected =
-    #|Feature: Tables
-    #|
-    #|  Scenario: Data
-    #|    Given users:
-    #|      | name  | email          |
-    #|      | Alice | alice@test.com |
-    #|      | Bob   | bob@test.com   |
-    #|
-  inspect(w.to_string(), content=expected)
+  @debug.debug_inspect(
+    w.to_string(),
+    content=(
+      #|"Feature: Tables\n\n  Scenario: Data\n    Given users:\n      | name  | email          |\n      | Alice | alice@test.com |\n      | Bob   | bob@test.com   |\n"
+    ),
+  )
 }
 
 ///|
 test "GherkinWriter: build with doc string" {
-  let w = GherkinWriter::new()
+  let w = @gherkin.GherkinWriter::new()
   w.feature("Feature", "DocStrings")
   w.scenario("Scenario", "Body")
   w.step("Given ", "a body:")
   w.doc_string("Hello\nWorld")
   w.end_scenario()
   w.end_feature()
-  let expected =
-    #|Feature: DocStrings
-    #|
-    #|  Scenario: Body
-    #|    Given a body:
-    #|      """
-    #|      Hello
-    #|      World
-    #|      """
-    #|
-  inspect(w.to_string(), content=expected)
+  @debug.debug_inspect(
+    w.to_string(),
+    content=(
+      #|"Feature: DocStrings\n\n  Scenario: Body\n    Given a body:\n      \"\"\"\n      Hello\n      World\n      \"\"\"\n"
+    ),
+  )
 }
 
 ///|
 test "GherkinWriter: build with examples" {
-  let w = GherkinWriter::new()
+  let w = @gherkin.GherkinWriter::new()
   w.feature("Feature", "Outlines")
   w.scenario("Scenario Outline", "Eating")
   w.step("Given ", "there are <start> cucumbers")
@@ -530,56 +503,44 @@ test "GherkinWriter: build with examples" {
   ])
   w.end_scenario()
   w.end_feature()
-  let expected =
-    #|Feature: Outlines
-    #|
-    #|  Scenario Outline: Eating
-    #|    Given there are <start> cucumbers
-    #|    When I eat <eat> cucumbers
-    #|
-    #|    Examples:
-    #|      | start | eat | left |
-    #|      | 12    | 5   | 7    |
-    #|      | 20    | 5   | 15   |
-    #|
-  inspect(w.to_string(), content=expected)
+  @debug.debug_inspect(
+    w.to_string(),
+    content=(
+      #|"Feature: Outlines\n\n  Scenario Outline: Eating\n    Given there are <start> cucumbers\n    When I eat <eat> cucumbers\n\n    Examples:\n      | start | eat | left |\n      | 12    | 5   | 7    |\n      | 20    | 5   | 15   |\n"
+    ),
+  )
 }
 
 ///|
 test "GherkinWriter: build with description" {
-  let w = GherkinWriter::new()
+  let w = @gherkin.GherkinWriter::new()
   w.feature("Feature", "Login", description="As a user\nI want to login")
   w.scenario("Scenario", "Success")
   w.step("Given ", "a user")
   w.end_scenario()
   w.end_feature()
-  let expected =
-    #|Feature: Login
-    #|  As a user
-    #|  I want to login
-    #|
-    #|  Scenario: Success
-    #|    Given a user
-    #|
-  inspect(w.to_string(), content=expected)
+  @debug.debug_inspect(
+    w.to_string(),
+    content=(
+      #|"Feature: Login\n  As a user\n  I want to login\n\n  Scenario: Success\n    Given a user\n"
+    ),
+  )
 }
 
 ///|
 test "GherkinWriter: build French feature" {
-  let w = GherkinWriter::new()
+  let w = @gherkin.GherkinWriter::new()
   w.feature("Fonctionnalité", "Connexion", language="fr")
   w.scenario("Scénario", "Succès")
   w.step("Soit ", "un utilisateur")
   w.end_scenario()
   w.end_feature()
-  let expected =
-    #|# language: fr
-    #|Fonctionnalité: Connexion
-    #|
-    #|  Scénario: Succès
-    #|    Soit un utilisateur
-    #|
-  inspect(w.to_string(), content=expected)
+  @debug.debug_inspect(
+    w.to_string(),
+    content=(
+      #|"# language: fr\nFonctionnalité: Connexion\n\n  Scénario: Succès\n    Soit un utilisateur\n"
+    ),
+  )
 }
 
 // ==========================================================================
@@ -594,13 +555,18 @@ test "GherkinWriter: round-trip via handler" {
     #|    Given a step
     #|    When an action
     #|    Then a result
-  let w = GherkinWriter::new()
-  parse_with_handler(Source::from_string(input), w)
-  let doc = parse(Source::from_string(w.to_string()))
+  let w = @gherkin.GherkinWriter::new()
+  @gherkin.parse_with_handler(@gherkin.Source::from_string(input), w)
+  let doc = @gherkin.parse(@gherkin.Source::from_string(w.to_string()))
   let feature = doc.feature.unwrap()
-  inspect(feature.name, content="Handler round-trip")
-  guard feature.children[0] is Scenario(s)
-  inspect(s.steps.length(), content="3")
+  @debug.debug_inspect(
+    feature.name,
+    content=(
+      #|"Handler round-trip"
+    ),
+  )
+  guard! feature.children[0] is Scenario(s)
+  @debug.debug_inspect(s.steps.length(), content="3")
 }
 
 ///|
@@ -611,12 +577,17 @@ test "GherkinWriter: handler round-trip preserves tables" {
     #|    Given users:
     #|      | name  | age |
     #|      | Alice | 30  |
-  let w = GherkinWriter::new()
-  parse_with_handler(Source::from_string(input), w)
-  let doc = parse(Source::from_string(w.to_string()))
-  guard doc.feature.unwrap().children[0] is Scenario(s)
-  guard s.steps[0].argument is Some(DataTable(t))
-  inspect(t.rows[1].cells[0].value, content="Alice")
+  let w = @gherkin.GherkinWriter::new()
+  @gherkin.parse_with_handler(@gherkin.Source::from_string(input), w)
+  let doc = @gherkin.parse(@gherkin.Source::from_string(w.to_string()))
+  guard! doc.feature.unwrap().children[0] is Scenario(s)
+  guard! s.steps[0].argument is Some(DataTable(t))
+  @debug.debug_inspect(
+    t.rows[1].cells[0].value,
+    content=(
+      #|"Alice"
+    ),
+  )
 }
 
 ///|
@@ -628,11 +599,11 @@ test "GherkinWriter: handler round-trip preserves doc strings" {
     #|      """json
     #|      {"key": "value"}
     #|      """
-  let w = GherkinWriter::new()
-  parse_with_handler(Source::from_string(input), w)
-  let doc = parse(Source::from_string(w.to_string()))
-  guard doc.feature.unwrap().children[0] is Scenario(s)
-  guard s.steps[0].argument is Some(DocString(ds))
-  inspect(ds.media_type, content="Some(\"json\")")
+  let w = @gherkin.GherkinWriter::new()
+  @gherkin.parse_with_handler(@gherkin.Source::from_string(input), w)
+  let doc = @gherkin.parse(@gherkin.Source::from_string(w.to_string()))
+  guard! doc.feature.unwrap().children[0] is Scenario(s)
+  guard! s.steps[0].argument is Some(DocString(ds))
+  @debug.debug_inspect(ds.media_type, content="Some(\"json\")")
   assert_true(ds.content.contains("key"))
 }

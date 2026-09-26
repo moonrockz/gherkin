@@ -7,7 +7,7 @@ pub(all) struct FeatureEvent {
   keyword : String
   name : String
   description : String
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// A rule start event. Children arrive as subsequent events.
@@ -17,7 +17,7 @@ pub(all) struct RuleEvent {
   keyword : String
   name : String
   description : String
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// A background start event. Steps arrive as subsequent events.
@@ -26,7 +26,7 @@ pub(all) struct BackgroundEvent {
   keyword : String
   name : String
   description : String
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// A scenario start event. Steps/examples arrive as subsequent events.
@@ -37,7 +37,7 @@ pub(all) struct ScenarioEvent {
   keyword : String
   name : String
   description : String
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// A step event (leaf -- no children).
@@ -46,7 +46,7 @@ pub(all) struct StepEvent {
   keyword : String
   keyword_type : KeywordType
   text : String
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// A doc string event (leaf).
@@ -55,14 +55,14 @@ pub(all) struct DocStringEvent {
   media_type : String?
   content : String
   delimiter : String
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// A data table event (self-contained with all rows).
 pub(all) struct DataTableEvent {
   location : Location
   rows : Array[TableRow]
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// An examples table event (self-contained with header + body).
@@ -74,21 +74,21 @@ pub(all) struct ExamplesEvent {
   description : String
   table_header : TableRow?
   table_body : Array[TableRow]
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// A tag event (leaf).
 pub(all) struct TagEvent {
   location : Location
   name : String
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// A comment event (leaf).
 pub(all) struct CommentEvent {
   location : Location
   text : String
-} derive(Show, Eq)
+} derive(Debug, Eq)
 
 ///|
 /// Events emitted during pull-based parsing.
@@ -110,4 +110,70 @@ pub(all) enum GherkinEvent {
   Examples(ExamplesEvent)
   Tag(TagEvent)
   Comment(CommentEvent)
-} derive(Show, Eq)
+} derive(Debug, Eq)
+
+///|
+pub extend FeatureEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend FeatureEvent with Eq::{not_equal, equal}
+
+///|
+pub extend RuleEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend RuleEvent with Eq::{not_equal, equal}
+
+///|
+pub extend BackgroundEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend BackgroundEvent with Eq::{not_equal, equal}
+
+///|
+pub extend ScenarioEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ScenarioEvent with Eq::{not_equal, equal}
+
+///|
+pub extend StepEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend StepEvent with Eq::{not_equal, equal}
+
+///|
+pub extend DocStringEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend DocStringEvent with Eq::{not_equal, equal}
+
+///|
+pub extend DataTableEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend DataTableEvent with Eq::{not_equal, equal}
+
+///|
+pub extend ExamplesEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend ExamplesEvent with Eq::{not_equal, equal}
+
+///|
+pub extend TagEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend TagEvent with Eq::{not_equal, equal}
+
+///|
+pub extend CommentEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend CommentEvent with Eq::{not_equal, equal}
+
+///|
+pub extend GherkinEvent with @moonbitlang/core/debug.Debug::{to_repr}
+
+///|
+pub extend GherkinEvent with Eq::{not_equal, equal}

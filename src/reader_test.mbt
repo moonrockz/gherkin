@@ -7,7 +7,7 @@
 // ---------------------------------------------------------------------------
 
 ///|
-fn event_name(e : GherkinEvent) -> String {
+fn event_name(e : @gherkin.GherkinEvent) -> String {
   match e {
     DocumentStart => "DocumentStart"
     DocumentEnd => "DocumentEnd"
@@ -29,7 +29,7 @@ fn event_name(e : GherkinEvent) -> String {
 }
 
 ///|
-fn collect_names(reader : GherkinReader) -> String {
+fn collect_names(reader : @gherkin.GherkinReader) -> String {
   let names : Array[String] = []
   for e in reader.iter() {
     names.push(event_name(e))
@@ -43,16 +43,27 @@ fn collect_names(reader : GherkinReader) -> String {
 
 ///|
 test "reader: empty document" {
-  let reader = GherkinReader::from_document(GherkinDocument::empty())
-  inspect(collect_names(reader), content="DocumentStart -> DocumentEnd")
+  let reader = @gherkin.GherkinReader::from_document(
+    @gherkin.GherkinDocument::empty(),
+  )
+  @debug.debug_inspect(
+    collect_names(reader),
+    content=(
+      #|"DocumentStart -> DocumentEnd"
+    ),
+  )
 }
 
 ///|
 test "reader: feature only" {
-  let reader = GherkinReader::new(Source::from_string("Feature: Login"))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(
+    @gherkin.Source::from_string("Feature: Login"),
+  )
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -64,10 +75,12 @@ test "reader: feature with scenario and steps" {
     #|    Given a user
     #|    When they login
     #|    Then they see dashboard
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> ScenarioStart -> Step -> Step -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> ScenarioStart -> Step -> Step -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -76,10 +89,12 @@ test "reader: feature with tags" {
   let input =
     #|@smoke @regression
     #|Feature: Login
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> Tag -> Tag -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> Tag -> Tag -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -90,10 +105,12 @@ test "reader: scenario with tags" {
     #|  @wip
     #|  Scenario: S
     #|    Given x
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> ScenarioStart -> Tag -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> ScenarioStart -> Tag -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -102,10 +119,12 @@ test "reader: comments" {
   let input =
     #|# A comment
     #|Feature: Login
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> Comment -> FeatureStart -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> Comment -> FeatureStart -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -117,10 +136,12 @@ test "reader: background" {
     #|    Given a setup step
     #|  Scenario: S
     #|    When action
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> BackgroundStart -> Step -> BackgroundEnd -> ScenarioStart -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> BackgroundStart -> Step -> BackgroundEnd -> ScenarioStart -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -131,10 +152,12 @@ test "reader: rules" {
     #|  Rule: Admin access
     #|    Scenario: Admin login
     #|      Given an admin
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> RuleStart -> ScenarioStart -> Step -> ScenarioEnd -> RuleEnd -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> RuleStart -> ScenarioStart -> Step -> ScenarioEnd -> RuleEnd -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -147,10 +170,12 @@ test "reader: doc string" {
     #|      """
     #|      Hello World
     #|      """
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> ScenarioStart -> Step -> DocString -> ScenarioEnd -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> ScenarioStart -> Step -> DocString -> ScenarioEnd -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -162,10 +187,12 @@ test "reader: data table" {
     #|    Given users:
     #|      | name | age |
     #|      | Bob  | 30  |
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> ScenarioStart -> Step -> DataTable -> ScenarioEnd -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> ScenarioStart -> Step -> DataTable -> ScenarioEnd -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -178,10 +205,12 @@ test "reader: scenario outline with examples" {
     #|    Examples:
     #|      | user  |
     #|      | Alice |
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> ScenarioStart -> Step -> Examples -> ScenarioEnd -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> ScenarioStart -> Step -> Examples -> ScenarioEnd -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -193,10 +222,12 @@ test "reader: multiple scenarios" {
     #|    Given a
     #|  Scenario: Second
     #|    Given b
-  let reader = GherkinReader::new(Source::from_string(input))
-  inspect(
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
+  @debug.debug_inspect(
     collect_names(reader),
-    content="DocumentStart -> FeatureStart -> ScenarioStart -> Step -> ScenarioEnd -> ScenarioStart -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd",
+    content=(
+      #|"DocumentStart -> FeatureStart -> ScenarioStart -> Step -> ScenarioEnd -> ScenarioStart -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd"
+    ),
   )
 }
 
@@ -206,17 +237,19 @@ test "reader: multiple scenarios" {
 
 ///|
 test "reader: peek returns same event without consuming" {
-  let reader = GherkinReader::new(Source::from_string("Feature: F"))
+  let reader = @gherkin.GherkinReader::new(
+    @gherkin.Source::from_string("Feature: F"),
+  )
   let peeked = reader.peek()
   let nexted = reader.next()
   // Both should be DocumentStart
-  inspect(
+  @debug.debug_inspect(
     peeked.map(event_name),
     content=(
       #|Some("DocumentStart")
     ),
   )
-  inspect(
+  @debug.debug_inspect(
     nexted.map(event_name),
     content=(
       #|Some("DocumentStart")
@@ -226,19 +259,23 @@ test "reader: peek returns same event without consuming" {
 
 ///|
 test "reader: next returns None when exhausted" {
-  let reader = GherkinReader::from_document(GherkinDocument::empty())
+  let reader = @gherkin.GherkinReader::from_document(
+    @gherkin.GherkinDocument::empty(),
+  )
   // Consume all events
   let _ = reader.next() // DocumentStart
   let _ = reader.next() // DocumentEnd
-  inspect(reader.next(), content="None")
+  @debug.debug_inspect(reader.next(), content="None")
 }
 
 ///|
 test "reader: peek returns None when exhausted" {
-  let reader = GherkinReader::from_document(GherkinDocument::empty())
+  let reader = @gherkin.GherkinReader::from_document(
+    @gherkin.GherkinDocument::empty(),
+  )
   let _ = reader.next() // DocumentStart
   let _ = reader.next() // DocumentEnd
-  inspect(reader.peek(), content="None")
+  @debug.debug_inspect(reader.peek(), content="None")
 }
 
 ///|
@@ -247,15 +284,15 @@ test "reader: iter produces same sequence as repeated next" {
     #|Feature: F
     #|  Scenario: S
     #|    Given x
-  let source = Source::from_string(input)
+  let source = @gherkin.Source::from_string(input)
   // Collect via iter
-  let reader1 = GherkinReader::new(source)
+  let reader1 = @gherkin.GherkinReader::new(source)
   let via_iter : Array[String] = []
   for e in reader1.iter() {
     via_iter.push(event_name(e))
   }
   // Collect via next
-  let reader2 = GherkinReader::new(source)
+  let reader2 = @gherkin.GherkinReader::new(source)
   let via_next : Array[String] = []
   while true {
     match reader2.next() {
@@ -272,11 +309,22 @@ test "reader: from_document produces same events as new" {
     #|Feature: Login
     #|  Scenario: S
     #|    Given a user
-  let source = Source::from_string(input)
-  let doc = parse(source)
-  let reader1 = GherkinReader::new(source)
-  let reader2 = GherkinReader::from_document(doc)
-  inspect(collect_names(reader1), content=collect_names(reader2))
+  let source = @gherkin.Source::from_string(input)
+  let doc = @gherkin.parse(source)
+  let reader1 = @gherkin.GherkinReader::new(source)
+  let reader2 = @gherkin.GherkinReader::from_document(doc)
+  @debug.debug_inspect(
+    collect_names(reader1),
+    content=(
+      #|"DocumentStart -> FeatureStart -> ScenarioStart -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd"
+    ),
+  )
+  @debug.debug_inspect(
+    collect_names(reader2),
+    content=(
+      #|"DocumentStart -> FeatureStart -> ScenarioStart -> Step -> ScenarioEnd -> FeatureEnd -> DocumentEnd"
+    ),
+  )
 }
 
 // ==========================================================================
@@ -287,15 +335,30 @@ test "reader: from_document produces same events as new" {
 test "reader: FeatureStart carries correct data" {
   let input =
     #|Feature: Shopping cart
-  let reader = GherkinReader::new(Source::from_string(input))
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
   let _ = reader.next() // DocumentStart
   let event = reader.next()
   guard event is Some(FeatureStart(fe)) else {
-    fail("expected FeatureStart, got \{event}")
+    fail("expected FeatureStart, got \{Repr(event)}")
   }
-  inspect(fe.name, content="Shopping cart")
-  inspect(fe.keyword, content="Feature")
-  inspect(fe.language, content="en")
+  @debug.debug_inspect(
+    fe.name,
+    content=(
+      #|"Shopping cart"
+    ),
+  )
+  @debug.debug_inspect(
+    fe.keyword,
+    content=(
+      #|"Feature"
+    ),
+  )
+  @debug.debug_inspect(
+    fe.language,
+    content=(
+      #|"en"
+    ),
+  )
 }
 
 ///|
@@ -304,15 +367,27 @@ test "reader: StepEvent carries correct data" {
     #|Feature: F
     #|  Scenario: S
     #|    Given a registered user
-  let reader = GherkinReader::new(Source::from_string(input))
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
   let _ = reader.next() // DocumentStart
   let _ = reader.next() // FeatureStart
   let _ = reader.next() // ScenarioStart
   let event = reader.next()
-  guard event is Some(Step(se)) else { fail("expected Step, got \{event}") }
-  inspect(se.text, content="a registered user")
-  inspect(se.keyword, content="Given ")
-  inspect(se.keyword_type, content="Context")
+  guard event is Some(Step(se)) else {
+    fail("expected Step, got \{Repr(event)}")
+  }
+  @debug.debug_inspect(
+    se.text,
+    content=(
+      #|"a registered user"
+    ),
+  )
+  @debug.debug_inspect(
+    se.keyword,
+    content=(
+      #|"Given "
+    ),
+  )
+  @debug.debug_inspect(se.keyword_type, content="Context")
 }
 
 ///|
@@ -320,12 +395,17 @@ test "reader: TagEvent carries correct name" {
   let input =
     #|@smoke
     #|Feature: F
-  let reader = GherkinReader::new(Source::from_string(input))
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
   let _ = reader.next() // DocumentStart
   let _ = reader.next() // FeatureStart
   let event = reader.next()
-  guard event is Some(Tag(te)) else { fail("expected Tag, got \{event}") }
-  inspect(te.name, content="@smoke")
+  guard event is Some(Tag(te)) else { fail("expected Tag, got \{Repr(event)}") }
+  @debug.debug_inspect(
+    te.name,
+    content=(
+      #|"@smoke"
+    ),
+  )
 }
 
 ///|
@@ -333,13 +413,18 @@ test "reader: CommentEvent carries correct text" {
   let input =
     #|# Hello world
     #|Feature: F
-  let reader = GherkinReader::new(Source::from_string(input))
+  let reader = @gherkin.GherkinReader::new(@gherkin.Source::from_string(input))
   let _ = reader.next() // DocumentStart
   let event = reader.next()
   guard event is Some(Comment(ce)) else {
-    fail("expected Comment, got \{event}")
+    fail("expected Comment, got \{Repr(event)}")
   }
-  inspect(ce.text, content="# Hello world")
+  @debug.debug_inspect(
+    ce.text,
+    content=(
+      #|"# Hello world"
+    ),
+  )
 }
 
 // ==========================================================================
@@ -354,13 +439,13 @@ test "reader: pipe to writer produces same output as write" {
     #|    Given a registered user
     #|    When they enter credentials
     #|    Then they see the dashboard
-  let source = Source::from_string(input)
-  let doc = parse(source)
+  let source = @gherkin.Source::from_string(input)
+  let doc = @gherkin.parse(source)
   // Direct write
-  let direct = write(doc)
+  let direct = @gherkin.write(doc)
   // Reader -> pipe -> writer
-  let reader = GherkinReader::from_document(doc)
-  let w = GherkinWriter::new()
+  let reader = @gherkin.GherkinReader::from_document(doc)
+  let w = @gherkin.GherkinWriter::new()
   reader.pipe(w)
   let piped = w.to_string()
   assert_eq(direct, piped)
@@ -374,11 +459,11 @@ test "reader: pipe with tags" {
     #|  @wip
     #|  Scenario: S
     #|    Given x
-  let source = Source::from_string(input)
-  let doc = parse(source)
-  let direct = write(doc)
-  let reader = GherkinReader::from_document(doc)
-  let w = GherkinWriter::new()
+  let source = @gherkin.Source::from_string(input)
+  let doc = @gherkin.parse(source)
+  let direct = @gherkin.write(doc)
+  let reader = @gherkin.GherkinReader::from_document(doc)
+  let w = @gherkin.GherkinWriter::new()
   reader.pipe(w)
   assert_eq(direct, w.to_string())
 }
@@ -392,11 +477,11 @@ test "reader: pipe with data table" {
     #|      | name  | age |
     #|      | Alice | 30  |
     #|      | Bob   | 25  |
-  let source = Source::from_string(input)
-  let doc = parse(source)
-  let direct = write(doc)
-  let reader = GherkinReader::from_document(doc)
-  let w = GherkinWriter::new()
+  let source = @gherkin.Source::from_string(input)
+  let doc = @gherkin.parse(source)
+  let direct = @gherkin.write(doc)
+  let reader = @gherkin.GherkinReader::from_document(doc)
+  let w = @gherkin.GherkinWriter::new()
   reader.pipe(w)
   assert_eq(direct, w.to_string())
 }
@@ -410,11 +495,11 @@ test "reader: pipe with doc string" {
     #|      """
     #|      Hello World
     #|      """
-  let source = Source::from_string(input)
-  let doc = parse(source)
-  let direct = write(doc)
-  let reader = GherkinReader::from_document(doc)
-  let w = GherkinWriter::new()
+  let source = @gherkin.Source::from_string(input)
+  let doc = @gherkin.parse(source)
+  let direct = @gherkin.write(doc)
+  let reader = @gherkin.GherkinReader::from_document(doc)
+  let w = @gherkin.GherkinWriter::new()
   reader.pipe(w)
   assert_eq(direct, w.to_string())
 }
@@ -429,11 +514,11 @@ test "reader: pipe with examples" {
     #|      | user  |
     #|      | Alice |
     #|      | Bob   |
-  let source = Source::from_string(input)
-  let doc = parse(source)
-  let direct = write(doc)
-  let reader = GherkinReader::from_document(doc)
-  let w = GherkinWriter::new()
+  let source = @gherkin.Source::from_string(input)
+  let doc = @gherkin.parse(source)
+  let direct = @gherkin.write(doc)
+  let reader = @gherkin.GherkinReader::from_document(doc)
+  let w = @gherkin.GherkinWriter::new()
   reader.pipe(w)
   assert_eq(direct, w.to_string())
 }
@@ -445,11 +530,11 @@ test "reader: pipe with rules" {
     #|  Rule: Admin
     #|    Scenario: S
     #|      Given an admin
-  let source = Source::from_string(input)
-  let doc = parse(source)
-  let direct = write(doc)
-  let reader = GherkinReader::from_document(doc)
-  let w = GherkinWriter::new()
+  let source = @gherkin.Source::from_string(input)
+  let doc = @gherkin.parse(source)
+  let direct = @gherkin.write(doc)
+  let reader = @gherkin.GherkinReader::from_document(doc)
+  let w = @gherkin.GherkinWriter::new()
   reader.pipe(w)
   assert_eq(direct, w.to_string())
 }
