@@ -22,6 +22,7 @@ options(
         "wasmExportWritePostReturn:cabi_post_moonrockz:gherkin/writer@0.2.0#write",
       ],
       "export-memory-name": "memory",
+      "heap-start-address": 16,
     },
   },
 )
