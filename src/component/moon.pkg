@@ -23,6 +23,10 @@ options(
       ],
       "export-memory-name": "memory",
       "heap-start-address": 16,
+      "memory-limits": {
+        "min": 1,
+        "max": 65536,
+      },
     },
   },
 )
