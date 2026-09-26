@@ -69,6 +69,76 @@ def step_then_error_mentions(context, text):
     )
 
 
+@then('the scenario should have tag "{tag}"')
+def step_then_scenario_has_tag(context, tag):
+    """Assert a parsed scenario owns a tag, excluding raw source text."""
+    if not hasattr(context, "parsed_json"):
+        context.parsed_json = json.loads(context.parser_output)
+    scenarios = _find_all_nodes(context.parsed_json["feature"]["children"], "Scenario")
+    assert any(tag == item["name"] for scenario in scenarios for item in scenario["tags"]), (
+        f"No parsed scenario has tag {tag}"
+    )
+
+
+@then("the data table should have {count:d} rows")
+def step_then_data_table_rows(context, count):
+    if not hasattr(context, "parsed_json"):
+        context.parsed_json = json.loads(context.parser_output)
+    table = _find_node(context.parsed_json["feature"]["children"], "DataTable")
+    assert table is not None, "No parsed data table"
+    assert len(table["rows"]) == count, table
+
+
+@then('the data table should contain cell "{value}"')
+def step_then_data_table_cell(context, value):
+    if not hasattr(context, "parsed_json"):
+        context.parsed_json = json.loads(context.parser_output)
+    table = _find_node(context.parsed_json["feature"]["children"], "DataTable")
+    assert table is not None, "No parsed data table"
+    assert any(cell["value"] == value for row in table["rows"] for cell in row["cells"]), table
+
+
+@then("the examples table should have {count:d} row")
+def step_then_examples_table_rows(context, count):
+    if not hasattr(context, "parsed_json"):
+        context.parsed_json = json.loads(context.parser_output)
+    examples = _find_node(context.parsed_json["feature"]["children"], "Examples")
+    assert examples is not None, "No parsed examples"
+    assert len(examples["table_body"]) == count, examples
+
+
+@then('the feature name should be "{name}"')
+def step_then_feature_name(context, name):
+    if not hasattr(context, "parsed_json"):
+        context.parsed_json = json.loads(context.parser_output)
+    assert context.parsed_json["feature"]["name"] == name
+
+
+@then("the scenario should have {count:d} step")
+def step_then_scenario_steps(context, count):
+    if not hasattr(context, "parsed_json"):
+        context.parsed_json = json.loads(context.parser_output)
+    scenario = _find_node(context.parsed_json["feature"]["children"], "Scenario")
+    assert scenario is not None, "No parsed scenario"
+    assert len(scenario["steps"]) == count, scenario
+
+
+@then("the feature description should be empty")
+def step_then_feature_description_empty(context):
+    if not hasattr(context, "parsed_json"):
+        context.parsed_json = json.loads(context.parser_output)
+    assert context.parsed_json["feature"]["description"] == ""
+
+
+@then("the doc string content should be '{content}'")
+def step_then_doc_string_content(context, content):
+    if not hasattr(context, "parsed_json"):
+        context.parsed_json = json.loads(context.parser_output)
+    doc_string = _find_node(context.parsed_json["feature"]["children"], "DocString")
+    assert doc_string is not None, "No parsed doc string"
+    assert doc_string["content"] == content, doc_string
+
+
 def _matches_node(data, node_type):
     """Check if a dict matches the given node type.
 
