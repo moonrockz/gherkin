@@ -10,6 +10,7 @@ current source of truth.
 Install `bd`, then run from the repository root:
 
 ```bash
+chmod 700 .beads
 bd bootstrap --yes
 bd status
 bd sync
