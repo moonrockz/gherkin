@@ -13,6 +13,8 @@ pub fn[A, N] continuing((A, N) -> A) -> (A, N) -> FoldAction[A]
 
 pub fn parse(Source) -> GherkinDocument raise ParseError
 
+pub fn parse_markdown(Source) -> GherkinDocument raise ParseError
+
 pub fn parse_with_handler(Source, &GherkinHandler) -> Unit raise ParseError
 
 pub fn tokenize(Source) -> Array[Token]

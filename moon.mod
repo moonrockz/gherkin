@@ -4,6 +4,7 @@ version = "0.4.0"
 
 import {
   "moonbitlang/x@0.4.40",
+  "mizchi/markdown@0.8.3",
 }
 
 readme = "README.mbt.md"

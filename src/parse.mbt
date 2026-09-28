@@ -1,8 +1,20 @@
 ///|
 /// Parse a Gherkin document from a `Source`.
 pub fn parse(source : Source) -> GherkinDocument raise ParseError {
+  match source.uri() {
+    Some(uri) if uri.has_suffix(".feature.md") => return parse_markdown(source)
+    _ => ()
+  }
   let tokens = tokenize(source)
-  let parser = Parser::new(tokens, source)
+  let parser = Parser::new(tokens, source, false)
+  parser.parse_document()
+}
+
+///|
+/// Parse Markdown with Gherkin, including sources without a `.feature.md` URI.
+pub fn parse_markdown(source : Source) -> GherkinDocument raise ParseError {
+  let tokens = tokenize_markdown(source)
+  let parser = Parser::new(tokens, source, true)
   parser.parse_document()
 }
 
@@ -10,13 +22,18 @@ pub fn parse(source : Source) -> GherkinDocument raise ParseError {
 priv struct Parser {
   tokens : Array[Token]
   source : Source
+  markdown : Bool
   mut pos : Int
   mut id_counter : Int
 }
 
 ///|
-fn Parser::new(tokens : Array[Token], source : Source) -> Parser {
-  { tokens, source, pos: 0, id_counter: 0, }
+fn Parser::new(
+  tokens : Array[Token],
+  source : Source,
+  markdown : Bool,
+) -> Parser {
+  { tokens, source, markdown, pos: 0, id_counter: 0, }
 }
 
 ///|
@@ -357,6 +374,9 @@ fn Parser::parse_examples(self : Parser) -> Examples raise ParseError {
     }
     _ => None
   }
+  if table_header is Some(_) {
+    self.skip_markdown_table_separator()
+  }
   let table_body : Array[TableRow] = []
   while !self.at_eof() {
     match self.peek() {
@@ -485,6 +505,9 @@ fn Parser::parse_data_table(self : Parser) -> DataTable raise ParseError {
         }
         rows.push({ location: loc, id: self.next_id(), cells: table_cells, })
         self.advance() |> ignore
+        if rows.length() == 1 {
+          self.skip_markdown_table_separator()
+        }
       }
       _ => break
     }
@@ -495,6 +518,22 @@ fn Parser::parse_data_table(self : Parser) -> DataTable raise ParseError {
     { line: 0, column: None, }
   }
   { location: table_loc, rows, }
+}
+
+///|
+fn Parser::skip_markdown_table_separator(self : Parser) -> Unit {
+  if self.markdown {
+    match self.peek() {
+      Empty(loc) =>
+        match self.source.line(loc.line) {
+          Some(line) if markdown_table_delimiter(
+              line[:].trim_start(chars=" ").to_owned(),
+            ) => self.advance() |> ignore
+          _ => ()
+        }
+      _ => ()
+    }
+  }
 }
 
 ///|

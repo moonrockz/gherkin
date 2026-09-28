@@ -19,6 +19,26 @@ let feature = doc.feature.unwrap()
 // feature.name == "Login"
 ```
 
+## Markdown with Gherkin
+
+The parser also accepts [Markdown with Gherkin](https://github.com/cucumber/gherkin/blob/main/MARKDOWN_WITH_GHERKIN.md) files ending in `.feature.md`. Pass the filename as the source URI to select MDG automatically:
+
+```moonbit skip nocheck
+let source = @gherkin.Source::from_string(
+  "# Feature: Login\n\n## Scenario: Success\n\n- Given a user",
+  uri="login.feature.md",
+)
+let doc = @gherkin.parse!(source)
+```
+
+For Markdown text without a filename, call `@gherkin.parse_markdown!(source)`. The CLI selects MDG when its input path ends in `.feature.md`:
+
+```bash
+moon run src/cmd/main -- path/to/login.feature.md
+```
+
+MDG uses headings for features, rules, scenarios, backgrounds, and examples; `-` or `*` list items for steps; code spans for tags; indented GFM tables for step data and examples; and fenced code blocks for doc strings. Other Markdown prose is ignored by the Gherkin AST. If there is no `Feature:` heading, the first nonempty line becomes the feature name.
+
 ## Four Parsing APIs
 
 ### DOM-Based

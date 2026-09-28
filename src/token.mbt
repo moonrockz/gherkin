@@ -239,6 +239,11 @@ fn trim_cell(s : String) -> String {
 
 ///|
 pub fn tokenize(source : Source) -> Array[Token] {
+  match source.uri() {
+    Some(uri) if uri.has_suffix(".feature.md") =>
+      return tokenize_markdown(source)
+    _ => ()
+  }
   let tokens : Array[Token] = []
   let mut state : LexerState = Normal
   let mut language = "en"
@@ -264,6 +269,8 @@ pub fn tokenize(source : Source) -> Array[Token] {
 ///|
 pub struct Lexer {
   priv source : Source
+  priv markdown_tokens : Array[Token]?
+  priv mut markdown_pos : Int
   priv mut line_num : Int
   priv mut state : LexerState
   priv mut done : Bool
@@ -272,12 +279,36 @@ pub struct Lexer {
 
 ///|
 pub fn Lexer::new(source : Source) -> Lexer {
-  { source, line_num: 1, state: Normal, done: false, language: "en", }
+  let markdown_tokens = match source.uri() {
+    Some(uri) if uri.has_suffix(".feature.md") =>
+      Some(tokenize_markdown(source))
+    _ => None
+  }
+  {
+    source,
+    markdown_tokens,
+    markdown_pos: 0,
+    line_num: 1,
+    state: Normal,
+    done: false,
+    language: "en",
+  }
 }
 
 ///|
 /// Return the next token, advancing the lexer state.
 pub fn Lexer::next(self : Lexer) -> Token? {
+  match self.markdown_tokens {
+    Some(tokens) => {
+      if self.markdown_pos < tokens.length() {
+        let token = tokens[self.markdown_pos]
+        self.markdown_pos = self.markdown_pos + 1
+        return Some(token)
+      }
+      return None
+    }
+    None => ()
+  }
   while self.line_num <= self.source.line_count() {
     match self.source.line(self.line_num) {
       Some(line) => {

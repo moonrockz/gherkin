@@ -2,6 +2,7 @@ import {
   "moonbitlang/core/json",
   "moonbitlang/core/encoding/utf8",
   "moonbitlang/core/debug",
+  "mizchi/markdown",
 }
 
 import {
