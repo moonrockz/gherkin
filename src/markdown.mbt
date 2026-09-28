@@ -83,6 +83,18 @@ fn tokenize_markdown(source : Source) -> Array[Token] {
           }
         }
       Table(span~, ..) => mark_markdown_table(source, tokens, span)
+      FencedCode(span~, info~, fence_marker~, fence_length~, ..) => {
+        let line = markdown_line_number(source, span.from)
+        if line > 1 {
+          match tokens[line - 2] {
+            StepLine(_, _, _, _) =>
+              mark_markdown_fence(
+                source, tokens, span, info, fence_marker, fence_length,
+              )
+            _ => ()
+          }
+        }
+      }
       Paragraph(children~, span~, ..) => {
         let line = markdown_line_number(source, span.from)
         let tags : Array[String] = []
@@ -142,6 +154,10 @@ fn tokenize_markdown(source : Source) -> Array[Token] {
   }
   if !has_feature {
     for line = 1; line <= source.line_count(); line = line + 1 {
+      match tokens[line - 1] {
+        Language(_, _) => continue
+        _ => ()
+      }
       let text = source.line(line).unwrap_or("")
       let trimmed = text[:].trim()
       if !trimmed.is_empty() {
