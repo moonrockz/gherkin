@@ -66,4 +66,9 @@
 # - github.org
 # - github.repo
 
-sync.remote: "git+ssh://git@github.com/moonrockz/gherkin.git"
+# sync.remote: "git+ssh://git@github.com/moonrockz/gherkin.git"
+
+sync:
+    remote: "git+https://github.com/moonrockz/gherkin.git"
+agent:
+    profile: team-maintainer

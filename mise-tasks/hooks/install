@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+#MISE description="Install git hooks with lefthook (the hooks call bd hooks run)"
+set -euo pipefail
+
+exec lefthook install --reset-hooks-path
