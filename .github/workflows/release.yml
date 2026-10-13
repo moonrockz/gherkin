@@ -81,8 +81,10 @@ jobs:
 
       - name: Generate release notes
         id: notes
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
         run: |
-          NOTES=$(mise run release:notes 2>/dev/null || echo "Release ${{ steps.version.outputs.version }}")
+          NOTES=$(mise run release:notes || echo "Release ${{ steps.version.outputs.version }}")
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
           echo "notes<<$EOF" >> "$GITHUB_OUTPUT"
           echo "$NOTES" >> "$GITHUB_OUTPUT"

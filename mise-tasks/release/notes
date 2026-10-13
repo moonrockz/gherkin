@@ -1,5 +1,18 @@
 #!/usr/bin/env bash
-#MISE description="Generate release notes for the latest version"
+#MISE description="Generate release notes for the release version"
 set -euo pipefail
 
-git cliff --latest --strip header
+# The version to describe: RELEASE_VERSION if set (the release workflow passes
+# the version it computed), else the version in moon.mod.
+VERSION="${RELEASE_VERSION:-$(sed -nE 's/^version = "([^"]*)".*/\1/p' moon.mod | head -n 1)}"
+TAG="v${VERSION#v}"
+
+if git rev-parse -q --verify "refs/tags/${TAG}" >/dev/null; then
+  # The tag exists (tag push or re-run): describe the commits it adds.
+  PREVIOUS=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)
+  git cliff "${PREVIOUS:+${PREVIOUS}..}${TAG}" --strip header
+else
+  # The tag does not exist yet (workflow_dispatch runs this before the tag
+  # job): describe the unreleased commits under the new version.
+  git cliff --unreleased --tag "${TAG}" --strip header
+fi
