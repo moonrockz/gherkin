@@ -1,8 +1,8 @@
 ///|
 /// A location in the source text.
 pub(all) struct Location {
-  line : Int
-  column : Int?
+  line : Int32
+  column : Int32?
 } derive(Debug, Eq, ToJson, FromJson)
 
 ///|

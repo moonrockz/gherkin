@@ -30,6 +30,9 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Set up MoonBit
+        env:
+          # Keep in step with MOONBIT_VERSION in ci.yml and release.yml.
+          MOONBIT_INSTALL_VERSION: "0.10.15+943464bfa"
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> $GITHUB_PATH

@@ -3,8 +3,8 @@ name = "moonrockz/gherkin"
 version = "0.5.0"
 
 import {
-  "moonbitlang/x@0.4.40",
-  "mizchi/markdown@0.8.3",
+  "moonbitlang/x@0.5.5",
+  "moonbit-community/cmark@0.4.12",
 }
 
 readme = "README.mbt.md"

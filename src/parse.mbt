@@ -23,8 +23,8 @@ priv struct Parser {
   tokens : Array[Token]
   source : Source
   markdown : Bool
-  mut pos : Int
-  mut id_counter : Int
+  mut pos : Int32
+  mut id_counter : Int32
 }
 
 ///|

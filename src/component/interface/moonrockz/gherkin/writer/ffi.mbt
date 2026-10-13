@@ -2,7 +2,7 @@
 
 ///|
 #doc(hidden)
-pub fn wasmExportWrite(p0 : Int) -> Int {
+pub fn wasmExportWrite(p0 : Int32) -> Int32 {
   let lifted : String? = match mbt_ffi_load8_u(p0 + 0) {
     0 => Option::None
     1 => {
@@ -24,7 +24,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
   let lifted197 : @types.Feature? = match mbt_ffi_load8_u(p0 + 20) {
     0 => Option::None
     1 => {
-      let lifted1 : Int? = match mbt_ffi_load8_u(p0 + 28) {
+      let lifted1 : Int32? = match mbt_ffi_load8_u(p0 + 28) {
         0 => Option::None
         1 => Option::Some(mbt_ffi_load32(p0 + 32))
         _ => panic()
@@ -34,7 +34,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
       for index = 0; index < mbt_ffi_load32(p0 + 40); index = index + 1 {
         let iter_base = mbt_ffi_load32(p0 + 36) + index * 28
 
-        let lifted2 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+        let lifted2 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 8))
           _ => panic()
@@ -89,7 +89,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
 
         let lifted194 = match mbt_ffi_load8_u(iter_base + 0) {
           0 => {
-            let lifted9 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+            let lifted9 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
               0 => Option::None
               1 => Option::Some(mbt_ffi_load32(iter_base + 12))
               _ => panic()
@@ -121,7 +121,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                 index35 = index35 + 1 {
               let iter_base = mbt_ffi_load32(iter_base + 48) + index35 * 88
 
-              let lifted14 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+              let lifted14 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
                 0 => Option::None
                 1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                 _ => panic()
@@ -148,7 +148,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                 1 => {
                   let lifted32 = match mbt_ffi_load8_u(iter_base + 44) {
                     0 => {
-                      let lifted18 : Int? = match
+                      let lifted18 : Int32? = match
                         mbt_ffi_load8_u(iter_base + 52) {
                         0 => Option::None
                         1 => Option::Some(mbt_ffi_load32(iter_base + 56))
@@ -190,7 +190,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                       })
                     }
                     1 => {
-                      let lifted23 : Int? = match
+                      let lifted23 : Int32? = match
                         mbt_ffi_load8_u(iter_base + 52) {
                         0 => Option::None
                         1 => Option::Some(mbt_ffi_load32(iter_base + 56))
@@ -204,7 +204,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                         let iter_base = mbt_ffi_load32(iter_base + 60) +
                           index31 * 28
 
-                        let lifted24 : Int? = match
+                        let lifted24 : Int32? = match
                           mbt_ffi_load8_u(iter_base + 4) {
                           0 => Option::None
                           1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -223,7 +223,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                           let iter_base = mbt_ffi_load32(iter_base + 20) +
                             index29 * 20
 
-                          let lifted26 : Int? = match
+                          let lifted26 : Int32? = match
                             mbt_ffi_load8_u(iter_base + 4) {
                             0 => Option::None
                             1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -301,7 +301,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
             })
           }
           1 => {
-            let lifted36 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+            let lifted36 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
               0 => Option::None
               1 => Option::Some(mbt_ffi_load32(iter_base + 12))
               _ => panic()
@@ -313,7 +313,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                 index41 = index41 + 1 {
               let iter_base = mbt_ffi_load32(iter_base + 16) + index41 * 28
 
-              let lifted37 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+              let lifted37 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
                 0 => Option::None
                 1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                 _ => panic()
@@ -366,7 +366,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                 index67 = index67 + 1 {
               let iter_base = mbt_ffi_load32(iter_base + 60) + index67 * 88
 
-              let lifted46 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+              let lifted46 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
                 0 => Option::None
                 1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                 _ => panic()
@@ -393,7 +393,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                 1 => {
                   let lifted64 = match mbt_ffi_load8_u(iter_base + 44) {
                     0 => {
-                      let lifted50 : Int? = match
+                      let lifted50 : Int32? = match
                         mbt_ffi_load8_u(iter_base + 52) {
                         0 => Option::None
                         1 => Option::Some(mbt_ffi_load32(iter_base + 56))
@@ -435,7 +435,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                       })
                     }
                     1 => {
-                      let lifted55 : Int? = match
+                      let lifted55 : Int32? = match
                         mbt_ffi_load8_u(iter_base + 52) {
                         0 => Option::None
                         1 => Option::Some(mbt_ffi_load32(iter_base + 56))
@@ -449,7 +449,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                         let iter_base = mbt_ffi_load32(iter_base + 60) +
                           index63 * 28
 
-                        let lifted56 : Int? = match
+                        let lifted56 : Int32? = match
                           mbt_ffi_load8_u(iter_base + 4) {
                           0 => Option::None
                           1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -468,7 +468,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                           let iter_base = mbt_ffi_load32(iter_base + 20) +
                             index61 * 20
 
-                          let lifted58 : Int? = match
+                          let lifted58 : Int32? = match
                             mbt_ffi_load8_u(iter_base + 4) {
                             0 => Option::None
                             1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -539,7 +539,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                 index94 = index94 + 1 {
               let iter_base = mbt_ffi_load32(iter_base + 68) + index94 * 92
 
-              let lifted68 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+              let lifted68 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
                 0 => Option::None
                 1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                 _ => panic()
@@ -551,7 +551,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                   index73 = index73 + 1 {
                 let iter_base = mbt_ffi_load32(iter_base + 12) + index73 * 28
 
-                let lifted69 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+                let lifted69 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
                   0 => Option::None
                   1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                   _ => panic()
@@ -602,7 +602,8 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                 mbt_ffi_load8_u(iter_base + 52) {
                 0 => Option::None
                 1 => {
-                  let lifted78 : Int? = match mbt_ffi_load8_u(iter_base + 60) {
+                  let lifted78 : Int32? = match
+                    mbt_ffi_load8_u(iter_base + 60) {
                     0 => Option::None
                     1 => Option::Some(mbt_ffi_load32(iter_base + 64))
                     _ => panic()
@@ -620,7 +621,8 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                     let iter_base = mbt_ffi_load32(iter_base + 76) +
                       index83 * 20
 
-                    let lifted80 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+                    let lifted80 : Int32? = match
+                      mbt_ffi_load8_u(iter_base + 4) {
                       0 => Option::None
                       1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                       _ => panic()
@@ -659,7 +661,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                   index92 = index92 + 1 {
                 let iter_base = mbt_ffi_load32(iter_base + 84) + index92 * 28
 
-                let lifted85 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+                let lifted85 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
                   0 => Option::None
                   1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                   _ => panic()
@@ -676,7 +678,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                     index90 = index90 + 1 {
                   let iter_base = mbt_ffi_load32(iter_base + 20) + index90 * 20
 
-                  let lifted87 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+                  let lifted87 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
                     0 => Option::None
                     1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                     _ => panic()
@@ -740,7 +742,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
             })
           }
           2 => {
-            let lifted95 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+            let lifted95 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
               0 => Option::None
               1 => Option::Some(mbt_ffi_load32(iter_base + 12))
               _ => panic()
@@ -752,7 +754,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                 index100 = index100 + 1 {
               let iter_base = mbt_ffi_load32(iter_base + 16) + index100 * 28
 
-              let lifted96 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+              let lifted96 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
                 0 => Option::None
                 1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                 _ => panic()
@@ -807,7 +809,8 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
 
               let lifted191 = match mbt_ffi_load8_u(iter_base + 0) {
                 0 => {
-                  let lifted105 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+                  let lifted105 : Int32? = match
+                    mbt_ffi_load8_u(iter_base + 8) {
                     0 => Option::None
                     1 => Option::Some(mbt_ffi_load32(iter_base + 12))
                     _ => panic()
@@ -840,7 +843,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                     let iter_base = mbt_ffi_load32(iter_base + 48) +
                       index131 * 88
 
-                    let lifted110 : Int? = match
+                    let lifted110 : Int32? = match
                       mbt_ffi_load8_u(iter_base + 4) {
                       0 => Option::None
                       1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -868,7 +871,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                       1 => {
                         let lifted128 = match mbt_ffi_load8_u(iter_base + 44) {
                           0 => {
-                            let lifted114 : Int? = match
+                            let lifted114 : Int32? = match
                               mbt_ffi_load8_u(iter_base + 52) {
                               0 => Option::None
                               1 => Option::Some(mbt_ffi_load32(iter_base + 56))
@@ -910,7 +913,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                             })
                           }
                           1 => {
-                            let lifted119 : Int? = match
+                            let lifted119 : Int32? = match
                               mbt_ffi_load8_u(iter_base + 52) {
                               0 => Option::None
                               1 => Option::Some(mbt_ffi_load32(iter_base + 56))
@@ -924,7 +927,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                               let iter_base = mbt_ffi_load32(iter_base + 60) +
                                 index127 * 28
 
-                              let lifted120 : Int? = match
+                              let lifted120 : Int32? = match
                                 mbt_ffi_load8_u(iter_base + 4) {
                                 0 => Option::None
                                 1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -943,7 +946,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                                 let iter_base = mbt_ffi_load32(iter_base + 20) +
                                   index125 * 20
 
-                                let lifted122 : Int? = match
+                                let lifted122 : Int32? = match
                                   mbt_ffi_load8_u(iter_base + 4) {
                                   0 => Option::None
                                   1 =>
@@ -1022,7 +1025,8 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                   })
                 }
                 1 => {
-                  let lifted132 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+                  let lifted132 : Int32? = match
+                    mbt_ffi_load8_u(iter_base + 8) {
                     0 => Option::None
                     1 => Option::Some(mbt_ffi_load32(iter_base + 12))
                     _ => panic()
@@ -1035,7 +1039,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                     let iter_base = mbt_ffi_load32(iter_base + 16) +
                       index137 * 28
 
-                    let lifted133 : Int? = match
+                    let lifted133 : Int32? = match
                       mbt_ffi_load8_u(iter_base + 4) {
                       0 => Option::None
                       1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -1090,7 +1094,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                     let iter_base = mbt_ffi_load32(iter_base + 60) +
                       index163 * 88
 
-                    let lifted142 : Int? = match
+                    let lifted142 : Int32? = match
                       mbt_ffi_load8_u(iter_base + 4) {
                       0 => Option::None
                       1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -1118,7 +1122,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                       1 => {
                         let lifted160 = match mbt_ffi_load8_u(iter_base + 44) {
                           0 => {
-                            let lifted146 : Int? = match
+                            let lifted146 : Int32? = match
                               mbt_ffi_load8_u(iter_base + 52) {
                               0 => Option::None
                               1 => Option::Some(mbt_ffi_load32(iter_base + 56))
@@ -1160,7 +1164,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                             })
                           }
                           1 => {
-                            let lifted151 : Int? = match
+                            let lifted151 : Int32? = match
                               mbt_ffi_load8_u(iter_base + 52) {
                               0 => Option::None
                               1 => Option::Some(mbt_ffi_load32(iter_base + 56))
@@ -1174,7 +1178,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                               let iter_base = mbt_ffi_load32(iter_base + 60) +
                                 index159 * 28
 
-                              let lifted152 : Int? = match
+                              let lifted152 : Int32? = match
                                 mbt_ffi_load8_u(iter_base + 4) {
                                 0 => Option::None
                                 1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -1193,7 +1197,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                                 let iter_base = mbt_ffi_load32(iter_base + 20) +
                                   index157 * 20
 
-                                let lifted154 : Int? = match
+                                let lifted154 : Int32? = match
                                   mbt_ffi_load8_u(iter_base + 4) {
                                   0 => Option::None
                                   1 =>
@@ -1266,7 +1270,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                     let iter_base = mbt_ffi_load32(iter_base + 68) +
                       index190 * 92
 
-                    let lifted164 : Int? = match
+                    let lifted164 : Int32? = match
                       mbt_ffi_load8_u(iter_base + 4) {
                       0 => Option::None
                       1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -1280,7 +1284,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                       let iter_base = mbt_ffi_load32(iter_base + 12) +
                         index169 * 28
 
-                      let lifted165 : Int? = match
+                      let lifted165 : Int32? = match
                         mbt_ffi_load8_u(iter_base + 4) {
                         0 => Option::None
                         1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -1332,7 +1336,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                       mbt_ffi_load8_u(iter_base + 52) {
                       0 => Option::None
                       1 => {
-                        let lifted174 : Int? = match
+                        let lifted174 : Int32? = match
                           mbt_ffi_load8_u(iter_base + 60) {
                           0 => Option::None
                           1 => Option::Some(mbt_ffi_load32(iter_base + 64))
@@ -1351,7 +1355,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                           let iter_base = mbt_ffi_load32(iter_base + 76) +
                             index179 * 20
 
-                          let lifted176 : Int? = match
+                          let lifted176 : Int32? = match
                             mbt_ffi_load8_u(iter_base + 4) {
                             0 => Option::None
                             1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -1392,7 +1396,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                       let iter_base = mbt_ffi_load32(iter_base + 84) +
                         index188 * 28
 
-                      let lifted181 : Int? = match
+                      let lifted181 : Int32? = match
                         mbt_ffi_load8_u(iter_base + 4) {
                         0 => Option::None
                         1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -1411,7 +1415,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
                         let iter_base = mbt_ffi_load32(iter_base + 20) +
                           index186 * 20
 
-                        let lifted183 : Int? = match
+                        let lifted183 : Int32? = match
                           mbt_ffi_load8_u(iter_base + 4) {
                           0 => Option::None
                           1 => Option::Some(mbt_ffi_load32(iter_base + 8))
@@ -1524,7 +1528,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
   for index201 = 0; index201 < mbt_ffi_load32(p0 + 88); index201 = index201 + 1 {
     let iter_base = mbt_ffi_load32(p0 + 84) + index201 * 20
 
-    let lifted198 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+    let lifted198 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
       0 => Option::None
       1 => Option::Some(mbt_ffi_load32(iter_base + 8))
       _ => panic()
@@ -1579,7 +1583,7 @@ pub fn wasmExportWrite(p0 : Int) -> Int {
 
 ///|
 #doc(hidden)
-pub fn wasmExportWritePostReturn(p0 : Int) -> Unit {
+pub fn wasmExportWritePostReturn(p0 : Int32) -> Unit {
   match mbt_ffi_load8_u(p0 + 0) {
     0 => mbt_ffi_free(mbt_ffi_load32(p0 + 4))
     1 => mbt_ffi_free(mbt_ffi_load32(p0 + 4))
@@ -1589,7 +1593,7 @@ pub fn wasmExportWritePostReturn(p0 : Int) -> Unit {
 
 ///|
 #doc(hidden)
-pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
+pub fn wasmExportWriteEvents(p0 : Int32, p1 : Int32) -> Int32 {
   let array74 : Array[@types.GherkinEvent] = []
   for index75 = 0; index75 < p1; index75 = index75 + 1 {
     let iter_base = p0 + index75 * 88
@@ -1598,7 +1602,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
       0 => @types.GherkinEvent::DocumentStart
       1 => @types.GherkinEvent::DocumentEnd
       2 => {
-        let lifted : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -1608,7 +1612,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
         for index = 0; index < mbt_ffi_load32(iter_base + 20); index = index + 1 {
           let iter_base = mbt_ffi_load32(iter_base + 16) + index * 28
 
-          let lifted0 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+          let lifted0 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
             0 => Option::None
             1 => Option::Some(mbt_ffi_load32(iter_base + 8))
             _ => panic()
@@ -1669,7 +1673,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
       }
       3 => @types.GherkinEvent::FeatureEnd
       4 => {
-        let lifted6 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted6 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -1681,7 +1685,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
             index11 = index11 + 1 {
           let iter_base = mbt_ffi_load32(iter_base + 16) + index11 * 28
 
-          let lifted7 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+          let lifted7 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
             0 => Option::None
             1 => Option::Some(mbt_ffi_load32(iter_base + 8))
             _ => panic()
@@ -1736,7 +1740,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
       }
       5 => @types.GherkinEvent::RuleEnd
       6 => {
-        let lifted15 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted15 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -1769,7 +1773,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
       }
       7 => @types.GherkinEvent::BackgroundEnd
       8 => {
-        let lifted19 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted19 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -1781,7 +1785,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
             index24 = index24 + 1 {
           let iter_base = mbt_ffi_load32(iter_base + 16) + index24 * 28
 
-          let lifted20 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+          let lifted20 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
             0 => Option::None
             1 => Option::Some(mbt_ffi_load32(iter_base + 8))
             _ => panic()
@@ -1837,7 +1841,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
       }
       9 => @types.GherkinEvent::ScenarioEnd
       10 => {
-        let lifted28 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted28 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -1866,7 +1870,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
         })
       }
       11 => {
-        let lifted31 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted31 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -1906,7 +1910,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
         })
       }
       12 => {
-        let lifted36 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted36 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -1918,7 +1922,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
             index44 = index44 + 1 {
           let iter_base = mbt_ffi_load32(iter_base + 16) + index44 * 28
 
-          let lifted37 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+          let lifted37 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
             0 => Option::None
             1 => Option::Some(mbt_ffi_load32(iter_base + 8))
             _ => panic()
@@ -1935,7 +1939,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
               index42 = index42 + 1 {
             let iter_base = mbt_ffi_load32(iter_base + 20) + index42 * 20
 
-            let lifted39 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+            let lifted39 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
               0 => Option::None
               1 => Option::Some(mbt_ffi_load32(iter_base + 8))
               _ => panic()
@@ -1976,7 +1980,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
         })
       }
       13 => {
-        let lifted45 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted45 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -1988,7 +1992,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
             index50 = index50 + 1 {
           let iter_base = mbt_ffi_load32(iter_base + 16) + index50 * 28
 
-          let lifted46 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+          let lifted46 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
             0 => Option::None
             1 => Option::Some(mbt_ffi_load32(iter_base + 8))
             _ => panic()
@@ -2034,7 +2038,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
           mbt_ffi_load8_u(iter_base + 48) {
           0 => Option::None
           1 => {
-            let lifted54 : Int? = match mbt_ffi_load8_u(iter_base + 56) {
+            let lifted54 : Int32? = match mbt_ffi_load8_u(iter_base + 56) {
               0 => Option::None
               1 => Option::Some(mbt_ffi_load32(iter_base + 60))
               _ => panic()
@@ -2051,7 +2055,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
                 index59 = index59 + 1 {
               let iter_base = mbt_ffi_load32(iter_base + 72) + index59 * 20
 
-              let lifted56 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+              let lifted56 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
                 0 => Option::None
                 1 => Option::Some(mbt_ffi_load32(iter_base + 8))
                 _ => panic()
@@ -2090,7 +2094,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
             index68 = index68 + 1 {
           let iter_base = mbt_ffi_load32(iter_base + 80) + index68 * 28
 
-          let lifted61 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+          let lifted61 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
             0 => Option::None
             1 => Option::Some(mbt_ffi_load32(iter_base + 8))
             _ => panic()
@@ -2107,7 +2111,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
               index66 = index66 + 1 {
             let iter_base = mbt_ffi_load32(iter_base + 20) + index66 * 20
 
-            let lifted63 : Int? = match mbt_ffi_load8_u(iter_base + 4) {
+            let lifted63 : Int32? = match mbt_ffi_load8_u(iter_base + 4) {
               0 => Option::None
               1 => Option::Some(mbt_ffi_load32(iter_base + 8))
               _ => panic()
@@ -2153,7 +2157,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
         })
       }
       14 => {
-        let lifted69 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted69 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -2173,7 +2177,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
         })
       }
       15 => {
-        let lifted71 : Int? = match mbt_ffi_load8_u(iter_base + 8) {
+        let lifted71 : Int32? = match mbt_ffi_load8_u(iter_base + 8) {
           0 => Option::None
           1 => Option::Some(mbt_ffi_load32(iter_base + 12))
           _ => panic()
@@ -2228,7 +2232,7 @@ pub fn wasmExportWriteEvents(p0 : Int, p1 : Int) -> Int {
 
 ///|
 #doc(hidden)
-pub fn wasmExportWriteEventsPostReturn(p0 : Int) -> Unit {
+pub fn wasmExportWriteEventsPostReturn(p0 : Int32) -> Unit {
   match mbt_ffi_load8_u(p0 + 0) {
     0 => mbt_ffi_free(mbt_ffi_load32(p0 + 4))
     1 => mbt_ffi_free(mbt_ffi_load32(p0 + 4))
@@ -2237,39 +2241,39 @@ pub fn wasmExportWriteEventsPostReturn(p0 : Int) -> Unit {
 }
 
 ///|
-extern "wasm" fn mbt_ffi_free(position : Int) =
+extern "wasm" fn mbt_ffi_free(position : Int32) =
   #|(func (param i32) local.get 0 call $moonbit.decref)
 
 ///|
-extern "wasm" fn mbt_ffi_load32(offset : Int) -> Int =
+extern "wasm" fn mbt_ffi_load32(offset : Int32) -> Int32 =
   #|(func (param i32) (result i32) local.get 0 i32.load)
 
 ///|
-extern "wasm" fn mbt_ffi_load8_u(offset : Int) -> Int =
+extern "wasm" fn mbt_ffi_load8_u(offset : Int32) -> Int32 =
   #|(func (param i32) (result i32) local.get 0 i32.load8_u)
 
 ///|
-extern "wasm" fn mbt_ffi_store8(offset : Int, value : Int) =
+extern "wasm" fn mbt_ffi_store8(offset : Int32, value : Int32) =
   #|(func (param i32) (param i32) local.get 0 local.get 1 i32.store8)
 
 ///|
-extern "wasm" fn mbt_ffi_store32(offset : Int, value : Int) =
+extern "wasm" fn mbt_ffi_store32(offset : Int32, value : Int32) =
   #|(func (param i32) (param i32) local.get 0 local.get 1 i32.store)
 
 ///|
 #owned(str)
-extern "wasm" fn mbt_ffi_str2ptr(str : String) -> Int =
+extern "wasm" fn mbt_ffi_str2ptr(str : String) -> Int32 =
   #|(func (param i32) (result i32) local.get 0)
 
 ///|
-extern "wasm" fn mbt_ffi_malloc(size : Int) -> Int =
+extern "wasm" fn mbt_ffi_malloc(size : Int32) -> Int32 =
   #|(func (param i32) (result i32) (local i32)
   #| local.get 0 i32.const 4 i32.add call $moonbit.gc.malloc
   #| local.tee 1 i32.const 0 call $moonbit.init_array8
   #| local.get 1)
 
 ///|
-extern "wasm" fn mbt_ffi_ptr2str(ptr : Int, len : Int) -> String =
+extern "wasm" fn mbt_ffi_ptr2str(ptr : Int32, len : Int32) -> String =
   #|(func (param i32) (param i32) (result i32)
   #| local.get 0
   #| local.get 1 call $moonbit.init_array16

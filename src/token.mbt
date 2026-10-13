@@ -35,9 +35,9 @@ pub enum LexerState {
 /// keywords (Feature, Scenario, Given, etc.). Defaults to English ("en").
 pub fn classify_line(
   line : String,
-  line_num : Int,
+  line_num : Int32,
   state : LexerState,
-  language? : String = "en",
+  language~ : String = "en",
 ) -> (Token, LexerState) {
   match state {
     InDocString(delim) => classify_in_docstring(line, line_num, delim)
@@ -68,7 +68,7 @@ const RE_LANGUAGE_DIRECTIVE : Regex = re"^#[[:blank:]]*language[[:blank:]]*:[[:b
 ///|
 fn classify_in_docstring(
   line : String,
-  line_num : Int,
+  line_num : Int32,
   delim : String,
 ) -> (Token, LexerState) {
   let view : StringView = line[:]
@@ -97,7 +97,7 @@ fn classify_in_docstring(
 ///|
 fn classify_normal(
   line : String,
-  line_num : Int,
+  line_num : Int32,
   keywords : I18nKeywords?,
 ) -> (Token, LexerState) {
   let view : StringView = line[:]
@@ -270,8 +270,8 @@ pub fn tokenize(source : Source) -> Array[Token] {
 pub struct Lexer {
   priv source : Source
   priv markdown_tokens : Array[Token]?
-  priv mut markdown_pos : Int
-  priv mut line_num : Int
+  priv mut markdown_pos : Int32
+  priv mut line_num : Int32
   priv mut state : LexerState
   priv mut done : Bool
   priv mut language : String

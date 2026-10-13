@@ -11,7 +11,7 @@
 /// Events can be piped to a `GherkinHandler` via `pipe()`.
 pub struct GherkinReader {
   priv events : Array[GherkinEvent]
-  priv mut pos : Int
+  priv mut pos : Int32
 }
 
 ///|
