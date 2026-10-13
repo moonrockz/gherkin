@@ -14,6 +14,11 @@ on:
 permissions:
   contents: write
 
+# Pinned MoonBit toolchain (moonc and core). Bump on purpose, never float to
+# latest: new toolchains can drop support for older dependency manifests.
+env:
+  MOONBIT_VERSION: "0.10.15+943464bfa"
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -28,6 +33,9 @@ jobs:
           fetch-depth: 0
 
       - uses: hustcer/setup-moonbit@v1
+        with:
+          version: ${{ env.MOONBIT_VERSION }}
+          core-version: ${{ env.MOONBIT_VERSION }}
 
       - uses: jdx/mise-action@v2
         with:
@@ -120,6 +128,9 @@ jobs:
           fetch-depth: 0
 
       - uses: hustcer/setup-moonbit@v1
+        with:
+          version: ${{ env.MOONBIT_VERSION }}
+          core-version: ${{ env.MOONBIT_VERSION }}
 
       - uses: jdx/mise-action@v2
         with:
@@ -161,6 +172,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: hustcer/setup-moonbit@v1
+        with:
+          version: ${{ env.MOONBIT_VERSION }}
+          core-version: ${{ env.MOONBIT_VERSION }}
 
       - uses: jdx/mise-action@v2
         with:
@@ -190,6 +204,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - uses: hustcer/setup-moonbit@v1
+        with:
+          version: ${{ env.MOONBIT_VERSION }}
+          core-version: ${{ env.MOONBIT_VERSION }}
 
       - uses: jdx/mise-action@v2
         with:
