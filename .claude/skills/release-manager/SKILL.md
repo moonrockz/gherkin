@@ -29,7 +29,7 @@ The pipeline runs via `.github/workflows/release.yml`. Triggers:
 | `release:version` | Compute next version from conventional commits |
 | `release:bump` | Update moon.mod version to match |
 | `release:changelog` | Generate CHANGELOG.md from git history |
-| `release:notes` | Generate release notes for latest version |
+| `release:notes` | Generate release notes for the release version (`RELEASE_VERSION`, else `moon.mod`) |
 | `release:credentials` | Set up mooncakes credentials from MOONCAKES_USER_TOKEN |
 | `release:publish` | Publish to mooncakes.io (runs pre-publish checks) |
 | `release:prepare-assets` | Prepare release assets from build artifacts |

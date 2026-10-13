@@ -252,7 +252,8 @@ Changelogs are generated automatically from commit history using **git-cliff**.
 Never edit `CHANGELOG.md` manually -- it is regenerated from git history.
 
 - `mise run release:changelog` -- regenerate CHANGELOG.md
-- `mise run release:notes` -- generate release notes for latest version
+- `mise run release:notes` -- generate release notes for the release version
+  (`RELEASE_VERSION`, else the `moon.mod` version)
 - `mise run release:version` -- compute next version from commits
 - `mise run release:bump` -- update `moon.mod` version to match
 
@@ -278,7 +279,7 @@ Run `mise tasks` to list all tasks. Key tasks:
 | `generate:wit-bindgen`  | Regenerate WIT bindings                           |
 | `release:version`       | Compute next version from conventional commits    |
 | `release:changelog`     | Generate CHANGELOG.md                             |
-| `release:notes`         | Generate release notes for latest version         |
+| `release:notes`         | Generate release notes for the release version    |
 | `release:bump`          | Update moon.mod version                           |
 | `release:pre-check`    | Validate release readiness                        |
 | `release:credentials`  | Set up mooncakes.io credentials (CI only)         |
