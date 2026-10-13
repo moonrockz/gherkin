@@ -6,12 +6,17 @@ fn tokenize_markdown(source : Source) -> Array[Token] {
   for i = 1; i <= source.line_count(); i = i + 1 {
     tokens.push(Token::Empty({ line: i, column: None, }))
   }
-  let markdown = @markdown.parse(source.content()).document
+  let markdown = @cmark.Doc::from_string(
+    locs=true,
+    layout=true,
+    strict=false,
+    source.content(),
+  )
   let mut language = "en"
-  for block in markdown.children {
+  for block in markdown_blocks(markdown.block) {
     match block {
-      Heading(span~, ..) => {
-        let line = markdown_line_number(source, span.from)
+      Heading(heading) => {
+        let line = markdown_first_line(heading)
         if source.line(line) is Some(text) {
           let (directive, _) = classify_line(text, line, Normal)
           match directive {
@@ -45,9 +50,9 @@ fn tokenize_markdown(source : Source) -> Array[Token] {
           }
         }
       }
-      BulletList(items~, ..) =>
-        for item in items {
-          let line = markdown_line_number(source, item.span.from)
+      List(list) =>
+        for item in list.v.items {
+          let line = markdown_first_line(item)
           let mut is_step = false
           if source.line(line) is Some(text) {
             let trimmed = text[:].trim_start(chars=" \t")
@@ -69,50 +74,64 @@ fn tokenize_markdown(source : Source) -> Array[Token] {
             }
           }
           if is_step {
-            for child in item.children {
+            for child in markdown_blocks(item.v.block) {
               match child {
-                Table(span~, ..) => mark_markdown_table(source, tokens, span)
-                FencedCode(span~, info~, fence_marker~, fence_length~, ..) =>
-                  mark_markdown_fence(
-                    source, tokens, span, info, fence_marker, fence_length,
+                ExtTable(table) =>
+                  mark_markdown_table_rows(
+                    source,
+                    tokens,
+                    markdown_first_line(table),
                   )
+                CodeBlock(code) =>
+                  if markdown_fence(code.v) is Some(fence) {
+                    mark_markdown_fence(
+                      source,
+                      tokens,
+                      markdown_first_line(code),
+                      fence,
+                    )
+                  }
                 _ => ()
               }
             }
-            mark_markdown_list_tables(source, tokens, item.span)
+            mark_markdown_list_tables(
+              source,
+              tokens,
+              line,
+              markdown_last_line(item),
+            )
           }
         }
-      Table(span~, ..) => mark_markdown_table(source, tokens, span)
-      FencedCode(span~, info~, fence_marker~, fence_length~, ..) => {
-        let line = markdown_line_number(source, span.from)
-        if line > 1 {
-          match tokens[line - 2] {
-            StepLine(_, _, _, _) =>
-              mark_markdown_fence(
-                source, tokens, span, info, fence_marker, fence_length,
-              )
-            _ => ()
+      ExtTable(table) =>
+        mark_markdown_table_rows(source, tokens, markdown_first_line(table))
+      CodeBlock(code) =>
+        if markdown_fence(code.v) is Some(fence) {
+          let line = markdown_first_line(code)
+          if line > 1 {
+            match tokens[line - 2] {
+              StepLine(_, _, _, _) =>
+                mark_markdown_fence(source, tokens, line, fence)
+              _ => ()
+            }
           }
         }
-      }
-      Paragraph(children~, span~, ..) => {
-        let line = markdown_line_number(source, span.from)
+      Paragraph(paragraph) => {
+        let line = markdown_first_line(paragraph)
         let tags : Array[String] = []
         let mut valid = true
-        for inline in children {
+        for inline in markdown_inlines(paragraph.v.inline) {
           match inline {
-            @markdown.Inline::Code(content~, backtick_count~, ..) =>
-              if backtick_count == 1 &&
+            CodeSpan(span) => {
+              let content = span.v.code()
+              if span.v.backticks == 1 &&
                 content.has_prefix("@") &&
                 content.length() > 1 {
                 tags.push(content)
               } else {
                 valid = false
               }
-            @markdown.Inline::Text(content~, ..) =>
-              if !content[:].trim().is_empty() {
-                valid = false
-              }
+            }
+            Text(text) => if !text.v[:].trim().is_empty() { valid = false }
             _ => valid = false
           }
         }
@@ -179,22 +198,44 @@ fn tokenize_markdown(source : Source) -> Array[Token] {
 }
 
 ///|
+/// The opening fence of a fenced code block: marker, length and info string.
+priv struct MarkdownFence {
+  marker : Char
+  length : Int32
+  info : String?
+}
+
+///|
+fn markdown_fence(code : @cmark.CodeBlock) -> MarkdownFence? {
+  match code.layout {
+    Indented => None
+    Fenced(layout) => {
+      let opening = layout.opening_fence.v[:].trim_start(chars=" ")
+      guard opening.get_char(0) is Some(marker) else { None }
+      let mut length = 0
+      for char in opening {
+        guard char == marker else { break }
+        length = length + 1
+      }
+      let info = match code.info_string {
+        Some(info) if !info.v.is_empty() => Some(info.v)
+        _ => None
+      }
+      Some({ marker, length, info, })
+    }
+  }
+}
+
+///|
 fn mark_markdown_fence(
   source : Source,
   tokens : Array[Token],
-  span : @markdown.Span,
-  info : String,
-  marker : @markdown.FenceMarker,
-  fence_length : Int,
+  first : Int32,
+  fence : MarkdownFence,
 ) -> Unit {
-  let first = markdown_line_number(source, span.from)
-  let marker_char = match marker {
-    Backtick => '`'
-    Tilde => '~'
-  }
   let fence_chars : Array[Char] = []
-  for i = 0; i < fence_length; i = i + 1 {
-    fence_chars.push(marker_char)
+  for i = 0; i < fence.length; i = i + 1 {
+    fence_chars.push(fence.marker)
   }
   let delimiter = String::from_array(fence_chars)
   let opener = source.line(first).unwrap_or("")
@@ -203,15 +244,11 @@ fn mark_markdown_fence(
   tokens[first - 1] = Token::DocStringSeparator(
     { line: first, column: Some(column), },
     delimiter,
-    if info.is_empty() {
-      None
-    } else {
-      Some(info)
-    },
+    fence.info,
   )
   for line = first + 1; line <= source.line_count(); line = line + 1 {
     let raw = source.line(line).unwrap_or("")
-    if is_markdown_fence_close(raw, marker_char, fence_length) {
+    if is_markdown_fence_close(raw, fence.marker, fence.length) {
       tokens[line - 1] = Token::DocStringSeparator(
         { line, column: Some(column), },
         delimiter,
@@ -228,7 +265,7 @@ fn mark_markdown_fence(
 fn is_markdown_fence_close(
   line : String,
   marker : Char,
-  opening_length : Int,
+  opening_length : Int32,
 ) -> Bool {
   let chars = line[:].trim().to_owned().to_array()
   let mut count = 0
@@ -242,10 +279,9 @@ fn is_markdown_fence_close(
 fn mark_markdown_list_tables(
   source : Source,
   tokens : Array[Token],
-  span : @markdown.Span,
+  first : Int32,
+  last : Int32,
 ) -> Unit {
-  let first = markdown_line_number(source, span.from)
-  let last = markdown_line_number(source, span.to - 1)
   for line = first + 1; line <= last; line = line + 1 {
     let header = source.line(line).unwrap_or("")
     let delimiter = source.line(line + 1).unwrap_or("")
@@ -284,20 +320,10 @@ fn markdown_table_delimiter(line : String) -> Bool {
 }
 
 ///|
-fn mark_markdown_table(
-  source : Source,
-  tokens : Array[Token],
-  span : @markdown.Span,
-) -> Unit {
-  let header_line = markdown_line_number(source, span.from)
-  mark_markdown_table_rows(source, tokens, header_line)
-}
-
-///|
 fn mark_markdown_table_rows(
   source : Source,
   tokens : Array[Token],
-  header_line : Int,
+  header_line : Int32,
 ) -> Unit {
   let mut line = header_line
   while line <= source.line_count() {
@@ -358,15 +384,29 @@ fn markdown_table_cells(line : String) -> Array[String] {
 }
 
 ///|
-fn markdown_line_number(source : Source, offset : Int) -> Int {
-  let mut pos = 0
-  for i = 1; i <= source.line_count(); i = i + 1 {
-    if source.line(i) is Some(line) {
-      if offset <= pos + line.length() {
-        return i
-      }
-      pos = pos + line.length() + 1
-    }
+fn markdown_blocks(block : @cmark.Block) -> Array[@cmark.Block] {
+  match block {
+    Blocks(blocks) => blocks.v.to_array()
+    block => [block]
   }
-  source.line_count()
+}
+
+///|
+fn markdown_inlines(inline : @cmark.Inline) -> Array[@cmark.Inline] {
+  match inline {
+    Inlines(inlines) => inlines.v.to_array()
+    inline => [inline]
+  }
+}
+
+///|
+/// The 1-based source line where a cmark node starts.
+fn[A] markdown_first_line(node : @cmark.Node[A]) -> Int32 {
+  node.meta.loc.first_line.0
+}
+
+///|
+/// The 1-based source line where a cmark node ends.
+fn[A] markdown_last_line(node : @cmark.Node[A]) -> Int32 {
+  node.meta.loc.last_line.0
 }
