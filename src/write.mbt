@@ -9,7 +9,7 @@
 /// ```
 pub(all) struct WriteConfig {
   indent : String
-  table_cell_padding : Int
+  table_cell_padding : Int32
   trailing_newline : Bool
   include_comments : Bool
 } derive(Debug, Eq)
@@ -42,14 +42,14 @@ pub fn WriteConfig::default() -> WriteConfig {
 pub struct GherkinWriter {
   priv buf : Array[String]
   priv config : WriteConfig
-  priv mut depth : Int
+  priv mut depth : Int32
   priv mut needs_blank : Bool
 }
 
 ///|
 /// Create a new `GherkinWriter` with the given configuration.
 pub fn GherkinWriter::new(
-  config? : WriteConfig = WriteConfig::default(),
+  config~ : WriteConfig = WriteConfig::default(),
 ) -> GherkinWriter {
   { buf: [], config, depth: 0, needs_blank: false, }
 }
@@ -108,13 +108,13 @@ fn split_lines(s : String) -> Array[String] {
 ///|
 /// Format table rows as column-aligned pipe-delimited lines.
 /// Returns an array of formatted row strings (without leading indent).
-fn format_table(rows : Array[Array[String]], padding : Int) -> Array[String] {
+fn format_table(rows : Array[Array[String]], padding : Int32) -> Array[String] {
   if rows.is_empty() {
     return []
   }
   let num_cols = rows[0].length()
   // Calculate max width per column
-  let widths : Array[Int] = Array::make(num_cols, 0)
+  let widths : Array[Int32] = Array::make(num_cols, 0)
   for row in rows {
     for i, cell in row {
       if cell.length() > widths[i] {
@@ -157,8 +157,8 @@ pub fn GherkinWriter::feature(
   self : GherkinWriter,
   keyword : String,
   name : String,
-  language? : String = "en",
-  description? : String = "",
+  language~ : String = "en",
+  description~ : String = "",
 ) -> Unit {
   if language != "en" {
     self.buf.push("# language: " + language)
@@ -185,7 +185,7 @@ pub fn GherkinWriter::scenario(
   self : GherkinWriter,
   keyword : String,
   name : String,
-  description? : String = "",
+  description~ : String = "",
 ) -> Unit {
   self.emit_line(keyword + ": " + name)
   self.depth += 1
@@ -208,8 +208,8 @@ pub fn GherkinWriter::end_scenario(self : GherkinWriter) -> Unit {
 pub fn GherkinWriter::background(
   self : GherkinWriter,
   keyword : String,
-  name? : String = "",
-  description? : String = "",
+  name~ : String = "",
+  description~ : String = "",
 ) -> Unit {
   let header = if name.length() > 0 {
     keyword + ": " + name
@@ -238,7 +238,7 @@ pub fn GherkinWriter::rule(
   self : GherkinWriter,
   keyword : String,
   name : String,
-  description? : String = "",
+  description~ : String = "",
 ) -> Unit {
   self.emit_line(keyword + ": " + name)
   self.depth += 1
@@ -276,8 +276,8 @@ pub fn GherkinWriter::step(
 pub fn GherkinWriter::doc_string(
   self : GherkinWriter,
   content : String,
-  delimiter? : String = "\"\"\"",
-  media_type? : String? = None,
+  delimiter~ : String = "\"\"\"",
+  media_type~ : String? = None,
 ) -> Unit {
   let saved_depth = self.depth
   self.depth += 1
@@ -321,10 +321,10 @@ pub fn GherkinWriter::data_table(
 pub fn GherkinWriter::examples(
   self : GherkinWriter,
   keyword : String,
-  name? : String = "",
-  description? : String = "",
-  header? : Array[String] = [],
-  body? : Array[Array[String]] = [],
+  name~ : String = "",
+  description~ : String = "",
+  header~ : Array[String] = [],
+  body~ : Array[Array[String]] = [],
 ) -> Unit {
   self.needs_blank = true
   let kw_line = if name.length() > 0 {
@@ -393,7 +393,7 @@ pub fn GherkinWriter::comment(self : GherkinWriter, text : String) -> Unit {
 /// produces valid Gherkin that, when re-parsed, yields an equivalent AST.
 pub fn write(
   doc : GherkinDocument,
-  config? : WriteConfig = WriteConfig::default(),
+  config~ : WriteConfig = WriteConfig::default(),
 ) -> String {
   let w = GherkinWriter::new(config~)
   if config.include_comments {

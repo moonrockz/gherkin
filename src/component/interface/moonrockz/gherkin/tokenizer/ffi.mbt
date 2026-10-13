@@ -3,12 +3,12 @@
 ///|
 #doc(hidden)
 pub fn wasmExportTokenize(
-  p0 : Int,
-  p1 : Int,
-  p2 : Int,
-  p3 : Int,
-  p4 : Int,
-) -> Int {
+  p0 : Int32,
+  p1 : Int32,
+  p2 : Int32,
+  p3 : Int32,
+  p4 : Int32,
+) -> Int32 {
   let lifted : String? = match p0 {
     0 => Option::None
     1 => {
@@ -473,7 +473,7 @@ pub fn wasmExportTokenize(
 
 ///|
 #doc(hidden)
-pub fn wasmExportTokenizePostReturn(p0 : Int) -> Unit {
+pub fn wasmExportTokenizePostReturn(p0 : Int32) -> Unit {
   match mbt_ffi_load8_u(p0 + 0) {
     0 => {
       for index1 = 0; index1 < mbt_ffi_load32(p0 + 8); index1 = index1 + 1 {
@@ -553,40 +553,40 @@ pub fn wasmExportTokenizePostReturn(p0 : Int) -> Unit {
 }
 
 ///|
-extern "wasm" fn mbt_ffi_malloc(size : Int) -> Int =
+extern "wasm" fn mbt_ffi_malloc(size : Int32) -> Int32 =
   #|(func (param i32) (result i32) (local i32)
   #| local.get 0 i32.const 4 i32.add call $moonbit.gc.malloc
   #| local.tee 1 i32.const 0 call $moonbit.init_array8
   #| local.get 1)
 
 ///|
-extern "wasm" fn mbt_ffi_store8(offset : Int, value : Int) =
+extern "wasm" fn mbt_ffi_store8(offset : Int32, value : Int32) =
   #|(func (param i32) (param i32) local.get 0 local.get 1 i32.store8)
 
 ///|
-extern "wasm" fn mbt_ffi_free(position : Int) =
+extern "wasm" fn mbt_ffi_free(position : Int32) =
   #|(func (param i32) local.get 0 call $moonbit.decref)
 
 ///|
 #owned(str)
-extern "wasm" fn mbt_ffi_str2ptr(str : String) -> Int =
+extern "wasm" fn mbt_ffi_str2ptr(str : String) -> Int32 =
   #|(func (param i32) (result i32) local.get 0)
 
 ///|
-extern "wasm" fn mbt_ffi_ptr2str(ptr : Int, len : Int) -> String =
+extern "wasm" fn mbt_ffi_ptr2str(ptr : Int32, len : Int32) -> String =
   #|(func (param i32) (param i32) (result i32)
   #| local.get 0
   #| local.get 1 call $moonbit.init_array16
   #| local.get 0)
 
 ///|
-extern "wasm" fn mbt_ffi_store32(offset : Int, value : Int) =
+extern "wasm" fn mbt_ffi_store32(offset : Int32, value : Int32) =
   #|(func (param i32) (param i32) local.get 0 local.get 1 i32.store)
 
 ///|
-extern "wasm" fn mbt_ffi_load32(offset : Int) -> Int =
+extern "wasm" fn mbt_ffi_load32(offset : Int32) -> Int32 =
   #|(func (param i32) (result i32) local.get 0 i32.load)
 
 ///|
-extern "wasm" fn mbt_ffi_load8_u(offset : Int) -> Int =
+extern "wasm" fn mbt_ffi_load8_u(offset : Int32) -> Int32 =
   #|(func (param i32) (result i32) local.get 0 i32.load8_u)

@@ -65,7 +65,7 @@ test "FoldAction::is_stop" {
 
 ///|
 test "GherkinFold::default passes state through" {
-  let folder : GherkinFold[Int] = GherkinFold::default()
+  let folder : GherkinFold[Int32] = GherkinFold::default()
   let loc : Location = { line: 1, column: None, }
   let doc = GherkinDocument::empty()
   let tag : Tag = { location: loc, name: "@smoke", id: "1", }
@@ -75,7 +75,7 @@ test "GherkinFold::default passes state through" {
 
 ///|
 test "continuing helper wraps in Continue" {
-  let f = continuing(fn(n : Int, _s : Scenario) { n + 1 })
+  let f = continuing(fn(n : Int32, _s : Scenario) { n + 1 })
   let s : Scenario = {
     location: { line: 1, column: None, },
     tags: [],

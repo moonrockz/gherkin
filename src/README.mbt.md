@@ -179,7 +179,7 @@ All methods have default no-op implementations.
 ```moonbit check
 ///|
 struct ScenarioCounter {
-  mut count : Int
+  mut count : Int32
 }
 
 ///|

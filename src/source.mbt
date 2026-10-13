@@ -58,7 +58,7 @@ pub fn Source::content(self : Source) -> String {
 /// Returns the line at the given 1-based line number, matching `Location.line`.
 ///
 /// Returns `None` if the line number is out of range.
-pub fn Source::line(self : Source, n : Int) -> String? {
+pub fn Source::line(self : Source, n : Int32) -> String? {
   if n >= 1 && n <= self.lines.length() {
     Some(self.lines[n - 1])
   } else {
@@ -68,7 +68,7 @@ pub fn Source::line(self : Source, n : Int) -> String? {
 
 ///|
 /// Returns the number of lines in this source.
-pub fn Source::line_count(self : Source) -> Int {
+pub fn Source::line_count(self : Source) -> Int32 {
   self.lines.length()
 }
 
@@ -83,7 +83,7 @@ pub impl ToJson for Source with fn to_json(self) {
       Some(uri) => Json(uri)
       None => Json::null()
     },
-    "data": self.content().to_json(),
+    "data": Json(self.content()),
   }
 }
 

@@ -12,8 +12,8 @@ pub(all) struct Source {
 /// ── Location ──
 /// A location in the source text.
 pub(all) struct Location {
-  line : Int
-  column : Int?
+  line : Int32
+  column : Int32?
 } derive(Show, Eq)
 
 ///|
@@ -25,7 +25,7 @@ pub(all) enum ScenarioKind {
 } derive(Show, Eq)
 
 ///|
-pub fn ScenarioKind::ordinal(self : ScenarioKind) -> Int {
+pub fn ScenarioKind::ordinal(self : ScenarioKind) -> Int32 {
   match self {
     SCENARIO => 0
     SCENARIO_OUTLINE => 1
@@ -33,7 +33,7 @@ pub fn ScenarioKind::ordinal(self : ScenarioKind) -> Int {
 }
 
 ///|
-pub fn ScenarioKind::from(self : Int) -> ScenarioKind {
+pub fn ScenarioKind::from(self : Int32) -> ScenarioKind {
   match self {
     0 => SCENARIO
     1 => SCENARIO_OUTLINE
@@ -52,7 +52,7 @@ pub(all) enum KeywordType {
 } derive(Show, Eq)
 
 ///|
-pub fn KeywordType::ordinal(self : KeywordType) -> Int {
+pub fn KeywordType::ordinal(self : KeywordType) -> Int32 {
   match self {
     CONTEXT => 0
     ACTION => 1
@@ -63,7 +63,7 @@ pub fn KeywordType::ordinal(self : KeywordType) -> Int {
 }
 
 ///|
-pub fn KeywordType::from(self : Int) -> KeywordType {
+pub fn KeywordType::from(self : Int32) -> KeywordType {
   match self {
     0 => CONTEXT
     1 => ACTION
@@ -229,8 +229,8 @@ pub(all) struct GherkinDocument {
 /// A parse error with location information.
 pub(all) struct ParseError {
   message : String
-  line : Int
-  column : Int?
+  line : Int32
+  column : Int32?
 } derive(Show, Eq)
 
 ///|

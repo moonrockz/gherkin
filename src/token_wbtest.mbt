@@ -631,7 +631,7 @@ test "tokenize to JSON array" {
     "Feature: Login\n  Scenario: Test\n    Given a user",
   )
   let tokens = tokenize(src)
-  let json = tokens.to_json().stringify()
+  let json = Json(tokens).stringify()
   assert_true(json.has_prefix("["))
   assert_true(json.has_suffix("]"))
   assert_true(json.contains("FeatureLine"))
