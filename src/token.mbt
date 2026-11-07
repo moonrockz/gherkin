@@ -1,6 +1,7 @@
 ///|
 /// A token produced by the lexer, representing a classified source line.
 /// Each variant carries its Location and the relevant parsed fragments.
+#derive(Debug, Eq, ToJson)
 pub enum Token {
   FeatureLine(Location, String, String)
   RuleLine(Location, String, String)
@@ -16,15 +17,16 @@ pub enum Token {
   Empty(Location)
   Other(Location, String)
   Eof(Location)
-} derive(Debug, Eq, ToJson)
+}
 
 ///|
 /// Internal state tracked between lines during tokenization.
 /// Gherkin is mostly stateless line-by-line except inside doc strings.
+#derive(Debug, Eq, ToJson)
 pub enum LexerState {
   Normal
   InDocString(String)
-} derive(Debug, Eq, ToJson)
+}
 
 ///|
 /// Classify a single source line into a Token, returning the updated LexerState.
@@ -267,6 +269,7 @@ pub fn tokenize(source : Source) -> Array[Token] {
 }
 
 ///|
+#derive(Debug)
 pub struct Lexer {
   priv source : Source
   priv markdown_tokens : Array[Token]?
@@ -275,7 +278,7 @@ pub struct Lexer {
   priv mut state : LexerState
   priv mut done : Bool
   priv mut language : String
-} derive(Debug)
+}
 
 ///|
 pub fn Lexer::new(source : Source) -> Lexer {

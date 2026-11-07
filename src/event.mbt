@@ -1,5 +1,6 @@
 ///|
 /// A feature start event. Children arrive as subsequent events.
+#derive(Debug, Eq)
 pub(all) struct FeatureEvent {
   location : Location
   tags : Array[Tag]
@@ -7,29 +8,32 @@ pub(all) struct FeatureEvent {
   keyword : String
   name : String
   description : String
-} derive(Debug, Eq)
+}
 
 ///|
 /// A rule start event. Children arrive as subsequent events.
+#derive(Debug, Eq)
 pub(all) struct RuleEvent {
   location : Location
   tags : Array[Tag]
   keyword : String
   name : String
   description : String
-} derive(Debug, Eq)
+}
 
 ///|
 /// A background start event. Steps arrive as subsequent events.
+#derive(Debug, Eq)
 pub(all) struct BackgroundEvent {
   location : Location
   keyword : String
   name : String
   description : String
-} derive(Debug, Eq)
+}
 
 ///|
 /// A scenario start event. Steps/examples arrive as subsequent events.
+#derive(Debug, Eq)
 pub(all) struct ScenarioEvent {
   location : Location
   tags : Array[Tag]
@@ -37,35 +41,39 @@ pub(all) struct ScenarioEvent {
   keyword : String
   name : String
   description : String
-} derive(Debug, Eq)
+}
 
 ///|
 /// A step event (leaf -- no children).
+#derive(Debug, Eq)
 pub(all) struct StepEvent {
   location : Location
   keyword : String
   keyword_type : KeywordType
   text : String
-} derive(Debug, Eq)
+}
 
 ///|
 /// A doc string event (leaf).
+#derive(Debug, Eq)
 pub(all) struct DocStringEvent {
   location : Location
   media_type : String?
   content : String
   delimiter : String
-} derive(Debug, Eq)
+}
 
 ///|
 /// A data table event (self-contained with all rows).
+#derive(Debug, Eq)
 pub(all) struct DataTableEvent {
   location : Location
   rows : Array[TableRow]
-} derive(Debug, Eq)
+}
 
 ///|
 /// An examples table event (self-contained with header + body).
+#derive(Debug, Eq)
 pub(all) struct ExamplesEvent {
   location : Location
   tags : Array[Tag]
@@ -74,25 +82,28 @@ pub(all) struct ExamplesEvent {
   description : String
   table_header : TableRow?
   table_body : Array[TableRow]
-} derive(Debug, Eq)
+}
 
 ///|
 /// A tag event (leaf).
+#derive(Debug, Eq)
 pub(all) struct TagEvent {
   location : Location
   name : String
-} derive(Debug, Eq)
+}
 
 ///|
 /// A comment event (leaf).
+#derive(Debug, Eq)
 pub(all) struct CommentEvent {
   location : Location
   text : String
-} derive(Debug, Eq)
+}
 
 ///|
 /// Events emitted during pull-based parsing.
 /// Follows nested lifecycle: Document -> Feature -> (Background|Scenario|Rule) -> Steps -> End*
+#derive(Debug, Eq)
 pub(all) enum GherkinEvent {
   DocumentStart
   DocumentEnd
@@ -110,7 +121,7 @@ pub(all) enum GherkinEvent {
   Examples(ExamplesEvent)
   Tag(TagEvent)
   Comment(CommentEvent)
-} derive(Debug, Eq)
+}
 
 ///|
 pub extend FeatureEvent with @moonbitlang/core/debug.Debug::{to_repr}

@@ -6,6 +6,7 @@ package "moonrockz/gherkin/interface/moonrockz/gherkin/types"
 // Errors
 
 // Types and methods
+#derive(Eq, Show)
 pub(all) struct Background {
   location : Location
   keyword : String
@@ -13,66 +14,77 @@ pub(all) struct Background {
   description : String
   id : String
   steps : Array[Step]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct BackgroundEvent {
   location : Location
   keyword : String
   name : String
   description : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct BackgroundLineData {
   location : Location
   keyword : String
   name : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct Comment {
   location : Location
   text : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct CommentEvent {
   location : Location
   text : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct CommentLineData {
   location : Location
   text : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct DataTable {
   location : Location
   rows : Array[TableRow]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct DataTableEvent {
   location : Location
   rows : Array[TableRow]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct DocString {
   location : Location
   media_type : String?
   content : String
   delimiter : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct DocStringEvent {
   location : Location
   media_type : String?
   content : String
   delimiter : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct DocStringSeparatorData {
   location : Location
   delimiter : String
   media_type : String?
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct Examples {
   location : Location
   tags : Array[Tag]
@@ -82,8 +94,9 @@ pub(all) struct Examples {
   id : String
   table_header : TableRow?
   table_body : Array[TableRow]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct ExamplesEvent {
   location : Location
   tags : Array[Tag]
@@ -92,14 +105,16 @@ pub(all) struct ExamplesEvent {
   description : String
   table_header : TableRow?
   table_body : Array[TableRow]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct ExamplesLineData {
   location : Location
   keyword : String
   name : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct Feature {
   location : Location
   tags : Array[Tag]
@@ -108,14 +123,16 @@ pub(all) struct Feature {
   name : String
   description : String
   children : Array[FeatureChild]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) enum FeatureChild {
   Background(Background)
   Scenario(Scenario)
   Rule(Rule)
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct FeatureEvent {
   location : Location
   tags : Array[Tag]
@@ -123,20 +140,23 @@ pub(all) struct FeatureEvent {
   keyword : String
   name : String
   description : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct FeatureLineData {
   location : Location
   keyword : String
   name : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct GherkinDocument {
   source : Source
   feature : Feature?
   comments : Array[Comment]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) enum GherkinEvent {
   DocumentStart
   DocumentEnd
@@ -154,39 +174,45 @@ pub(all) enum GherkinEvent {
   Examples(ExamplesEvent)
   Tag(TagEvent)
   Comment(CommentEvent)
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) enum KeywordType {
   CONTEXT
   ACTION
   OUTCOME
   CONJUNCTION
   UNKNOWN
-} derive(Eq, Show)
-pub fn KeywordType::from(Int) -> Self
-pub fn KeywordType::ordinal(Self) -> Int
+}
+pub fn KeywordType::from(Int32) -> Self
+pub fn KeywordType::ordinal(Self) -> Int32
 
+#derive(Eq, Show)
 pub(all) struct LanguageData {
   location : Location
   language : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct Location {
-  line : Int
-  column : Int?
-} derive(Eq, Show)
+  line : Int32
+  column : Int32?
+}
 
+#derive(Eq, Show)
 pub(all) struct OtherLineData {
   location : Location
   text : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct ParseError {
   message : String
-  line : Int
-  column : Int?
-} derive(Eq, Show)
+  line : Int32
+  column : Int32?
+}
 
+#derive(Eq, Show)
 pub(all) struct Rule {
   location : Location
   tags : Array[Tag]
@@ -195,27 +221,31 @@ pub(all) struct Rule {
   description : String
   id : String
   children : Array[RuleChild]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) enum RuleChild {
   Background(Background)
   Scenario(Scenario)
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct RuleEvent {
   location : Location
   tags : Array[Tag]
   keyword : String
   name : String
   description : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct RuleLineData {
   location : Location
   keyword : String
   name : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct Scenario {
   location : Location
   tags : Array[Tag]
@@ -226,8 +256,9 @@ pub(all) struct Scenario {
   id : String
   steps : Array[Step]
   examples : Array[Examples]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct ScenarioEvent {
   location : Location
   tags : Array[Tag]
@@ -235,27 +266,31 @@ pub(all) struct ScenarioEvent {
   keyword : String
   name : String
   description : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) enum ScenarioKind {
   SCENARIO
   SCENARIO_OUTLINE
-} derive(Eq, Show)
-pub fn ScenarioKind::from(Int) -> Self
-pub fn ScenarioKind::ordinal(Self) -> Int
+}
+pub fn ScenarioKind::from(Int32) -> Self
+pub fn ScenarioKind::ordinal(Self) -> Int32
 
+#derive(Eq, Show)
 pub(all) struct ScenarioLineData {
   location : Location
   keyword : String
   name : String
   kind : ScenarioKind
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct Source {
   uri : String?
   data : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct Step {
   location : Location
   keyword : String
@@ -263,54 +298,63 @@ pub(all) struct Step {
   text : String
   id : String
   argument : StepArgument?
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) enum StepArgument {
   DocString(DocString)
   DataTable(DataTable)
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct StepEvent {
   location : Location
   keyword : String
   keyword_type : KeywordType
   text : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct StepLineData {
   location : Location
   keyword : String
   keyword_type : KeywordType
   text : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct TableCell {
   location : Location
   value : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct TableRow {
   location : Location
   id : String
   cells : Array[TableCell]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct Tag {
   location : Location
   name : String
   id : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct TagEvent {
   location : Location
   name : String
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct TagLineData {
   location : Location
   tags : Array[String]
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) enum Token {
   FeatureLine(FeatureLineData)
   RuleLine(RuleLineData)
@@ -326,12 +370,13 @@ pub(all) enum Token {
   Empty(Location)
   Other(OtherLineData)
   Eof(Location)
-} derive(Eq, Show)
+}
 
+#derive(Eq, Show)
 pub(all) struct TokenTableRowData {
   location : Location
   cells : Array[String]
-} derive(Eq, Show)
+}
 
 // Type aliases
 
