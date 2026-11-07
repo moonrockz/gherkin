@@ -2,7 +2,7 @@
 package "moonrockz/gherkin/component"
 
 // Values
-pub fn mbt_ffi_cabi_realloc(Int, Int, Int, Int) -> Int
+pub fn mbt_ffi_cabi_realloc(Int32, Int32, Int32, Int32) -> Int32
 
 // Errors
 

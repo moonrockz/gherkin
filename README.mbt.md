@@ -8,6 +8,10 @@ A [Gherkin](https://cucumber.io/docs/gherkin/) parser for MoonBit. Parses `.feat
 moon add moonrockz/gherkin
 ```
 
+This module needs MoonBit 0.10.20 or later. It uses the `#derive(...)`
+attribute. Older toolchains ignore this attribute and do not derive the trait
+implementations.
+
 ## Quick Start
 
 ```moonbit skip nocheck

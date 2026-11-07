@@ -4,10 +4,11 @@
 /// The internal representation is opaque — callers use factory functions
 /// to create and accessor methods to read. This allows the internal
 /// representation to evolve without breaking consumers.
+#derive(Debug, Eq)
 pub struct Source {
   priv lines : Array[String]
   priv uri : String?
-} derive(Debug, Eq)
+}
 
 ///|
 /// Create a `Source` from a string, splitting into lines.

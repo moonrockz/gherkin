@@ -32,7 +32,7 @@ jobs:
       - name: Set up MoonBit
         env:
           # Keep in step with MOONBIT_VERSION in ci.yml and release.yml.
-          MOONBIT_INSTALL_VERSION: "0.10.15+943464bfa"
+          MOONBIT_INSTALL_VERSION: "0.10.20+65efd5b93"
         run: |
           curl -fsSL https://cli.moonbitlang.com/install/unix.sh | bash
           echo "$HOME/.moon/bin" >> $GITHUB_PATH

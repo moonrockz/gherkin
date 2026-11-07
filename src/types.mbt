@@ -1,19 +1,22 @@
 ///|
 /// A location in the source text.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Location {
   line : Int32
   column : Int32?
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// Distinguishes a Scenario from a Scenario Outline.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) enum ScenarioKind {
   Scenario
   ScenarioOutline
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// The type of a step keyword, classifying its semantic role.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) enum KeywordType {
   /// "Given" -- establishes context
   Context
@@ -25,64 +28,72 @@ pub(all) enum KeywordType {
   Conjunction
   /// "*" or unrecognized
   Unknown
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A tag as it appears in source.
 /// The `name` field includes the '@' prefix (e.g., "@smoke").
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Tag {
   location : Location
   name : String
   id : String
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A comment line in the source.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Comment {
   location : Location
   text : String
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A single cell in a data table row.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct TableCell {
   location : Location
   value : String
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A row in a data table or examples table.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct TableRow {
   location : Location
   id : String
   cells : Array[TableCell]
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A doc string step argument.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct DocString {
   location : Location
   media_type : String?
   content : String
   delimiter : String
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A data table step argument.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct DataTable {
   location : Location
   rows : Array[TableRow]
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A step argument is either a DocString or a DataTable.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) enum StepArgument {
   DocString(DocString)
   DataTable(DataTable)
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A single step within a scenario or background.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Step {
   location : Location
   keyword : String
@@ -90,10 +101,11 @@ pub(all) struct Step {
   text : String
   id : String
   argument : StepArgument?
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// An examples table attached to a scenario outline.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Examples {
   location : Location
   tags : Array[Tag]
@@ -103,10 +115,11 @@ pub(all) struct Examples {
   id : String
   table_header : TableRow?
   table_body : Array[TableRow]
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A background section providing shared setup steps.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Background {
   location : Location
   keyword : String
@@ -114,10 +127,11 @@ pub(all) struct Background {
   description : String
   id : String
   steps : Array[Step]
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A scenario (or scenario outline) within a feature or rule.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Scenario {
   location : Location
   tags : Array[Tag]
@@ -128,17 +142,19 @@ pub(all) struct Scenario {
   id : String
   steps : Array[Step]
   examples : Array[Examples]
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A child element of a Rule: either a Background or a Scenario.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) enum RuleChild {
   Background(Background)
   Scenario(Scenario)
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A rule grouping related scenarios under a business rule.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Rule {
   location : Location
   tags : Array[Tag]
@@ -147,18 +163,20 @@ pub(all) struct Rule {
   description : String
   id : String
   children : Array[RuleChild]
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A child element of a Feature: Background, Scenario, or Rule.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) enum FeatureChild {
   Background(Background)
   Scenario(Scenario)
   Rule(Rule)
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// A feature, the top-level structural element in a Gherkin document.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct Feature {
   location : Location
   tags : Array[Tag]
@@ -167,15 +185,16 @@ pub(all) struct Feature {
   name : String
   description : String
   children : Array[FeatureChild]
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// The root of a parsed Gherkin document.
+#derive(Debug, Eq, ToJson, FromJson)
 pub(all) struct GherkinDocument {
   source : Source
   feature : Feature?
   comments : Array[Comment]
-} derive(Debug, Eq, ToJson, FromJson)
+}
 
 ///|
 /// Create an empty `GherkinDocument` with no feature and no comments.

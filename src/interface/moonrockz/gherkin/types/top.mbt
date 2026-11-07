@@ -3,26 +3,29 @@
 ///|
 /// ── Source ──
 /// Input source with optional URI and content.
+#derive(Show, Eq)
 pub(all) struct Source {
   uri : String?
   data : String
-} derive(Show, Eq)
+}
 
 ///|
 /// ── Location ──
 /// A location in the source text.
+#derive(Show, Eq)
 pub(all) struct Location {
   line : Int32
   column : Int32?
-} derive(Show, Eq)
+}
 
 ///|
 /// ── Enums ──
 /// Distinguishes a Scenario from a Scenario Outline.
+#derive(Show, Eq)
 pub(all) enum ScenarioKind {
   SCENARIO
   SCENARIO_OUTLINE
-} derive(Show, Eq)
+}
 
 ///|
 pub fn ScenarioKind::ordinal(self : ScenarioKind) -> Int32 {
@@ -43,13 +46,14 @@ pub fn ScenarioKind::from(self : Int32) -> ScenarioKind {
 
 ///|
 /// The semantic role of a step keyword.
+#derive(Show, Eq)
 pub(all) enum KeywordType {
   CONTEXT
   ACTION
   OUTCOME
   CONJUNCTION
   UNKNOWN
-} derive(Show, Eq)
+}
 
 ///|
 pub fn KeywordType::ordinal(self : KeywordType) -> Int32 {
@@ -77,59 +81,67 @@ pub fn KeywordType::from(self : Int32) -> KeywordType {
 ///|
 /// ── AST records ──
 /// A tag as it appears in source (name includes '@' prefix).
+#derive(Show, Eq)
 pub(all) struct Tag {
   location : Location
   name : String
   id : String
-} derive(Show, Eq)
+}
 
 ///|
 /// A comment line in the source.
+#derive(Show, Eq)
 pub(all) struct Comment {
   location : Location
   text : String
-} derive(Show, Eq)
+}
 
 ///|
 /// A single cell in a data table row.
+#derive(Show, Eq)
 pub(all) struct TableCell {
   location : Location
   value : String
-} derive(Show, Eq)
+}
 
 ///|
 /// A row in a data table or examples table.
+#derive(Show, Eq)
 pub(all) struct TableRow {
   location : Location
   id : String
   cells : Array[TableCell]
-} derive(Show, Eq)
+}
 
 ///|
 /// A doc string step argument.
+#derive(Show, Eq)
 pub(all) struct DocString {
   location : Location
   media_type : String?
   content : String
   delimiter : String
-} derive(Show, Eq)
+}
 
 ///|
 /// A data table step argument.
+#derive(Show, Eq)
 pub(all) struct DataTable {
   location : Location
   rows : Array[TableRow]
-} derive(Show, Eq)
+}
 
 ///|
 /// A step argument is either a DocString or a DataTable.
+#derive(Show, Eq)
 pub(all) enum StepArgument {
   DocString(DocString)
   DataTable(DataTable)
-} derive(Show, Eq)
+}
 
 ///|
 /// A single step within a scenario or background.
+#derive(Show, Eq)
 pub(all) struct Step {
   location : Location
   keyword : String
@@ -137,10 +149,11 @@ pub(all) struct Step {
   text : String
   id : String
   argument : StepArgument?
-} derive(Show, Eq)
+}
 
 ///|
 /// An examples table attached to a scenario outline.
+#derive(Show, Eq)
 pub(all) struct Examples {
   location : Location
   tags : Array[Tag]
@@ -150,10 +163,11 @@ pub(all) struct Examples {
   id : String
   table_header : TableRow?
   table_body : Array[TableRow]
-} derive(Show, Eq)
+}
 
 ///|
 /// A background section providing shared setup steps.
+#derive(Show, Eq)
 pub(all) struct Background {
   location : Location
   keyword : String
@@ -161,10 +175,11 @@ pub(all) struct Background {
   description : String
   id : String
   steps : Array[Step]
-} derive(Show, Eq)
+}
 
 ///|
 /// A scenario (or scenario outline) within a feature or rule.
+#derive(Show, Eq)
 pub(all) struct Scenario {
   location : Location
   tags : Array[Tag]
@@ -175,17 +190,19 @@ pub(all) struct Scenario {
   id : String
   steps : Array[Step]
   examples : Array[Examples]
-} derive(Show, Eq)
+}
 
 ///|
 /// A child element of a Rule.
+#derive(Show, Eq)
 pub(all) enum RuleChild {
   Background(Background)
   Scenario(Scenario)
-} derive(Show, Eq)
+}
 
 ///|
 /// A rule grouping related scenarios under a business rule.
+#derive(Show, Eq)
 pub(all) struct Rule {
   location : Location
   tags : Array[Tag]
@@ -194,18 +211,20 @@ pub(all) struct Rule {
   description : String
   id : String
   children : Array[RuleChild]
-} derive(Show, Eq)
+}
 
 ///|
 /// A child element of a Feature.
+#derive(Show, Eq)
 pub(all) enum FeatureChild {
   Background(Background)
   Scenario(Scenario)
   Rule(Rule)
-} derive(Show, Eq)
+}
 
 ///|
 /// A feature, the top-level structural element in a Gherkin document.
+#derive(Show, Eq)
 pub(all) struct Feature {
   location : Location
   tags : Array[Tag]
@@ -214,109 +233,124 @@ pub(all) struct Feature {
   name : String
   description : String
   children : Array[FeatureChild]
-} derive(Show, Eq)
+}
 
 ///|
 /// The root of a parsed Gherkin document.
+#derive(Show, Eq)
 pub(all) struct GherkinDocument {
   source : Source
   feature : Feature?
   comments : Array[Comment]
-} derive(Show, Eq)
+}
 
 ///|
 /// ── Parse errors ──
 /// A parse error with location information.
+#derive(Show, Eq)
 pub(all) struct ParseError {
   message : String
   line : Int32
   column : Int32?
-} derive(Show, Eq)
+}
 
 ///|
 /// ── Token types (record wrappers for variant payloads) ──
+#derive(Show, Eq)
 pub(all) struct FeatureLineData {
   location : Location
   keyword : String
   name : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct RuleLineData {
   location : Location
   keyword : String
   name : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct BackgroundLineData {
   location : Location
   keyword : String
   name : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct ScenarioLineData {
   location : Location
   keyword : String
   name : String
   kind : ScenarioKind
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct ExamplesLineData {
   location : Location
   keyword : String
   name : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct StepLineData {
   location : Location
   keyword : String
   keyword_type : KeywordType
   text : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct DocStringSeparatorData {
   location : Location
   delimiter : String
   media_type : String?
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct TokenTableRowData {
   location : Location
   cells : Array[String]
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct TagLineData {
   location : Location
   tags : Array[String]
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct CommentLineData {
   location : Location
   text : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct LanguageData {
   location : Location
   language : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct OtherLineData {
   location : Location
   text : String
-} derive(Show, Eq)
+}
 
 ///|
 /// A token produced by the lexer, representing a classified source line.
+#derive(Show, Eq)
 pub(all) enum Token {
   FeatureLine(FeatureLineData)
   RuleLine(RuleLineData)
@@ -332,10 +366,11 @@ pub(all) enum Token {
   Empty(Location)
   Other(OtherLineData)
   Eof(Location)
-} derive(Show, Eq)
+}
 
 ///|
 /// ── Event types ──
+#derive(Show, Eq)
 pub(all) struct FeatureEvent {
   location : Location
   tags : Array[Tag]
@@ -343,26 +378,29 @@ pub(all) struct FeatureEvent {
   keyword : String
   name : String
   description : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct RuleEvent {
   location : Location
   tags : Array[Tag]
   keyword : String
   name : String
   description : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct BackgroundEvent {
   location : Location
   keyword : String
   name : String
   description : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct ScenarioEvent {
   location : Location
   tags : Array[Tag]
@@ -370,31 +408,35 @@ pub(all) struct ScenarioEvent {
   keyword : String
   name : String
   description : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct StepEvent {
   location : Location
   keyword : String
   keyword_type : KeywordType
   text : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct DocStringEvent {
   location : Location
   media_type : String?
   content : String
   delimiter : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct DataTableEvent {
   location : Location
   rows : Array[TableRow]
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct ExamplesEvent {
   location : Location
   tags : Array[Tag]
@@ -403,22 +445,25 @@ pub(all) struct ExamplesEvent {
   description : String
   table_header : TableRow?
   table_body : Array[TableRow]
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct TagEvent {
   location : Location
   name : String
-} derive(Show, Eq)
+}
 
 ///|
+#derive(Show, Eq)
 pub(all) struct CommentEvent {
   location : Location
   text : String
-} derive(Show, Eq)
+}
 
 ///|
 /// Events emitted during pull-based parsing.
+#derive(Show, Eq)
 pub(all) enum GherkinEvent {
   DocumentStart
   DocumentEnd
@@ -436,4 +481,4 @@ pub(all) enum GherkinEvent {
   Examples(ExamplesEvent)
   Tag(TagEvent)
   Comment(CommentEvent)
-} derive(Show, Eq)
+}

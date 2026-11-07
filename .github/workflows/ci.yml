@@ -8,7 +8,7 @@ on:
 # Pinned MoonBit toolchain (moonc and core). Bump on purpose, never float to
 # latest: new toolchains can drop support for older dependency manifests.
 env:
-  MOONBIT_VERSION: "0.10.15+943464bfa"
+  MOONBIT_VERSION: "0.10.20+65efd5b93"
 
 jobs:
   lint:

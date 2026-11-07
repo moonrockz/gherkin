@@ -6,12 +6,13 @@
 /// - `Stop(a)` — halt traversal immediately, return final state
 // `SkipChildren` and `Stop` are produced by user callbacks; only `Continue` is
 // built inside this package.
+#derive(Debug, Eq)
 #warnings("-unused_constructor")
 pub enum FoldAction[A] {
   Continue(A)
   SkipChildren(A)
   Stop(A)
-} derive(Debug, Eq)
+}
 
 ///|
 /// Extract the accumulated value from a `FoldAction`.

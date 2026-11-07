@@ -7,12 +7,13 @@
 /// ```
 /// let config = { ..WriteConfig::default(), indent: "    " }
 /// ```
+#derive(Debug, Eq)
 pub(all) struct WriteConfig {
   indent : String
   table_cell_padding : Int32
   trailing_newline : Bool
   include_comments : Bool
-} derive(Debug, Eq)
+}
 
 ///|
 /// Create a `WriteConfig` with standard Gherkin formatting defaults.
