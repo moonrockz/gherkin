@@ -64,7 +64,7 @@ pub fn GherkinReader::peek(self : GherkinReader) -> GherkinEvent? {
 ///|
 /// Return an `Iter[GherkinEvent]` that lazily pulls events.
 pub fn GherkinReader::iter(self : GherkinReader) -> Iter[GherkinEvent] {
-  Iter::new(fn() { self.next() })
+  Iter(fn() { self.next() })
 }
 
 ///|
