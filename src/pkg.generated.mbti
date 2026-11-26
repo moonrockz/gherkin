@@ -41,7 +41,7 @@ pub(all) struct Background {
 }
 pub fn Background::accept(Self, &GherkinVisitor) -> Unit
 pub fn Background::equal(Self, Self) -> Bool
-pub fn Background::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Background::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Background::not_equal(Self, Self) -> Bool
 pub fn Background::to_json(Self) -> @json.Json
 pub fn Background::to_repr(Self) -> @debug.Repr
@@ -64,7 +64,7 @@ pub(all) struct Comment {
 }
 pub fn Comment::accept(Self, &GherkinVisitor) -> Unit
 pub fn Comment::equal(Self, Self) -> Bool
-pub fn Comment::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Comment::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Comment::not_equal(Self, Self) -> Bool
 pub fn Comment::to_json(Self) -> @json.Json
 pub fn Comment::to_repr(Self) -> @debug.Repr
@@ -85,7 +85,7 @@ pub(all) struct DataTable {
 }
 pub fn DataTable::accept(Self, &GherkinVisitor) -> Unit
 pub fn DataTable::equal(Self, Self) -> Bool
-pub fn DataTable::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn DataTable::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn DataTable::not_equal(Self, Self) -> Bool
 pub fn DataTable::to_json(Self) -> @json.Json
 pub fn DataTable::to_repr(Self) -> @debug.Repr
@@ -108,7 +108,7 @@ pub(all) struct DocString {
 }
 pub fn DocString::accept(Self, &GherkinVisitor) -> Unit
 pub fn DocString::equal(Self, Self) -> Bool
-pub fn DocString::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn DocString::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn DocString::not_equal(Self, Self) -> Bool
 pub fn DocString::to_json(Self) -> @json.Json
 pub fn DocString::to_repr(Self) -> @debug.Repr
@@ -137,7 +137,7 @@ pub(all) struct Examples {
 }
 pub fn Examples::accept(Self, &GherkinVisitor) -> Unit
 pub fn Examples::equal(Self, Self) -> Bool
-pub fn Examples::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Examples::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Examples::not_equal(Self, Self) -> Bool
 pub fn Examples::to_json(Self) -> @json.Json
 pub fn Examples::to_repr(Self) -> @debug.Repr
@@ -168,7 +168,7 @@ pub(all) struct Feature {
 }
 pub fn Feature::accept(Self, &GherkinVisitor) -> Unit
 pub fn Feature::equal(Self, Self) -> Bool
-pub fn Feature::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Feature::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Feature::not_equal(Self, Self) -> Bool
 pub fn Feature::to_json(Self) -> @json.Json
 pub fn Feature::to_repr(Self) -> @debug.Repr
@@ -180,7 +180,7 @@ pub(all) enum FeatureChild {
   Rule(Rule)
 }
 pub fn FeatureChild::equal(Self, Self) -> Bool
-pub fn FeatureChild::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn FeatureChild::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn FeatureChild::not_equal(Self, Self) -> Bool
 pub fn FeatureChild::to_json(Self) -> @json.Json
 pub fn FeatureChild::to_repr(Self) -> @debug.Repr
@@ -220,7 +220,7 @@ pub fn GherkinDocument::accept(Self, &GherkinVisitor) -> Unit
 pub fn GherkinDocument::empty() -> Self
 pub fn GherkinDocument::equal(Self, Self) -> Bool
 pub fn[A] GherkinDocument::fold(Self, A, GherkinFold[A]) -> A
-pub fn GherkinDocument::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn GherkinDocument::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn GherkinDocument::not_equal(Self, Self) -> Bool
 pub fn GherkinDocument::to_json(Self) -> @json.Json
 pub fn GherkinDocument::to_repr(Self) -> @debug.Repr
@@ -320,7 +320,7 @@ pub(all) enum KeywordType {
   Unknown
 }
 pub fn KeywordType::equal(Self, Self) -> Bool
-pub fn KeywordType::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn KeywordType::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn KeywordType::not_equal(Self, Self) -> Bool
 pub fn KeywordType::to_json(Self) -> @json.Json
 pub fn KeywordType::to_repr(Self) -> @debug.Repr
@@ -350,7 +350,7 @@ pub(all) struct Location {
   column : Int32?
 }
 pub fn Location::equal(Self, Self) -> Bool
-pub fn Location::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Location::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Location::not_equal(Self, Self) -> Bool
 pub fn Location::to_json(Self) -> @json.Json
 pub fn Location::to_repr(Self) -> @debug.Repr
@@ -367,7 +367,7 @@ pub(all) struct Rule {
 }
 pub fn Rule::accept(Self, &GherkinVisitor) -> Unit
 pub fn Rule::equal(Self, Self) -> Bool
-pub fn Rule::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Rule::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Rule::not_equal(Self, Self) -> Bool
 pub fn Rule::to_json(Self) -> @json.Json
 pub fn Rule::to_repr(Self) -> @debug.Repr
@@ -378,7 +378,7 @@ pub(all) enum RuleChild {
   Scenario(Scenario)
 }
 pub fn RuleChild::equal(Self, Self) -> Bool
-pub fn RuleChild::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn RuleChild::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn RuleChild::not_equal(Self, Self) -> Bool
 pub fn RuleChild::to_json(Self) -> @json.Json
 pub fn RuleChild::to_repr(Self) -> @debug.Repr
@@ -409,7 +409,7 @@ pub(all) struct Scenario {
 }
 pub fn Scenario::accept(Self, &GherkinVisitor) -> Unit
 pub fn Scenario::equal(Self, Self) -> Bool
-pub fn Scenario::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Scenario::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Scenario::not_equal(Self, Self) -> Bool
 pub fn Scenario::to_json(Self) -> @json.Json
 pub fn Scenario::to_repr(Self) -> @debug.Repr
@@ -433,7 +433,7 @@ pub(all) enum ScenarioKind {
   ScenarioOutline
 }
 pub fn ScenarioKind::equal(Self, Self) -> Bool
-pub fn ScenarioKind::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn ScenarioKind::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn ScenarioKind::not_equal(Self, Self) -> Bool
 pub fn ScenarioKind::to_json(Self) -> @json.Json
 pub fn ScenarioKind::to_repr(Self) -> @debug.Repr
@@ -445,7 +445,7 @@ pub struct Source {
 pub fn Source::content(Self) -> String
 pub fn Source::equal(Self, Self) -> Bool
 pub fn Source::from_bytes(Bytes, uri? : String) -> Self
-pub fn Source::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Source::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Source::from_string(String, uri? : String) -> Self
 pub fn Source::line(Self, Int32) -> String?
 pub fn Source::line_count(Self) -> Int32
@@ -467,7 +467,7 @@ pub(all) struct Step {
 }
 pub fn Step::accept(Self, &GherkinVisitor) -> Unit
 pub fn Step::equal(Self, Self) -> Bool
-pub fn Step::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Step::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Step::not_equal(Self, Self) -> Bool
 pub fn Step::to_json(Self) -> @json.Json
 pub fn Step::to_repr(Self) -> @debug.Repr
@@ -478,7 +478,7 @@ pub(all) enum StepArgument {
   DataTable(DataTable)
 }
 pub fn StepArgument::equal(Self, Self) -> Bool
-pub fn StepArgument::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn StepArgument::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn StepArgument::not_equal(Self, Self) -> Bool
 pub fn StepArgument::to_json(Self) -> @json.Json
 pub fn StepArgument::to_repr(Self) -> @debug.Repr
@@ -500,7 +500,7 @@ pub(all) struct TableCell {
   value : String
 }
 pub fn TableCell::equal(Self, Self) -> Bool
-pub fn TableCell::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn TableCell::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn TableCell::not_equal(Self, Self) -> Bool
 pub fn TableCell::to_json(Self) -> @json.Json
 pub fn TableCell::to_repr(Self) -> @debug.Repr
@@ -513,7 +513,7 @@ pub(all) struct TableRow {
 }
 pub fn TableRow::accept(Self, &GherkinVisitor) -> Unit
 pub fn TableRow::equal(Self, Self) -> Bool
-pub fn TableRow::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn TableRow::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn TableRow::not_equal(Self, Self) -> Bool
 pub fn TableRow::to_json(Self) -> @json.Json
 pub fn TableRow::to_repr(Self) -> @debug.Repr
@@ -526,7 +526,7 @@ pub(all) struct Tag {
 }
 pub fn Tag::accept(Self, &GherkinVisitor) -> Unit
 pub fn Tag::equal(Self, Self) -> Bool
-pub fn Tag::from_json(@json.Json, @json.JsonPath) -> Self raise @json.JsonDecodeError
+pub fn Tag::from_json(@json.Json, @json.DecodeContext) -> Self raise @json.JsonDecodeError
 pub fn Tag::not_equal(Self, Self) -> Bool
 pub fn Tag::to_json(Self) -> @json.Json
 pub fn Tag::to_repr(Self) -> @debug.Repr

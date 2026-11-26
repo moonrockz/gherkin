@@ -346,7 +346,7 @@ pub fn Lexer::next(self : Lexer) -> Token? {
 ///|
 /// Return an Iter[Token] that lazily produces tokens from the source.
 pub fn Lexer::iter(self : Lexer) -> Iter[Token] {
-  Iter::new(fn() { self.next() })
+  Iter(fn() { self.next() })
 }
 
 // ── i18n keyword support ──
